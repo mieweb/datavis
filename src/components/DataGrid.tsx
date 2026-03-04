@@ -11,6 +11,10 @@ import { useView, useSource, type ViewInstance } from '../adapters/use-data';
 import { type PrefsInstance } from '../adapters/use-prefs';
 import { TitleBar } from './TitleBar';
 import { GridToolbar } from './GridToolbar';
+import { ControlPanel } from './controls/ControlPanel';
+import { type ControlFieldItem } from './controls/ControlSection';
+import { type AggregateEntry, type AggregateFunction } from './controls/AggregateSection';
+import { type ColumnFilterConfig, type FilterSpec } from './filters/types';
 import { OperationsPalette, type Operation } from './OperationsPalette';
 import { DetailSlider } from './DetailSlider';
 import { LoadingOverlay } from './LoadingOverlay';
@@ -68,6 +72,14 @@ export interface DataGridProps {
   trans?: (key: string, ...args: unknown[]) => string;
   /** Enable debug button */
   debug?: boolean;
+  /** Column filter configurations for the filter bar */
+  filterColumns?: ColumnFilterConfig[];
+  /** Available fields for group/pivot controls */
+  controlFields?: { field: string; displayName: string; disabled?: boolean }[];
+  /** Available fields for aggregate controls */
+  aggregateFields?: { field: string; displayName: string }[];
+  /** Available aggregate functions */
+  aggregateFunctions?: AggregateFunction[];
 }
 
 // ───────────────────────────────────────────────────────────
@@ -89,6 +101,10 @@ export function DataGrid({
   children,
   trans: t = defaultTrans,
   debug = false,
+  filterColumns = [],
+  controlFields = [],
+  aggregateFields = [],
+  aggregateFunctions = [],
 }: DataGridProps) {
   // ── Adapter hooks ──────────────────────────────
   const viewState = useView(view);
@@ -105,6 +121,11 @@ export function DataGrid({
   const [rowMode, setRowMode] = useState<'wrapped' | 'clipped'>(
     tableDef?.rowMode ?? 'wrapped',
   );
+
+  // ── Control panel state ────────────────────────
+  const [groupFields, setGroupFields] = useState<ControlFieldItem[]>([]);
+  const [pivotFields, setPivotFields] = useState<ControlFieldItem[]>([]);
+  const [aggregateEntries, setAggregateEntries] = useState<AggregateEntry[]>([]);
 
   // Derive data mode (plain/group/pivot) from view data
   const dataMode = useMemo(() => {
@@ -153,6 +174,70 @@ export function DataGrid({
   const closeSlider = useCallback(() => {
     setSliderOpen(false);
   }, []);
+
+  // ── Control panel handlers ─────────────────────
+  const handleFilterChange = useCallback(
+    (spec: FilterSpec) => {
+      if (Object.keys(spec).length === 0) {
+        viewState.clearFilter();
+      } else {
+        viewState.setFilter(spec);
+      }
+    },
+    [viewState],
+  );
+
+  const handleGroupChange = useCallback(
+    (fields: string[]) => {
+      setGroupFields(
+        fields.map((f) => ({
+          field: f,
+          displayName: controlFields.find((cf) => cf.field === f)?.displayName ?? f,
+        })),
+      );
+      if (fields.length === 0) {
+        viewState.clearGroup();
+      } else {
+        viewState.setGroup({ fieldNames: fields });
+      }
+    },
+    [controlFields, viewState],
+  );
+
+  const handlePivotChange = useCallback(
+    (fields: string[]) => {
+      setPivotFields(
+        fields.map((f) => ({
+          field: f,
+          displayName: controlFields.find((cf) => cf.field === f)?.displayName ?? f,
+        })),
+      );
+      if (fields.length === 0) {
+        viewState.clearGroup(); // clear pivot by resetting group
+      } else {
+        viewState.setPivot({ fieldNames: fields });
+      }
+    },
+    [controlFields, viewState],
+  );
+
+  const handleAggregateChange = useCallback(
+    (entries: AggregateEntry[]) => {
+      setAggregateEntries(entries);
+      if (entries.length === 0) {
+        viewState.setAggregate(null);
+      } else {
+        const spec = entries
+          .filter((e) => e.visible)
+          .map((e) => ({
+            fn: e.functionName,
+            fields: e.fields,
+          }));
+        viewState.setAggregate(spec);
+      }
+    },
+    [viewState],
+  );
 
   // ── Filter status ──────────────────────────────
   const hasActiveFilter = useMemo(() => {
@@ -214,18 +299,22 @@ export function DataGrid({
             />
           )}
 
-          {/* Control Panel placeholder — Phase 2 */}
+          {/* Control Panel */}
           {controlsVisible && (
-            <div
-              className="wcdv-grid-controls border-b border-gray-200 p-2 bg-gray-50 text-sm text-gray-500"
-              role="region"
-              aria-label={t('GRID_CONTROL.TITLE')}
-            >
-              {/* FilterControl, GroupControl, PivotControl, AggregateControl — Phase 2 */}
-              <span className="italic">
-                {t('GRID_CONTROL.PLACEHOLDER') || 'Filter / Group / Pivot / Aggregate controls (Phase 2)'}
-              </span>
-            </div>
+            <ControlPanel
+              filterColumns={filterColumns}
+              availableFields={controlFields}
+              aggregateFields={aggregateFields}
+              groupFields={groupFields}
+              pivotFields={pivotFields}
+              aggregateEntries={aggregateEntries}
+              aggregateFunctions={aggregateFunctions}
+              onFilterChange={handleFilterChange}
+              onGroupChange={handleGroupChange}
+              onPivotChange={handlePivotChange}
+              onAggregateChange={handleAggregateChange}
+              trans={t}
+            />
           )}
 
           {/* Operations Palette */}

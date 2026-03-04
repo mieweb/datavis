@@ -4,6 +4,8 @@ import './index.css';
 import { DataGrid } from './components/DataGrid';
 import type { ViewInstance } from './adapters/use-data';
 import type { SourceInstance } from './adapters/use-data';
+import type { ColumnFilterConfig } from './components/filters/types';
+import type { AggregateFunction } from './components/controls/AggregateSection';
 
 /**
  * Creates a mock Source that mimics the wcdatavis event system.
@@ -123,22 +125,88 @@ function App() {
       'GRID_TOOLBAR.PLAIN.ROW_MODE.CLIPPED': 'Clipped',
       'GRID_TOOLBAR.PLAIN.AUTO_RESIZE_COLUMNS': 'Auto Resize',
       'GRID_CONTROL.TITLE': 'Controls',
-      'GRID_CONTROL.PLACEHOLDER': 'Filter / Group / Pivot / Aggregate controls (Phase 2)',
       'GRID_CONTROL.OPERATIONS.TITLE': 'Actions',
+      'FILTER.TITLE': 'Filters',
+      'FILTER.TOOLBAR': 'Filters',
+      'FILTER.OPERATOR': 'operator',
+      'FILTER.CLEAR_ALL': 'Clear all filters',
+      'FILTER.SELECT_VALUES': 'Select…',
+      'FILTER.ALL_SELECTED': 'All selected',
+      'FILTER.SEARCH': 'Search…',
+      'FILTER.SELECT_ALL': 'All',
+      'FILTER.CLEAR_SELECTION': 'None',
+      'CONTROL.GROUP': 'Group',
+      'CONTROL.PIVOT': 'Pivot',
+      'CONTROL.AGGREGATE': 'Aggregate',
+      'CONTROL.ADD_FIELD': '+ Add field…',
+      'CONTROL.CLEAR': 'Clear all',
+      'CONTROL.REMOVE': 'Remove',
+      'CONTROL.DROP_HINT': 'Add or drag fields here',
+      'CONTROL.ADD_AGGREGATE': '+ Add aggregate…',
+      'CONTROL.SELECT_FIELD': 'Field…',
+      'CONTROL.VISIBLE': 'Visible',
     };
     return labels[key] ?? key;
   }, []);
 
+  const filterColumns: ColumnFilterConfig[] = useMemo(
+    () => [
+      { field: 'name', displayName: 'Name', filterType: 'string', widget: 'textbox', visible: true },
+      {
+        field: 'department',
+        displayName: 'Department',
+        filterType: 'string',
+        widget: 'dropdown',
+        options: ['Engineering', 'Marketing', 'Design'],
+        visible: true,
+      },
+      { field: 'age', displayName: 'Age', filterType: 'number', visible: true },
+      { field: 'status', displayName: 'Status', filterType: 'string', widget: 'dropdown', options: ['Active', 'Inactive'], visible: true },
+    ],
+    [],
+  );
+
+  const controlFields = useMemo(
+    () => [
+      { field: 'name', displayName: 'Name' },
+      { field: 'department', displayName: 'Department' },
+      { field: 'status', displayName: 'Status' },
+      { field: 'age', displayName: 'Age' },
+    ],
+    [],
+  );
+
+  const aggregateFields = useMemo(
+    () => [{ field: 'age', displayName: 'Age' }],
+    [],
+  );
+
+  const aggregateFunctions: AggregateFunction[] = useMemo(
+    () => [
+      { name: 'sum', label: 'Sum', fieldCount: 1 },
+      { name: 'avg', label: 'Average', fieldCount: 1 },
+      { name: 'count', label: 'Count', fieldCount: 0 },
+      { name: 'min', label: 'Min', fieldCount: 1 },
+      { name: 'max', label: 'Max', fieldCount: 1 },
+    ],
+    [],
+  );
+
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      <h1 className="text-xl font-bold mb-4 text-gray-800">WC DataVis — Phase 0/1 Demo</h1>
+      <h1 className="text-xl font-bold mb-4 text-gray-800">WC DataVis — Phase 2 Demo</h1>
 
       <DataGrid
         view={view}
         title="Employee Directory"
-        helpText="This is a demo grid using mock data. Table renderer coming in Phase 4."
+        helpText="Demo grid with filters and controls. Click the ⚙ Controls button to expand."
         showToolbar={true}
+        showControls={true}
         trans={trans}
+        filterColumns={filterColumns}
+        controlFields={controlFields}
+        aggregateFields={aggregateFields}
+        aggregateFunctions={aggregateFunctions}
         operations={[
           { label: 'Edit', icon: '✏️', category: 'Actions', callback: () => alert('Edit clicked') },
           { label: 'Delete', icon: '🗑️', category: 'Actions', callback: () => alert('Delete clicked') },

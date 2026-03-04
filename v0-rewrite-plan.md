@@ -1,6 +1,6 @@
 # WC DataVis v0 Rewrite Plan — Align to UI.mieweb.org
 
-> **Status:** Phase 0 & 1 Complete  
+> **Status:** Phase 0, 1 & 2 Complete  
 > **Date:** 2026-03-04  
 > **Goal:** Replace all legacy/third-party UI widgets with `@mieweb/ui` (React + Tailwind) components while retaining the existing data-processing libraries unchanged.
 
@@ -211,13 +211,13 @@ graph LR
 - [x] Port operations palette using `<Button>` icon variants
 - [x] Port block-UI overlay → `<Spinner>` / loading state
 
-### Phase 2 — Filters & Control Panel (2–3 weeks)
+### Phase 2 — Filters & Control Panel ✅
 
-- [ ] `<FilterBar>` component replacing `GridFilterSet`
-- [ ] Individual filter components: `<StringFilter>`, `<NumberFilter>`, `<DateFilter>`, `<BooleanFilter>`
-- [ ] Replace SumoSelect → `<Select multiple>`
-- [ ] Replace flatpickr → `<DateInput>`, `<DateRangePicker>`
-- [ ] `<ControlPanel>` with `@dnd-kit` for group/pivot/aggregate drag-and-drop
+- [x] `<FilterBar>` component replacing `GridFilterSet`
+- [x] Individual filter components: `<StringFilter>`, `<NumberFilter>`, `<DateFilter>`, `<BooleanFilter>`
+- [x] Replace SumoSelect → custom multi-select dropdown with search, select-all
+- [x] Replace flatpickr → native date/datetime-local inputs with operator-based UI
+- [x] `<ControlPanel>` with `@dnd-kit` for group/pivot/aggregate drag-and-drop
 
 ### Phase 3 — Dialogs (1–2 weeks)
 
