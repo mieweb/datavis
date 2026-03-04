@@ -1,6 +1,6 @@
 # WC DataVis v0 Rewrite Plan — Align to UI.mieweb.org
 
-> **Status:** Draft  
+> **Status:** Phase 0 & 1 Complete  
 > **Date:** 2026-03-04  
 > **Goal:** Replace all legacy/third-party UI widgets with `@mieweb/ui` (React + Tailwind) components while retaining the existing data-processing libraries unchanged.
 
@@ -195,21 +195,21 @@ graph LR
 
 ## 5. Phased Roadmap
 
-### Phase 0 — Scaffold & Adapter (1–2 weeks)
+### Phase 0 — Scaffold & Adapter ✅
 
-- [ ] Add `react`, `react-dom`, `@mieweb/ui` as dependencies
-- [ ] Set up Vite dual-build (existing IIFE bundle + new React entry point)
-- [ ] Create adapter layer: `EventBridge`, `useSource()`, `useView()` hooks
-- [ ] Verify data core imports work without jQuery side-effects in the React path
-- [ ] Set up Storybook for DataVis component development
+- [x] Add `react`, `react-dom`, `@mieweb/ui` as dependencies
+- [x] Set up Vite dual-build (existing IIFE bundle + new React entry point)
+- [x] Create adapter layer: `EventBridge`, `useSource()`, `useView()` hooks
+- [x] Verify data core imports work without jQuery side-effects in the React path
+- [x] Set up Storybook for DataVis component development
 
-### Phase 1 — Grid Shell (2–3 weeks)
+### Phase 1 — Grid Shell ✅
 
-- [ ] `<DataGrid>` React component: title bar, toolbar, content area
-- [ ] Port toolbar: `<Button>`, `<Radio>`, `<Switch>`, `<Dropdown>`, `<Tooltip>`
-- [ ] Port slider / row-detail panel using `<Sidebar>` or `<Slider>`
-- [ ] Port operations palette using `<Button>` icon variants
-- [ ] Port block-UI overlay → `<Spinner>` / loading state
+- [x] `<DataGrid>` React component: title bar, toolbar, content area
+- [x] Port toolbar: `<Button>`, `<Radio>`, `<Switch>`, `<Dropdown>`, `<Tooltip>`
+- [x] Port slider / row-detail panel using `<Sidebar>` or `<Slider>`
+- [x] Port operations palette using `<Button>` icon variants
+- [x] Port block-UI overlay → `<Spinner>` / loading state
 
 ### Phase 2 — Filters & Control Panel (2–3 weeks)
 
