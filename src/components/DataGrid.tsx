@@ -286,8 +286,8 @@ export function DataGrid({
       {/* Collapsible Content */}
       {!collapsed && (
         <div className="wcdv-grid-content flex flex-col flex-1 min-h-0">
-          {/* Toolbar */}
-          {showToolbar && (
+          {/* Toolbar (hidden with controls) */}
+          {controlsVisible && showToolbar && (
             <GridToolbar
               dataMode={dataMode}
               tableDef={tableDef}
@@ -317,8 +317,8 @@ export function DataGrid({
             />
           )}
 
-          {/* Operations Palette */}
-          {operations.length > 0 && (
+          {/* Operations Palette (hidden with controls) */}
+          {controlsVisible && operations.length > 0 && (
             <OperationsPalette operations={operations} trans={t} />
           )}
 
