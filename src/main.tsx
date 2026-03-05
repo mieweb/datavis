@@ -194,7 +194,7 @@ function App() {
 
   return (
     <div className="min-h-screen bg-gray-100 p-6">
-      <h1 className="text-xl font-bold mb-4 text-gray-800">WC DataVis — Phase 2 Demo</h1>
+      <h1 className="text-xl font-bold mb-4 text-gray-800">WC DataVis — Phase 3 Demo</h1>
 
       <DataGrid
         view={view}
@@ -202,11 +202,30 @@ function App() {
         helpText="Demo grid with filters and controls. Click the ⚙ Controls button to expand."
         showToolbar={true}
         showControls={true}
+        debug={true}
         trans={trans}
         filterColumns={filterColumns}
         controlFields={controlFields}
         aggregateFields={aggregateFields}
         aggregateFunctions={aggregateFunctions}
+        columnConfigs={[
+          { field: 'name', displayText: 'Name', isPinned: false, isHidden: false, allowHtml: false, allowFormatting: true, canHide: false },
+          { field: 'age', displayText: 'Age', isPinned: false, isHidden: false, allowHtml: false, allowFormatting: true },
+          { field: 'department', displayText: 'Department', isPinned: false, isHidden: false, allowHtml: false, allowFormatting: true },
+          { field: 'status', displayText: 'Status', isPinned: false, isHidden: false, allowHtml: true, allowFormatting: false },
+        ]}
+        onColumnConfigSave={(cols, cache) => console.log('Column config saved:', cols, cache)}
+        templates={{ whenPlain: { item: '{{name}} — {{department}}' } }}
+        onTemplateSave={(tpls) => console.log('Templates saved:', tpls)}
+        groupFunctionDefs={[
+          { name: 'each', label: 'Each Value', category: 'repeating' },
+          { name: 'unique', label: 'Unique Values', category: 'repeating' },
+          { name: 'year', label: 'Year', category: 'date' },
+          { name: 'month', label: 'Month', category: 'date' },
+          { name: 'week', label: 'Week', category: 'date' },
+        ]}
+        onGroupFunctionSelect={(field, fn) => console.log('Group function:', field, fn)}
+        onDisplayFormatSave={(df) => console.log('Display format:', df)}
         operations={[
           { label: 'Edit', icon: '✏️', category: 'Actions', callback: () => alert('Edit clicked') },
           { label: 'Delete', icon: '🗑️', category: 'Actions', callback: () => alert('Delete clicked') },

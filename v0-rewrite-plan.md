@@ -1,6 +1,6 @@
 # WC DataVis v0 Rewrite Plan — Align to UI.mieweb.org
 
-> **Status:** Phase 0, 1 & 2 Complete  
+> **Status:** Phase 0, 1, 2 & 3 Complete  
 > **Date:** 2026-03-04  
 > **Goal:** Replace all legacy/third-party UI widgets with `@mieweb/ui` (React + Tailwind) components while retaining the existing data-processing libraries unchanged.
 
@@ -219,14 +219,14 @@ graph LR
 - [x] Replace flatpickr → native date/datetime-local inputs with operator-based UI
 - [x] `<ControlPanel>` with `@dnd-kit` for group/pivot/aggregate drag-and-drop
 
-### Phase 3 — Dialogs (1–2 weeks)
+### Phase 3 — Dialogs ✅
 
-- [ ] Column Config → `<Modal>` + sortable `<Table>` + `<Checkbox>` / `<Switch>`
-- [ ] Template Editor → `<Modal>` + `<Tabs>` + `<Textarea>`
-- [ ] Debug Window → `<Modal>` + `<Tabs>` + collapsible sections
-- [ ] Grid Table Options → `<Modal>` + `<Checkbox>` + `<Textarea>`
-- [ ] Group Function Window → `<Modal>` + form inputs
-- [ ] Perspective Manager → `<Modal>` + `<Select>` + `<Button>`
+- [x] Column Config → `<Modal>` + sortable `<Table>` + `<Checkbox>` / `<Switch>`
+- [x] Template Editor → `<Modal>` + `<Tabs>` + `<Textarea>`
+- [x] Debug Window → `<Modal>` + `<Tabs>` + collapsible sections
+- [x] Grid Table Options → `<Modal>` + `<Checkbox>` + `<Textarea>`
+- [x] Group Function Window → `<Modal>` + form inputs
+- [x] Perspective Manager → `<Modal>` + `<Select>` + `<Button>`
 
 ### Phase 4 — Table Renderer (3–4 weeks)
 

@@ -17,7 +17,9 @@ export interface PivotToolbarProps {
   view: ViewInstance;
   trans: (key: string, ...args: unknown[]) => string;
   onRedraw: () => void;
+  onOpenColumnConfig?: () => void;
   onOpenTemplateEditor?: () => void;
+  onOpenTableOptions?: () => void;
 }
 
 export function PivotToolbar({
@@ -25,7 +27,9 @@ export function PivotToolbar({
   view,
   trans: t,
   onRedraw,
+  onOpenColumnConfig,
   onOpenTemplateEditor,
+  onOpenTableOptions,
 }: PivotToolbarProps) {
   const [showTotals, setShowTotals] = useState(
     tableDef?.whenPivot?.showTotalCol ?? true,
@@ -115,6 +119,18 @@ export function PivotToolbar({
       {/* Separator */}
       <div className="w-px h-5 bg-gray-200 mx-1" role="separator" />
 
+      {/* Columns */}
+      <Tooltip content={t('GRID_TOOLBAR.PLAIN.COLUMNS') || 'Columns'}>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onOpenColumnConfig}
+          aria-label={t('GRID_TOOLBAR.PLAIN.COLUMNS')}
+        >
+          ☰ {t('GRID_TOOLBAR.PLAIN.COLUMNS') || 'Columns'}
+        </Button>
+      </Tooltip>
+
       {/* Templates Editor */}
       <Tooltip content={t('GRID_TOOLBAR.PLAIN.TEMPLATES_EDITOR') || 'Templates'}>
         <Button
@@ -124,6 +140,18 @@ export function PivotToolbar({
           aria-label={t('GRID_TOOLBAR.PLAIN.TEMPLATES_EDITOR')}
         >
           ✏ {t('GRID_TOOLBAR.PLAIN.TEMPLATES_EDITOR') || 'Templates'}
+        </Button>
+      </Tooltip>
+
+      {/* Table Options */}
+      <Tooltip content={t('GRID_TOOLBAR.PIVOT.TABLE_OPTIONS') || 'Table Options'}>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={onOpenTableOptions}
+          aria-label={t('GRID_TOOLBAR.PIVOT.TABLE_OPTIONS')}
+        >
+          ⚙ {t('GRID_TOOLBAR.PIVOT.TABLE_OPTIONS') || 'Table Options'}
         </Button>
       </Tooltip>
     </>

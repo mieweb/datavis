@@ -20,6 +20,9 @@ export interface GridToolbarProps {
   trans: (key: string, ...args: unknown[]) => string;
   onRowModeChange: (mode: 'wrapped' | 'clipped') => void;
   onRedraw: () => void;
+  onOpenColumnConfig?: () => void;
+  onOpenTemplateEditor?: () => void;
+  onOpenTableOptions?: () => void;
 }
 
 export function GridToolbar({
@@ -30,6 +33,9 @@ export function GridToolbar({
   trans: t,
   onRowModeChange,
   onRedraw,
+  onOpenColumnConfig,
+  onOpenTemplateEditor,
+  onOpenTableOptions,
 }: GridToolbarProps) {
   return (
     <div
@@ -44,6 +50,8 @@ export function GridToolbar({
           trans={t}
           onRowModeChange={onRowModeChange}
           onShowAllRows={onRedraw}
+          onOpenColumnConfig={onOpenColumnConfig}
+          onOpenTemplateEditor={onOpenTemplateEditor}
         />
       )}
 
@@ -53,6 +61,8 @@ export function GridToolbar({
           view={view}
           trans={t}
           onRedraw={onRedraw}
+          onOpenColumnConfig={onOpenColumnConfig}
+          onOpenTemplateEditor={onOpenTemplateEditor}
         />
       )}
 
@@ -62,6 +72,9 @@ export function GridToolbar({
           view={view}
           trans={t}
           onRedraw={onRedraw}
+          onOpenColumnConfig={onOpenColumnConfig}
+          onOpenTemplateEditor={onOpenTemplateEditor}
+          onOpenTableOptions={onOpenTableOptions}
         />
       )}
     </div>

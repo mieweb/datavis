@@ -18,6 +18,13 @@ import { type ColumnFilterConfig, type FilterSpec } from './filters/types';
 import { OperationsPalette, type Operation } from './OperationsPalette';
 import { DetailSlider } from './DetailSlider';
 import { LoadingOverlay } from './LoadingOverlay';
+import { ColumnConfigDialog, type ColumnConfig } from './dialogs/ColumnConfigDialog';
+import { TemplateEditorDialog, type TemplateData } from './dialogs/TemplateEditorDialog';
+import { DebugDialog } from './dialogs/DebugDialog';
+import { GridTableOptionsDialog, type DisplayFormatConfig } from './dialogs/GridTableOptionsDialog';
+import { GroupFunctionDialog } from './dialogs/GroupFunctionDialog';
+import type { GroupFunction as GroupFunctionDef } from './dialogs/GroupFunctionDialog';
+import { PerspectiveManagerDialog, type PerspectiveInfo } from './dialogs/PerspectiveManagerDialog';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -80,6 +87,22 @@ export interface DataGridProps {
   aggregateFields?: { field: string; displayName: string }[];
   /** Available aggregate functions */
   aggregateFunctions?: AggregateFunction[];
+  /** Column configs for the Column Configuration dialog */
+  columnConfigs?: ColumnConfig[];
+  /** Callback when column configuration is saved */
+  onColumnConfigSave?: (columns: ColumnConfig[], clearRenderCache: string[]) => void;
+  /** Template data for the Template Editor dialog */
+  templates?: TemplateData;
+  /** Callback when templates are saved */
+  onTemplateSave?: (templates: TemplateData) => void;
+  /** Display format config for the Grid Table Options dialog */
+  displayFormat?: DisplayFormatConfig;
+  /** Callback when display format is saved */
+  onDisplayFormatSave?: (displayFormat: DisplayFormatConfig) => void;
+  /** Group function definitions for the Group Function dialog */
+  groupFunctionDefs?: GroupFunctionDef[];
+  /** Callback when a group function is selected */
+  onGroupFunctionSelect?: (fieldName: string, functionName: string | null) => void;
 }
 
 // ───────────────────────────────────────────────────────────
@@ -105,6 +128,14 @@ export function DataGrid({
   controlFields = [],
   aggregateFields = [],
   aggregateFunctions = [],
+  columnConfigs = [],
+  onColumnConfigSave,
+  templates = {},
+  onTemplateSave,
+  displayFormat,
+  onDisplayFormatSave,
+  groupFunctionDefs = [],
+  onGroupFunctionSelect,
 }: DataGridProps) {
   // ── Adapter hooks ──────────────────────────────
   const viewState = useView(view);
@@ -126,6 +157,18 @@ export function DataGrid({
   const [groupFields, setGroupFields] = useState<ControlFieldItem[]>([]);
   const [pivotFields, setPivotFields] = useState<ControlFieldItem[]>([]);
   const [aggregateEntries, setAggregateEntries] = useState<AggregateEntry[]>([]);
+
+  // ── Dialog state ───────────────────────────────
+  const [colConfigOpen, setColConfigOpen] = useState(false);
+  const [templateEditorOpen, setTemplateEditorOpen] = useState(false);
+  const [debugOpen, setDebugOpen] = useState(false);
+  const [tableOptsOpen, setTableOptsOpen] = useState(false);
+  const [groupFnOpen, setGroupFnOpen] = useState(false);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [groupFnField, _setGroupFnField] = useState<string | undefined>();
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [groupFnCurrent, _setGroupFnCurrent] = useState<string | undefined>();
+  const [perspectiveOpen, setPerspectiveOpen] = useState(false);
 
   // Derive data mode (plain/group/pivot) from view data
   const dataMode = useMemo(() => {
@@ -239,6 +282,43 @@ export function DataGrid({
     [viewState],
   );
 
+  // ── Dialog open helpers ────────────────────────
+  const openColumnConfig = useCallback(() => setColConfigOpen(true), []);
+  const openTemplateEditor = useCallback(() => setTemplateEditorOpen(true), []);
+  const openDebug = useCallback(() => setDebugOpen(true), []);
+  const openTableOpts = useCallback(() => setTableOptsOpen(true), []);
+  const openPerspective = useCallback(() => setPerspectiveOpen(true), []);
+
+  const handleColumnConfigSave = useCallback(
+    (cols: ColumnConfig[], clearCache: string[]) => {
+      onColumnConfigSave?.(cols, clearCache);
+    },
+    [onColumnConfigSave],
+  );
+
+  const handleTemplateSave = useCallback(
+    (tpls: TemplateData) => {
+      onTemplateSave?.(tpls);
+    },
+    [onTemplateSave],
+  );
+
+  const handleDisplayFormatSave = useCallback(
+    (df: DisplayFormatConfig) => {
+      onDisplayFormatSave?.(df);
+    },
+    [onDisplayFormatSave],
+  );
+
+  const handleGroupFnSelect = useCallback(
+    (fnName: string | null) => {
+      if (groupFnField) {
+        onGroupFunctionSelect?.(groupFnField, fnName);
+      }
+    },
+    [groupFnField, onGroupFunctionSelect],
+  );
+
   // ── Filter status ──────────────────────────────
   const hasActiveFilter = useMemo(() => {
     // Check if view has an active filter
@@ -281,6 +361,8 @@ export function DataGrid({
         onExport={handleExport}
         onCancel={sourceState.cancel}
         onClearFilter={clearFilter}
+        onOpenDebug={openDebug}
+        onOpenPerspective={openPerspective}
       />
 
       {/* Collapsible Content */}
@@ -296,6 +378,9 @@ export function DataGrid({
               trans={t}
               onRowModeChange={handleRowModeChange}
               onRedraw={() => view.getData()}
+              onOpenColumnConfig={openColumnConfig}
+              onOpenTemplateEditor={openTemplateEditor}
+              onOpenTableOptions={openTableOpts}
             />
           )}
 
@@ -348,6 +433,85 @@ export function DataGrid({
       >
         {sliderContent}
       </DetailSlider>
+
+      {/* ── Dialogs (Phase 3) ── */}
+      <ColumnConfigDialog
+        open={colConfigOpen}
+        onOpenChange={setColConfigOpen}
+        columns={columnConfigs}
+        onSave={handleColumnConfigSave}
+        trans={t}
+      />
+
+      <TemplateEditorDialog
+        open={templateEditorOpen}
+        onOpenChange={setTemplateEditorOpen}
+        templates={templates}
+        onSave={handleTemplateSave}
+        trans={t}
+      />
+
+      <DebugDialog
+        open={debugOpen}
+        onOpenChange={setDebugOpen}
+        source={{
+          type: (sourceState.source as unknown as Record<string, unknown>).type as string | undefined,
+          name: (sourceState.source as unknown as Record<string, unknown>).name as string | undefined,
+          params: (sourceState as unknown as Record<string, unknown>).params,
+        }}
+        view={{
+          name: (view as unknown as Record<string, unknown>).name as string | undefined,
+          filter: viewState.data ? (viewState.data as unknown as Record<string, unknown>).filter : undefined,
+          group: viewState.data?.isGroup ? viewState.data.groupFields : undefined,
+          pivot: viewState.data?.isPivot ? viewState.data.pivotFields : undefined,
+          aggregate: viewState.data ? (viewState.data as unknown as Record<string, unknown>).agg : undefined,
+        }}
+        grid={{ colConfig: columnConfigs }}
+        prefs={prefs ? {
+          autoSave: (prefs as unknown as Record<string, unknown>).autoSave as boolean | undefined,
+          backendType: (prefs as unknown as Record<string, unknown>).backendType as string | undefined,
+          currentPerspective: prefs.getCurrentPerspective()
+            ? { id: prefs.getCurrentPerspective()!.id, name: prefs.getCurrentPerspective()!.name }
+            : undefined,
+          perspectives: prefs.getPerspectives().reduce(
+            (acc, p) => ({ ...acc, [p.id]: { name: p.name, config: null } }),
+            {},
+          ),
+        } : undefined}
+        trans={t}
+      />
+
+      <GridTableOptionsDialog
+        open={tableOptsOpen}
+        onOpenChange={setTableOptsOpen}
+        displayFormat={displayFormat}
+        onSave={handleDisplayFormatSave}
+        trans={t}
+      />
+
+      <GroupFunctionDialog
+        open={groupFnOpen}
+        onOpenChange={setGroupFnOpen}
+        groupFunctions={groupFunctionDefs}
+        currentFunction={groupFnCurrent}
+        fieldName={groupFnField}
+        onSelect={handleGroupFnSelect}
+        trans={t}
+      />
+
+      {prefs && (
+        <PerspectiveManagerDialog
+          open={perspectiveOpen}
+          onOpenChange={setPerspectiveOpen}
+          currentPerspective={prefs.getCurrentPerspective() as PerspectiveInfo | undefined}
+          perspectives={prefs.getPerspectives() as PerspectiveInfo[]}
+          onSwitch={(id) => prefs.setCurrentPerspective(id)}
+          onCreate={(name) => prefs.addPerspective(name)}
+          onRename={(id, name) => prefs.renamePerspective(id, name)}
+          onDelete={(id) => prefs.deletePerspective(id)}
+          trans={t}
+        />
+      )}
     </div>
   );
 }

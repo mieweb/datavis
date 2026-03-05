@@ -29,6 +29,42 @@ export { ControlSection, type ControlSectionProps, type ControlFieldItem, type A
 export { AggregateSection, type AggregateSectionProps, type AggregateFunction, type AggregateEntry } from './controls/AggregateSection';
 export { FieldPill, type FieldPillProps } from './controls/FieldPill';
 
+// Dialog components (Phase 3)
+export {
+  ColumnConfigDialog,
+  type ColumnConfig,
+  type ColumnConfigDialogProps,
+} from './dialogs/ColumnConfigDialog';
+export {
+  TemplateEditorDialog,
+  type TemplateSlots,
+  type TemplateData,
+  type TemplateEditorDialogProps,
+} from './dialogs/TemplateEditorDialog';
+export {
+  DebugDialog,
+  type DebugSourceInfo,
+  type DebugViewInfo,
+  type DebugGridInfo,
+  type DebugPrefsInfo,
+  type DebugDialogProps,
+} from './dialogs/DebugDialog';
+export {
+  GridTableOptionsDialog,
+  type DisplayFormatConfig,
+  type GridTableOptionsDialogProps,
+} from './dialogs/GridTableOptionsDialog';
+export {
+  GroupFunctionDialog,
+  type GroupFunctionDialogProps,
+} from './dialogs/GroupFunctionDialog';
+export type { GroupFunction as GroupFunctionDef } from './dialogs/GroupFunctionDialog';
+export {
+  PerspectiveManagerDialog,
+  type PerspectiveInfo,
+  type PerspectiveManagerDialogProps,
+} from './dialogs/PerspectiveManagerDialog';
+
 // Type exports
 export type {
   FilterOperator,

@@ -30,6 +30,8 @@ export interface TitleBarProps {
   onExport: () => void;
   onCancel: () => void;
   onClearFilter: () => void;
+  onOpenDebug?: () => void;
+  onOpenPerspective?: () => void;
 }
 
 export function TitleBar({
@@ -50,6 +52,8 @@ export function TitleBar({
   onExport,
   onCancel,
   onClearFilter,
+  onOpenDebug,
+  onOpenPerspective,
 }: TitleBarProps) {
   const filtered = totalRowCount > 0 && rowCount !== totalRowCount;
   const rowCountText = filtered
@@ -131,7 +135,7 @@ export function TitleBar({
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => {/* TODO: debug dialog */}}
+              onClick={onOpenDebug}
               aria-label={t('GRID.TITLEBAR.DEBUG')}
             >
               🐛
@@ -166,6 +170,7 @@ export function TitleBar({
             size="sm"
             variant="ghost"
             onClick={onToggleControls}
+            onDoubleClick={onOpenPerspective}
             aria-label={t('GRID.TITLEBAR.CONTROLS')}
           >
             ⚙
