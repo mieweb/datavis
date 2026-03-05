@@ -88,7 +88,7 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): Mock
       setTimeout(() => {
         view.fire('workBegin');
         setTimeout(() => {
-          let result = view._filterSpec
+          const result = view._filterSpec
             ? applyFilter(data, view._filterSpec)
             : [...data];
 
