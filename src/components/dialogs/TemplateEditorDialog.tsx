@@ -84,6 +84,11 @@ const PIVOT_SLOTS: SlotDef[] = [
   { key: 'after', label: 'After', rows: 2 },
 ];
 
+/** Convert camelCase → UPPER_SNAKE_CASE (e.g. beforeGroup → BEFORE_GROUP) */
+function toSnakeKey(s: string): string {
+  return s.replace(/[A-Z]/g, (ch) => `_${ch}`).toUpperCase();
+}
+
 // ───────────────────────────────────────────────────────────
 // Component
 // ───────────────────────────────────────────────────────────
@@ -139,7 +144,7 @@ export function TemplateEditorDialog({
         {slots.map((slot) => (
           <div key={slot.key}>
             <Textarea
-              label={t(`TEMPLATE_EDITOR.${slot.key.toUpperCase()}`) || slot.label}
+              label={t(`TEMPLATE_EDITOR.${toSnakeKey(slot.key)}`) || slot.label}
               value={data[mode]?.[slot.key] ?? ''}
               onChange={(e) =>
                 handleSlotChange(mode, slot.key, e.target.value)

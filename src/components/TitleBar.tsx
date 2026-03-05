@@ -59,11 +59,9 @@ export function TitleBar({
   const t = useTranslation(transProp);
   const filtered = totalRowCount > 0 && rowCount !== totalRowCount;
   const rowCountText = filtered
-    ? t('GRID.TITLEBAR.RECORD_COUNT_FILTERED')
-        .replace('%d', String(rowCount))
-        .replace('%d', String(totalRowCount))
+    ? `${rowCount} / ${totalRowCount}`
     : rowCount > 0
-      ? `${rowCount} ${rowCount === 1 ? t('GRID.TITLEBAR.RECORD_COUNT_SINGULAR') : t('GRID.TITLEBAR.RECORD_COUNT_PLURAL')}`
+      ? String(rowCount)
       : '';
 
   return (

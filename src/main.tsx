@@ -170,7 +170,9 @@ function parseTsv(raw: string): Record<string, string> {
 const LABELS = parseTsv(enUsTsv);
 
 const trans = (key: string, ...args: unknown[]): string => {
-  let text = LABELS[key] ?? key;
+  const raw = LABELS[key];
+  if (!raw) return '';
+  let text = raw;
   for (const arg of args) {
     text = text.replace('%s', String(arg ?? ''));
   }

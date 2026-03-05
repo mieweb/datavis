@@ -14,8 +14,8 @@ import { createContext, useContext, type ReactNode } from 'react';
 /** Signature shared by the legacy `trans()` and the React prop. */
 export type TransFn = (key: string, ...args: unknown[]) => string;
 
-/** Default identity translation — returns the raw key. */
-export const defaultTrans: TransFn = (key: string) => key;
+/** Default identity translation — returns '' so `t(key) || 'fallback'` works. */
+export const defaultTrans: TransFn = () => '';
 
 const TransContext = createContext<TransFn>(defaultTrans);
 
