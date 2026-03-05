@@ -10,7 +10,10 @@
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
-    "lint": "eslint src/"
+    "lint:eslint": "eslint src/",
+    "lint:i18n": "node scripts/check-i18n-keys.mjs",
+    "lint:i18n:update": "node scripts/check-i18n-keys.mjs --update",
+    "lint": "npm run lint:eslint && npm run lint:i18n"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",

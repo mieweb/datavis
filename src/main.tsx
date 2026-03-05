@@ -24,6 +24,7 @@ import {
 } from './demo/data';
 import { applyFilter } from './demo/apply-filter';
 import type { FilterSpec } from './components/filters/types';
+import enUsTsv from '../wcdatavis/en-US.tsv?raw';
 
 // ───────────────────────────────────────────────────────────
 // Mock adapter factories
@@ -126,70 +127,30 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): Mock
 }
 
 // ───────────────────────────────────────────────────────────
-// Shared i18n labels
+// Shared i18n labels — parsed from wcdatavis/en-US.tsv (single source of truth)
 // ───────────────────────────────────────────────────────────
 
-const LABELS: Record<string, string> = {
-  'GRID.TITLEBAR.TITLE': 'Grid',
-  'GRID.TITLEBAR.LOADING': 'Loading…',
-  'GRID.TITLEBAR.RECORD_COUNT_SINGULAR': 'record',
-  'GRID.TITLEBAR.RECORD_COUNT_PLURAL': 'records',
-  'GRID.TITLEBAR.RECORD_COUNT_FILTERED': '%d of %d records',
-  'GRID.TITLEBAR.CLEAR_FILTER': 'Clear Filter',
-  'GRID.TITLEBAR.CANCEL': 'Cancel',
-  'GRID.TITLEBAR.HELP': 'Help',
-  'GRID.TITLEBAR.DEBUG': 'Debug',
-  'GRID.TITLEBAR.EXPORT': 'Export',
-  'GRID.TITLEBAR.REFRESH': 'Refresh',
-  'GRID.TITLEBAR.CONTROLS': 'Controls',
-  'GRID.TITLEBAR.COLLAPSE': 'Collapse',
-  'GRID.TITLEBAR.EXPAND': 'Expand',
-  'GRID.LOADING.FETCHING': 'Fetching data…',
-  'GRID.LOADING.PROCESSING': 'Processing…',
-  'GRID_TOOLBAR.LABEL': 'Grid Toolbar',
-  'GRID_TOOLBAR.PLAIN.SHOW_MORE_ON_SCROLL': 'Auto-show more',
-  'GRID_TOOLBAR.PLAIN.SHOW_ALL_ROWS': 'Show All',
-  'GRID_TOOLBAR.PLAIN.COLUMNS': 'Columns',
-  'GRID_TOOLBAR.PLAIN.TEMPLATES_EDITOR': 'Templates',
-  'GRID_TOOLBAR.PLAIN.ROW_MODE': 'Row Mode',
-  'GRID_TOOLBAR.PLAIN.ROW_MODE.WRAPPED': 'Wrapped',
-  'GRID_TOOLBAR.PLAIN.ROW_MODE.CLIPPED': 'Clipped',
-  'GRID_TOOLBAR.PLAIN.AUTO_RESIZE_COLUMNS': 'Auto Resize',
-  'GRID_CONTROL.TITLE': 'Controls',
-  'GRID_CONTROL.OPERATIONS.TITLE': 'Actions',
-  'FILTER.TITLE': 'Filters',
-  'FILTER.TOOLBAR': 'Filters',
-  'FILTER.OPERATOR': 'operator',
-  'FILTER.CLEAR_ALL': 'Clear all filters',
-  'FILTER.SELECT_VALUES': 'Select…',
-  'FILTER.ALL_SELECTED': 'All selected',
-  'FILTER.SEARCH': 'Search…',
-  'FILTER.SELECT_ALL': 'All',
-  'FILTER.CLEAR_SELECTION': 'None',
-  'CONTROL.GROUP': 'Group',
-  'CONTROL.PIVOT': 'Pivot',
-  'CONTROL.AGGREGATE': 'Aggregate',
-  'CONTROL.ADD_FIELD': '+ Add field…',
-  'CONTROL.CLEAR': 'Clear all',
-  'CONTROL.REMOVE': 'Remove',
-  'CONTROL.DROP_HINT': 'Add or drag fields here',
-  'CONTROL.ADD_AGGREGATE': '+ Add aggregate…',
-  'CONTROL.SELECT_FIELD': 'Field…',
-  'CONTROL.VISIBLE': 'Visible',
-  'TABLE.SHOWING': 'Showing',
-  'TABLE.OF': 'of',
-  'TABLE.ROWS': 'rows',
-  'TABLE.NO_DATA': 'No data to display',
-  'TABLE.SHOW_MORE': 'Show More',
-  'TABLE.SHOW_ALL': 'Show All',
-  'TABLE.GROUPS': 'groups',
-  'TABLE.TOTAL': 'Total',
-  'TABLE.SORT_ASC': 'Sort Ascending',
-  'TABLE.SORT_DESC': 'Sort Descending',
-  'TABLE.HIDE_COLUMN': 'Hide Column',
-};
+function parseTsv(raw: string): Record<string, string> {
+  const labels: Record<string, string> = {};
+  for (const line of raw.split(/\r?\n/)) {
+    if (!line.trim() || line.startsWith('//') || line.startsWith('Translation Label')) continue;
+    const [key, value] = line.split('\t');
+    if (key && /^[A-Z0-9_.-]+$/.test(key.trim())) {
+      labels[key.trim()] = value?.trim() ?? key.trim();
+    }
+  }
+  return labels;
+}
 
-const trans = (key: string): string => LABELS[key] ?? key;
+const LABELS = parseTsv(enUsTsv);
+
+const trans = (key: string, ...args: unknown[]): string => {
+  let text = LABELS[key] ?? key;
+  for (const arg of args) {
+    text = text.replace('%s', String(arg ?? ''));
+  }
+  return text;
+};
 
 const AGG_FUNCTIONS: AggregateFunction[] = [
   { name: 'sum', label: 'Sum', fieldCount: 1 },
