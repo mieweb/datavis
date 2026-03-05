@@ -7,6 +7,7 @@
  */
 
 import { useRef, useEffect, useCallback } from 'react';
+import { useTranslation, type TransFn } from '../../i18n';
 import type { FilterOperator, OperatorInfo } from './types';
 
 /**
@@ -53,7 +54,7 @@ export interface FilterOperatorSelectProps {
   /** Auto-focus and open on mount */
   autoFocus?: boolean;
   /** i18n function */
-  trans?: (key: string) => string;
+  trans?: TransFn;
 }
 
 export function FilterOperatorSelect({
@@ -62,7 +63,9 @@ export function FilterOperatorSelect({
   onChange,
   'aria-label': ariaLabel,
   autoFocus,
+  trans: transProp,
 }: FilterOperatorSelectProps) {
+  const t = useTranslation(transProp);
   const selectRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {
@@ -100,7 +103,7 @@ export function FilterOperatorSelect({
       className="wcdv-filter-operator h-7 rounded border border-gray-300 bg-white text-xs px-1 py-0 focus:outline-none focus:ring-1 focus:ring-blue-400 cursor-pointer"
       value={value}
       onChange={handleChange}
-      aria-label={ariaLabel ?? 'Filter operator'}
+      aria-label={ariaLabel ?? (t('FILTER.OPERATOR') || 'Filter operator')}
     >
       {operators.map((op) => (
         <option key={op.value} value={op.value}>

@@ -9,6 +9,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@mieweb/ui/components/Button';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
+import { useTranslation, type TransFn } from '../../i18n';
 
 export interface FieldPillProps {
   /** Unique ID for DnD */
@@ -20,7 +21,7 @@ export interface FieldPillProps {
   /** Remove handler */
   onRemove: (id: string) => void;
   /** i18n */
-  trans?: (key: string) => string;
+  trans?: TransFn;
 }
 
 export function FieldPill({
@@ -28,8 +29,9 @@ export function FieldPill({
   label,
   subtitle,
   onRemove,
-  trans: t = (k) => k,
+  trans: transProp,
 }: FieldPillProps) {
+  const t = useTranslation(transProp);
   const {
     attributes,
     listeners,

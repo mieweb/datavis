@@ -9,6 +9,7 @@
 
 import { useState, useCallback, useRef } from 'react';
 import { Select } from '@mieweb/ui/components/Select';
+import { useTranslation, type TransFn } from '../../i18n';
 import { FilterOperatorSelect } from './FilterOperatorSelect';
 import {
   DATE_OPERATORS,
@@ -36,7 +37,7 @@ export interface DateFilterProps {
   /** Auto-focus the operator select on mount */
   autoFocus?: boolean;
   /** i18n */
-  trans?: (key: string) => string;
+  trans?: TransFn;
 }
 
 /** Period options for $this / $last operators */
@@ -63,8 +64,9 @@ export function DateFilter({
   value,
   onChange,
   autoFocus,
-  trans: t = (k) => k,
+  trans: transProp,
 }: DateFilterProps) {
+  const t = useTranslation(transProp);
   const operators = DATE_OPERATORS.filter((op) => {
     if (includeOperators?.length) return includeOperators.includes(op.value);
     if (excludeOperators?.length) return !excludeOperators.includes(op.value);
@@ -264,7 +266,6 @@ export function DateFilter({
               setEveryValue(val);
               emitChange(operator, { evUnit: everyUnit, evValue: val });
             }}
-            trans={t}
           />
         </>
       )}
@@ -314,13 +315,12 @@ function DayOrMonthSelect({
   unit,
   value,
   onChange,
-  trans: t,
 }: {
   unit: EveryUnit;
   value: string;
   onChange: (val: string) => void;
-  trans: (key: string) => string;
 }) {
+  const t = useTranslation();
   const items = unit === 'day' ? DAYS_OF_WEEK : MONTHS;
   return (
     <Select

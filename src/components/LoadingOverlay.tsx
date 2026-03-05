@@ -6,6 +6,7 @@
 
 
 import { Spinner } from '@mieweb/ui/components/Spinner';
+import { useTranslation, type TransFn } from '../i18n';
 
 export interface LoadingOverlayProps {
   /** Whether data processing (sort/filter/group) is happening */
@@ -13,14 +14,15 @@ export interface LoadingOverlayProps {
   /** Whether a network fetch is in progress */
   fetching: boolean;
   /** i18n function */
-  trans: (key: string, ...args: unknown[]) => string;
+  trans?: TransFn;
 }
 
 export function LoadingOverlay({
   loading,
   fetching,
-  trans: t,
+  trans: transProp,
 }: LoadingOverlayProps) {
+  const t = useTranslation(transProp);
   if (!loading && !fetching) return null;
 
   return (

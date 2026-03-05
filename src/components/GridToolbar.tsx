@@ -7,6 +7,7 @@
 
 
 import type { ViewInstance } from '../adapters/use-data';
+import { useTranslation, type TransFn } from '../i18n';
 import type { GridTableDef } from './DataGrid';
 import { PlainToolbar } from './toolbars/PlainToolbar';
 import { GroupToolbar } from './toolbars/GroupToolbar';
@@ -17,7 +18,7 @@ export interface GridToolbarProps {
   tableDef?: GridTableDef;
   rowMode: 'wrapped' | 'clipped';
   view: ViewInstance;
-  trans: (key: string, ...args: unknown[]) => string;
+  trans?: TransFn;
   onRowModeChange: (mode: 'wrapped' | 'clipped') => void;
   onRedraw: () => void;
   onOpenColumnConfig?: () => void;
@@ -30,13 +31,15 @@ export function GridToolbar({
   tableDef,
   rowMode,
   view,
-  trans: t,
+  trans: transProp,
   onRowModeChange,
   onRedraw,
   onOpenColumnConfig,
   onOpenTemplateEditor,
   onOpenTableOptions,
 }: GridToolbarProps) {
+  const t = useTranslation(transProp);
+
   return (
     <div
       className="wcdv-toolbar flex flex-wrap items-center gap-2 px-3 py-1.5 bg-white border-b border-gray-100 text-sm"
@@ -47,7 +50,6 @@ export function GridToolbar({
         <PlainToolbar
           tableDef={tableDef}
           rowMode={rowMode}
-          trans={t}
           onRowModeChange={onRowModeChange}
           onShowAllRows={onRedraw}
           onOpenColumnConfig={onOpenColumnConfig}
@@ -59,7 +61,6 @@ export function GridToolbar({
         <GroupToolbar
           tableDef={tableDef}
           view={view}
-          trans={t}
           onRedraw={onRedraw}
           onOpenColumnConfig={onOpenColumnConfig}
           onOpenTemplateEditor={onOpenTemplateEditor}
@@ -70,7 +71,6 @@ export function GridToolbar({
         <PivotToolbar
           tableDef={tableDef}
           view={view}
-          trans={t}
           onRedraw={onRedraw}
           onOpenColumnConfig={onOpenColumnConfig}
           onOpenTemplateEditor={onOpenTemplateEditor}

@@ -45,12 +45,14 @@ import { useColumnReorder } from './useColumnReorder';
 import { useKeyboardNav } from './useKeyboardNav';
 import { HeaderContextMenu } from './HeaderContextMenu';
 import { useFilterContext } from '../filters/FilterContext';
+import { useTranslation } from '../../i18n';
 
 // ───────────────────────────────────────────────────────────
 // Sort icon
 // ───────────────────────────────────────────────────────────
 
 function SortIcon({ direction }: { direction?: SortDirection }) {
+  const t = useTranslation();
   if (!direction) {
     return (
       <span
@@ -64,7 +66,7 @@ function SortIcon({ direction }: { direction?: SortDirection }) {
   return (
     <span
       className="ml-1 inline-block text-blue-500 text-xs"
-      aria-label={direction === 'asc' ? 'Sorted ascending' : 'Sorted descending'}
+      aria-label={direction === 'asc' ? (t('TABLE.SORTED_ASC') || 'Sorted ascending') : (t('TABLE.SORTED_DESC') || 'Sorted descending')}
     >
       {direction === 'asc' ? '↑' : '↓'}
     </span>
@@ -118,6 +120,7 @@ function SortableHeaderCell({
   onResizeStart,
   onContextMenu,
 }: SortableHeaderProps) {
+  const t = useTranslation();
   const {
     attributes,
     listeners,
@@ -174,7 +177,7 @@ function SortableHeaderCell({
           className="flex flex-1 items-center gap-0.5 min-w-0 bg-transparent border-none p-0 text-left text-inherit font-inherit cursor-pointer"
           onClick={handleClick}
           tabIndex={-1}
-          aria-label={`Sort by ${column.header}`}
+          aria-label={t('TABLE.SORT_BY', column.header) || `Sort by ${column.header}`}
         >
           <span className="truncate">{column.header}</span>
           {(column.sortable !== false) && <SortIcon direction={sortDir} />}
@@ -190,8 +193,8 @@ function SortableHeaderCell({
               onFilterClick();
             }}
             tabIndex={-1}
-            aria-label={filterActive ? `Filter active on ${column.header}` : `Add filter for ${column.header}`}
-            title={filterActive ? 'Filter active' : 'Add filter'}
+            aria-label={filterActive ? (t('TABLE.FILTER_ACTIVE_ON', column.header) || `Filter active on ${column.header}`) : (t('TABLE.ADD_FILTER_FOR', column.header) || `Add filter for ${column.header}`)}
+            title={filterActive ? (t('TABLE.FILTER_ACTIVE') || 'Filter active') : (t('TABLE.ADD_FILTER') || 'Add filter')}
           >
             <FilterIcon active={filterActive} />
           </button>
@@ -206,8 +209,9 @@ function SortableHeaderCell({
             onResizeStart?.(column.field, column.width ?? 100, e)
           }
           role="separator"
+          tabIndex={0}
           aria-orientation="vertical"
-          aria-label={`Resize column ${column.header}`}
+          aria-label={t('TABLE.RESIZE_COLUMN', column.header) || `Resize column ${column.header}`}
         />
       )}
     </th>
@@ -226,7 +230,7 @@ export function PlainTable({
   totalRows,
   limit,
   formatCell,
-  trans: t = defaultTrans,
+  trans: transProp,
   onSort,
   onRowClick,
   onRowDoubleClick,
@@ -238,6 +242,7 @@ export function PlainTable({
   onSelectionChange,
   className = '',
 }: BaseTableProps) {
+  const t = useTranslation(transProp);
   // ── Filter context (provided by DataGrid) ─────
   const filterCtx = useFilterContext();
 
@@ -594,8 +599,4 @@ export function PlainTable({
       />
     </div>
   );
-}
-
-function defaultTrans(key: string): string {
-  return key;
 }

@@ -9,6 +9,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Input } from '@mieweb/ui/components/Input';
 import { Checkbox } from '@mieweb/ui/components/Checkbox';
 import { Button } from '@mieweb/ui/components/Button';
+import { useTranslation, type TransFn } from '../../i18n';
 import { FilterOperatorSelect } from './FilterOperatorSelect';
 import {
   STRING_OPERATORS,
@@ -36,7 +37,7 @@ export interface StringFilterProps {
   /** Auto-focus the operator select on mount */
   autoFocus?: boolean;
   /** i18n */
-  trans?: (key: string) => string;
+  trans?: TransFn;
 }
 
 export function StringFilter({
@@ -49,8 +50,9 @@ export function StringFilter({
   value,
   onChange,
   autoFocus,
-  trans: t = (k) => k,
+  trans: transProp,
 }: StringFilterProps) {
+  const t = useTranslation(transProp);
   // Determine which operators to show
   const operators = STRING_OPERATORS.filter((op) => {
     if (includeOperators?.length) return includeOperators.includes(op.value);
@@ -240,6 +242,7 @@ function MultiSelectDropdown({
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   // Close on click outside
   useEffect(() => {
@@ -251,6 +254,20 @@ function MultiSelectDropdown({
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
+  }, [open]);
+
+  // Close on Escape key
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
   }, [open]);
 
   const filtered = search
@@ -267,6 +284,7 @@ function MultiSelectDropdown({
   return (
     <div className="wcdv-multiselect relative flex-1" ref={containerRef}>
       <Button
+        ref={triggerRef}
         size="sm"
         variant="outline"
         onClick={() => setOpen((p) => !p)}

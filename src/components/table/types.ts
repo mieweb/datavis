@@ -6,6 +6,7 @@
  */
 
 import type React from 'react';
+import type { TransFn } from '../../i18n';
 
 // ───────────────────────────────────────────────────────────
 // Column configuration
@@ -203,7 +204,7 @@ export interface BaseTableProps {
   /** Custom cell formatter (overrides default) */
   formatCell?: CellFormatter;
   /** i18n function */
-  trans?: (key: string, ...args: unknown[]) => string;
+  trans?: TransFn;
 
   // ── Callbacks ──
   /** Sort requested on a column */

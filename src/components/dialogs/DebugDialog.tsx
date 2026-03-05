@@ -10,6 +10,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { Modal, ModalHeader, ModalTitle, ModalClose, ModalBody, ModalFooter } from '@mieweb/ui/components/Modal';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@mieweb/ui/components/Tabs';
 import { Button } from '@mieweb/ui/components/Button';
+import { useTranslation, type TransFn } from '../../i18n';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -57,7 +58,7 @@ export interface DebugDialogProps {
   /** Prefs debugging info */
   prefs?: DebugPrefsInfo;
   /** i18n */
-  trans?: (key: string, ...args: unknown[]) => string;
+  trans?: TransFn;
 }
 
 // ───────────────────────────────────────────────────────────
@@ -138,12 +139,12 @@ export function DebugDialog({
   view = {},
   grid = {},
   prefs,
-  trans: t = defaultTrans,
+  trans: transProp,
 }: DebugDialogProps) {
+  const t = useTranslation(transProp);
   const dismissLabel = useMemo(
     () => DISMISS_LABELS[Math.floor(Math.random() * DISMISS_LABELS.length)],
     // Re-pick each time dialog opens
-    // eslint-disable-next-line react-hooks/exhaustive-deps
     [open],
   );
 
@@ -303,8 +304,4 @@ export function DebugDialog({
       </ModalFooter>
     </Modal>
   );
-}
-
-function defaultTrans(key: string): string {
-  return key;
 }

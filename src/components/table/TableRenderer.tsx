@@ -24,6 +24,7 @@ import { GroupSummaryTable } from './GroupSummaryTable';
 import { PivotTable, type PivotData } from './PivotTable';
 import { TableProgress } from './TableProgress';
 import type { ViewData } from '../../adapters/use-data';
+import { useTranslation, type TransFn } from '../../i18n';
 
 // ───────────────────────────────────────────────────────────
 // Props
@@ -49,7 +50,7 @@ export interface TableRendererProps {
   /** Custom cell formatter */
   formatCell?: CellFormatter;
   /** i18n function */
-  trans?: (key: string, ...args: unknown[]) => string;
+  trans?: TransFn;
   /** Group mode: 'detail' | 'summary' */
   groupMode?: 'detail' | 'summary';
   /** Whether to show total row (group/pivot) */
@@ -96,7 +97,7 @@ export function TableRenderer({
   loadedRows,
   loading = false,
   formatCell,
-  trans: t = defaultTrans,
+  trans: transProp,
   groupMode = 'detail',
   showTotalRow = false,
   showTotalCol = true,
@@ -112,6 +113,8 @@ export function TableRenderer({
   onShowAll,
   onSelectionChange,
 }: TableRendererProps) {
+  const t = useTranslation(transProp);
+
   // No data yet
   if (!viewData) {
     return (
@@ -314,8 +317,4 @@ export function TableRenderer({
       )}
     </div>
   );
-}
-
-function defaultTrans(key: string): string {
-  return key;
 }

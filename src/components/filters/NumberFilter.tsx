@@ -11,6 +11,7 @@ import { useState, useCallback } from 'react';
 import { Input } from '@mieweb/ui/components/Input';
 import { Checkbox } from '@mieweb/ui/components/Checkbox';
 import { Radio, RadioGroup } from '@mieweb/ui/components/Radio';
+import { useTranslation, type TransFn } from '../../i18n';
 import { FilterOperatorSelect } from './FilterOperatorSelect';
 import {
   NUMBER_OPERATORS,
@@ -36,7 +37,7 @@ export interface NumberFilterProps {
   /** Auto-focus the operator select on mount */
   autoFocus?: boolean;
   /** i18n */
-  trans?: (key: string) => string;
+  trans?: TransFn;
 }
 
 export function NumberFilter({
@@ -48,7 +49,6 @@ export function NumberFilter({
   value,
   onChange,
   autoFocus,
-  trans: t = (k) => k,
 }: NumberFilterProps) {
   if (widget === 'checkbox') {
     return (
@@ -68,7 +68,6 @@ export function NumberFilter({
         label={label}
         value={value}
         onChange={onChange}
-        trans={t}
       />
     );
   }
@@ -82,7 +81,6 @@ export function NumberFilter({
       value={value}
       onChange={onChange}
       autoFocus={autoFocus}
-      trans={t}
     />
   );
 }
@@ -99,8 +97,8 @@ function NumberTextboxFilter({
   value,
   onChange,
   autoFocus,
-  trans: t = (k) => k,
-}: Omit<NumberFilterProps, 'widget'>) {
+}: Omit<NumberFilterProps, 'widget' | 'trans'>) {
+  const t = useTranslation();
   const operators = NUMBER_OPERATORS.filter((op) => {
     if (includeOperators?.length) return includeOperators.includes(op.value);
     if (excludeOperators?.length) return !excludeOperators.includes(op.value);
@@ -222,8 +220,8 @@ function NumberTriBoolFilter({
   label,
   value,
   onChange,
-  trans: t = (k) => k,
-}: Pick<NumberFilterProps, 'field' | 'label' | 'value' | 'onChange' | 'trans'>) {
+}: Pick<NumberFilterProps, 'field' | 'label' | 'value' | 'onChange'>) {
+  const t = useTranslation();
   const current =
     value?.$eq === 1 ? 'true' : value?.$eq === 0 ? 'false' : 'both';
 

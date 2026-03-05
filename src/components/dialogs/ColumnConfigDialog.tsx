@@ -29,6 +29,7 @@ import { Modal, ModalHeader, ModalTitle, ModalClose, ModalBody, ModalFooter } fr
 import { Button } from '@mieweb/ui/components/Button';
 import { Checkbox } from '@mieweb/ui/components/Checkbox';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
+import { useTranslation, type TransFn } from '../../i18n';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -61,7 +62,7 @@ export interface ColumnConfigDialogProps {
   /** Called with updated column configs on save */
   onSave: (columns: ColumnConfig[], clearRenderCache: string[]) => void;
   /** i18n */
-  trans?: (key: string, ...args: unknown[]) => string;
+  trans?: TransFn;
 }
 
 // ───────────────────────────────────────────────────────────
@@ -74,7 +75,6 @@ interface SortableRowProps {
   onRename: (field: string) => void;
   onMoveToTop: (field: string) => void;
   onMoveToBottom: (field: string) => void;
-  trans: (key: string, ...args: unknown[]) => string;
 }
 
 function SortableRow({
@@ -83,8 +83,8 @@ function SortableRow({
   onRename,
   onMoveToTop,
   onMoveToBottom,
-  trans: t,
 }: SortableRowProps) {
+  const t = useTranslation();
   const {
     attributes,
     listeners,
@@ -203,8 +203,9 @@ export function ColumnConfigDialog({
   onOpenChange,
   columns: initialColumns,
   onSave,
-  trans: t = defaultTrans,
+  trans: transProp,
 }: ColumnConfigDialogProps) {
+  const t = useTranslation(transProp);
   const [columns, setColumns] = useState<ColumnConfig[]>([]);
   const [clearRenderCache, setClearRenderCache] = useState<Set<string>>(new Set());
 
@@ -371,7 +372,6 @@ export function ColumnConfigDialog({
                       onRename={handleRename}
                       onMoveToTop={handleMoveToTop}
                       onMoveToBottom={handleMoveToBottom}
-                      trans={t}
                     />
                   ))}
                 </tbody>
@@ -395,8 +395,4 @@ export function ColumnConfigDialog({
       </ModalFooter>
     </Modal>
   );
-}
-
-function defaultTrans(key: string): string {
-  return key;
 }

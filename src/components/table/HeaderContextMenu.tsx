@@ -7,6 +7,7 @@
 
 import { useEffect, useRef, useCallback } from 'react';
 import type { ContextMenuItem } from './types';
+import { useTranslation, type TransFn } from '../../i18n';
 
 export interface HeaderContextMenuProps {
   /** Whether the menu is visible */
@@ -17,6 +18,8 @@ export interface HeaderContextMenuProps {
   items: ContextMenuItem[];
   /** Close callback */
   onClose: () => void;
+  /** i18n */
+  trans?: TransFn;
 }
 
 export function HeaderContextMenu({
@@ -24,7 +27,9 @@ export function HeaderContextMenu({
   position,
   items,
   onClose,
+  trans: transProp,
 }: HeaderContextMenuProps) {
+  const t = useTranslation(transProp);
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Close on click outside or Escape
@@ -68,7 +73,7 @@ export function HeaderContextMenu({
       className="fixed z-50 min-w-[180px] rounded-md border border-gray-200 bg-white py-1 shadow-lg"
       style={{ left: adjusted.x, top: adjusted.y }}
       role="menu"
-      aria-label="Column options"
+      aria-label={t('TABLE.COLUMN_OPTIONS') || 'Column options'}
     >
       {items.map((item, idx) => {
         if (item.separator) {

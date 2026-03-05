@@ -7,6 +7,7 @@
 
 import { useMemo } from 'react';
 import type { BaseTableProps, PivotHeader, SortDirection } from './types';
+import { useTranslation } from '../../i18n';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -52,11 +53,12 @@ export function PivotTable({
   pivotData,
   sort,
   features = {},
-  trans: t = defaultTrans,
+  trans: transProp,
   showTotalCol = true,
   onSort,
   className = '',
 }: PivotTableProps) {
+  const t = useTranslation(transProp);
   const {
     rowFields,
     colVals,
@@ -312,8 +314,4 @@ export function PivotTable({
       </div>
     </div>
   );
-}
-
-function defaultTrans(key: string): string {
-  return key;
 }

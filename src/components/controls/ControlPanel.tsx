@@ -23,6 +23,7 @@ import {
 import { ControlSection, type ControlFieldItem, type AvailableField } from './ControlSection';
 import { AggregateSection, type AggregateFunction, type AggregateEntry } from './AggregateSection';
 import { FilterBar } from '../filters/FilterBar';
+import { useTranslation, type TransFn } from '../../i18n';
 import type { ColumnFilterConfig, FilterSpec } from '../filters/types';
 
 // ───────────────────────────────────────────────────────────
@@ -60,7 +61,7 @@ export interface ControlPanelProps {
   onAggregateChange: (entries: AggregateEntry[]) => void;
 
   /** i18n */
-  trans?: (key: string) => string;
+  trans?: TransFn;
 }
 
 // ───────────────────────────────────────────────────────────
@@ -83,8 +84,9 @@ export function ControlPanel({
   onGroupChange,
   onPivotChange,
   onAggregateChange,
-  trans: t = (k) => k,
+  trans: transProp,
 }: ControlPanelProps) {
+  const t = useTranslation(transProp);
   // ── DnD sensors ──
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -215,7 +217,6 @@ export function ControlPanel({
           onRemoveColumn={onRemoveFilterColumn}
           availableFields={allFilterableFields}
           onAddColumn={onAddFilterColumn}
-          trans={t}
         />
       )}
 
@@ -235,7 +236,6 @@ export function ControlPanel({
             onAdd={handleGroupAdd}
             onRemove={handleGroupRemove}
             onClear={handleGroupClear}
-            trans={t}
           />
 
           {/* Pivot */}
@@ -247,7 +247,6 @@ export function ControlPanel({
             onAdd={handlePivotAdd}
             onRemove={handlePivotRemove}
             onClear={handlePivotClear}
-            trans={t}
           />
 
           {/* Aggregate */}
@@ -259,7 +258,6 @@ export function ControlPanel({
               displayName: f.displayName,
             }))}
             onChange={onAggregateChange}
-            trans={t}
           />
         </div>
       </DndContext>

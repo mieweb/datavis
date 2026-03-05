@@ -11,6 +11,7 @@ import { Modal, ModalHeader, ModalTitle, ModalClose, ModalBody, ModalFooter } fr
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@mieweb/ui/components/Tabs';
 import { Textarea } from '@mieweb/ui/components/Textarea';
 import { Button } from '@mieweb/ui/components/Button';
+import { useTranslation, type TransFn } from '../../i18n';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -47,7 +48,7 @@ export interface TemplateEditorDialogProps {
   /** Called on cancel */
   onCancel?: () => void;
   /** i18n */
-  trans?: (key: string, ...args: unknown[]) => string;
+  trans?: TransFn;
 }
 
 // ───────────────────────────────────────────────────────────
@@ -93,8 +94,9 @@ export function TemplateEditorDialog({
   templates: initialTemplates,
   onSave,
   onCancel,
-  trans: t = defaultTrans,
+  trans: transProp,
 }: TemplateEditorDialogProps) {
+  const t = useTranslation(transProp);
   const [data, setData] = useState<TemplateData>({});
 
   // Reset when dialog opens
@@ -204,8 +206,4 @@ export function TemplateEditorDialog({
       </ModalFooter>
     </Modal>
   );
-}
-
-function defaultTrans(key: string): string {
-  return key;
 }

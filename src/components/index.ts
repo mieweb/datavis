@@ -8,6 +8,7 @@ export { GridToolbar, type GridToolbarProps } from './GridToolbar';
 export { DetailSlider, type DetailSliderProps } from './DetailSlider';
 export { OperationsPalette, type Operation, type OperationContext, type OperationsPaletteProps } from './OperationsPalette';
 export { LoadingOverlay, type LoadingOverlayProps } from './LoadingOverlay';
+export { LanguageSelector, type LanguageSelectorProps, SUPPORTED_LOCALES, type LocaleEntry } from './LanguageSelector';
 
 // Toolbar sub-components
 export { PlainToolbar } from './toolbars/PlainToolbar';

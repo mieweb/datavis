@@ -14,6 +14,7 @@ import { Modal, ModalHeader, ModalTitle, ModalClose, ModalBody, ModalFooter } fr
 import { Button } from '@mieweb/ui/components/Button';
 import { Input } from '@mieweb/ui/components/Input';
 import { Textarea } from '@mieweb/ui/components/Textarea';
+import { useTranslation, type TransFn } from '../../i18n';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -46,7 +47,7 @@ export interface PerspectiveManagerDialogProps {
   /** Callback: delete a perspective */
   onDelete?: (id: string) => void;
   /** i18n */
-  trans?: (key: string, ...args: unknown[]) => string;
+  trans?: TransFn;
 }
 
 // ───────────────────────────────────────────────────────────
@@ -62,8 +63,9 @@ export function PerspectiveManagerDialog({
   onCreate,
   onRename,
   onDelete,
-  trans: t = defaultTrans,
+  trans: transProp,
 }: PerspectiveManagerDialogProps) {
+  const t = useTranslation(transProp);
   const [newName, setNewName] = useState('');
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameName, setRenameName] = useState('');
@@ -290,8 +292,4 @@ export function PerspectiveManagerDialog({
       </ModalFooter>
     </Modal>
   );
-}
-
-function defaultTrans(key: string): string {
-  return key;
 }

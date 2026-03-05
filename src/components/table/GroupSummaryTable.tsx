@@ -8,6 +8,7 @@
 import { useMemo } from 'react';
 
 import type { BaseTableProps, TableColumn, GroupMeta, SortDirection } from './types';
+import { useTranslation } from '../../i18n';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -41,12 +42,13 @@ export function GroupSummaryTable({
   sort,
   features = {},
   totalRows,
-  trans: t = defaultTrans,
+  trans: transProp,
   showTotalRow = false,
   totalAggregates,
   onSort,
   className = '',
 }: GroupSummaryTableProps) {
+  const t = useTranslation(transProp);
   // Build column list: group fields first, then aggregate columns
   const summaryColumns = useMemo(() => {
     const groupCols = groupFields.map((field) => {
@@ -219,8 +221,4 @@ export function GroupSummaryTable({
       )}
     </div>
   );
-}
-
-function defaultTrans(key: string): string {
-  return key;
 }

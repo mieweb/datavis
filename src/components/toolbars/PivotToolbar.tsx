@@ -9,13 +9,14 @@ import { Button } from '@mieweb/ui/components/Button';
 import { Switch } from '@mieweb/ui/components/Switch';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 
+import { useTranslation, type TransFn } from '../../i18n';
 import type { GridTableDef } from '../DataGrid';
 import type { ViewInstance } from '../../adapters/use-data';
 
 export interface PivotToolbarProps {
   tableDef?: GridTableDef;
   view: ViewInstance;
-  trans: (key: string, ...args: unknown[]) => string;
+  trans?: TransFn;
   onRedraw: () => void;
   onOpenColumnConfig?: () => void;
   onOpenTemplateEditor?: () => void;
@@ -25,12 +26,13 @@ export interface PivotToolbarProps {
 export function PivotToolbar({
   tableDef,
   view,
-  trans: t,
+  trans: transProp,
   onRedraw,
   onOpenColumnConfig,
   onOpenTemplateEditor,
   onOpenTableOptions,
 }: PivotToolbarProps) {
+  const t = useTranslation(transProp);
   const [showTotals, setShowTotals] = useState(
     tableDef?.whenPivot?.showTotalCol ?? true,
   );

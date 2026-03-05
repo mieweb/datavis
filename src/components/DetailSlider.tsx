@@ -6,6 +6,7 @@
  */
 
 import React, { useEffect, useRef } from 'react';
+import { useTranslation, type TransFn } from '../i18n';
 
 export interface DetailSliderProps {
   /** Whether the slider is open */
@@ -16,6 +17,8 @@ export interface DetailSliderProps {
   onClose: () => void;
   /** Body content */
   children?: React.ReactNode;
+  /** i18n */
+  trans?: TransFn;
 }
 
 export function DetailSlider({
@@ -23,7 +26,9 @@ export function DetailSlider({
   header = '',
   onClose,
   children,
+  trans: transProp,
 }: DetailSliderProps) {
+  const t = useTranslation(transProp);
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Trap focus when open
@@ -58,7 +63,7 @@ export function DetailSlider({
       `}
       role="dialog"
       aria-modal="true"
-      aria-label={header || 'Detail panel'}
+      aria-label={header || t('SLIDER.TITLE') || 'Detail panel'}
       aria-hidden={!open}
     >
       {/* Header */}
@@ -67,7 +72,7 @@ export function DetailSlider({
         <button
           className="wcdv-slider-close text-gray-400 hover:text-gray-700 text-xl leading-none p-1"
           onClick={onClose}
-          aria-label="Close detail panel"
+          aria-label={t('SLIDER.CLOSE') || 'Close detail panel'}
         >
           ×
         </button>

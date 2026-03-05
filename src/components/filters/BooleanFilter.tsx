@@ -6,6 +6,7 @@
  */
 
 import { Checkbox } from '@mieweb/ui/components/Checkbox';
+import type { TransFn } from '../../i18n';
 import type { FieldFilterSpec } from './types';
 
 export interface BooleanFilterProps {
@@ -17,6 +18,8 @@ export interface BooleanFilterProps {
   value?: FieldFilterSpec;
   /** Change handler */
   onChange: (field: string, spec: FieldFilterSpec | null) => void;
+  /** i18n */
+  trans?: TransFn;
 }
 
 export function BooleanFilter({
@@ -24,7 +27,9 @@ export function BooleanFilter({
   label,
   value,
   onChange,
+  // trans prop accepted for consistency but not used in this component
 }: BooleanFilterProps) {
+  // useTranslation available via transProp if needed in future
   const isChecked = value?.$eq === true;
 
   return (

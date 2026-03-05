@@ -9,6 +9,7 @@ import { Button } from '@mieweb/ui/components/Button';
 import { Spinner } from '@mieweb/ui/components/Spinner';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 
+import { useTranslation, type TransFn } from '../i18n';
 import { PrefsToolbar } from './toolbars/PrefsToolbar';
 import type { PrefsInstance } from '../adapters/use-prefs';
 
@@ -22,7 +23,7 @@ export interface TitleBarProps {
   cancellable: boolean;
   collapsed: boolean;
   debug: boolean;
-  trans: (key: string, ...args: unknown[]) => string;
+  trans?: TransFn;
   prefs?: PrefsInstance;
   onToggle: () => void;
   onToggleControls: () => void;
@@ -44,7 +45,7 @@ export function TitleBar({
   cancellable,
   collapsed,
   debug,
-  trans: t,
+  trans: transProp,
   prefs,
   onToggle,
   onToggleControls,
@@ -55,6 +56,7 @@ export function TitleBar({
   onOpenDebug,
   onOpenPerspective,
 }: TitleBarProps) {
+  const t = useTranslation(transProp);
   const filtered = totalRowCount > 0 && rowCount !== totalRowCount;
   const rowCountText = filtered
     ? t('GRID.TITLEBAR.RECORD_COUNT_FILTERED')
@@ -125,7 +127,7 @@ export function TitleBar({
 
       {/* Prefs toolbar (perspective management) */}
       {prefs && (
-        <PrefsToolbar prefs={prefs} trans={t} />
+        <PrefsToolbar prefs={prefs} />
       )}
 
       {/* Action buttons */}

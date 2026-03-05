@@ -14,6 +14,7 @@ import type {
   GroupMeta,
   SortDirection,
 } from './types';
+import { useTranslation } from '../../i18n';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -55,7 +56,7 @@ export function GroupDetailTable({
   totalRows,
   limit,
   formatCell,
-  trans: t = defaultTrans,
+  trans: transProp,
   showTotalRow = false,
   initialExpanded = true,
   totalAggregates,
@@ -66,6 +67,7 @@ export function GroupDetailTable({
   onShowAll,
   className = '',
 }: GroupDetailTableProps) {
+  const t = useTranslation(transProp);
   // Track expanded state per group
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
     if (initialExpanded) return new Set(groupOrder);
@@ -126,7 +128,6 @@ export function GroupDetailTable({
   return (
     <div
       className={`wcdv-group-detail-table flex flex-col h-full ${className}`}
-      role="treegrid"
       aria-rowcount={totalRows ?? 0}
     >
       <div className="flex-1 overflow-auto min-h-0">
@@ -172,7 +173,7 @@ export function GroupDetailTable({
                             : 'asc',
                         )
                       }
-                      aria-label={`Sort by ${col.header}`}
+                      aria-label={t('TABLE.SORT_BY', col.header) || `Sort by ${col.header}`}
                     >
                       <span className="truncate">{col.header}</span>
                       {sort?.field === col.field && (
@@ -382,8 +383,4 @@ function GroupSection({
         })}
     </>
   );
-}
-
-function defaultTrans(key: string): string {
-  return key;
 }

@@ -9,14 +9,16 @@ import { useMemo } from 'react';
 import { Button } from '@mieweb/ui/components/Button';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 
+import { useTranslation, type TransFn } from '../../i18n';
 import { usePrefs, type PrefsInstance } from '../../adapters/use-prefs';
 
 export interface PrefsToolbarProps {
   prefs: PrefsInstance;
-  trans: (key: string, ...args: unknown[]) => string;
+  trans?: TransFn;
 }
 
-export function PrefsToolbar({ prefs, trans: t }: PrefsToolbarProps) {
+export function PrefsToolbar({ prefs, trans: transProp }: PrefsToolbarProps) {
+  const t = useTranslation(transProp);
   const {
     perspectives,
     currentPerspectiveId,

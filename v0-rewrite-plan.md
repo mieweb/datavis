@@ -249,8 +249,8 @@ graph LR
 
 - [ ] Theming via `<ThemeProvider>` + brand CSS
 - [ ] Dark mode support
-- [ ] Accessibility audit (ARIA labels, keyboard nav, focus management)
-- [ ] i18n alignment with `trans()` + `<LanguageSelector>`
+- [x] Accessibility audit (ARIA labels, keyboard nav, focus management)
+- [x] i18n alignment with `trans()` + `<LanguageSelector>`
 - [ ] Performance testing with large datasets
 - [ ] Documentation update
 

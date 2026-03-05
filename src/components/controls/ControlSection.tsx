@@ -14,6 +14,7 @@ import {
 import { Select } from '@mieweb/ui/components/Select';
 import { Button } from '@mieweb/ui/components/Button';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
+import { useTranslation, type TransFn } from '../../i18n';
 import { FieldPill } from './FieldPill';
 
 export interface ControlFieldItem {
@@ -52,7 +53,7 @@ export interface ControlSectionProps {
   /** Called to clear all fields */
   onClear: () => void;
   /** i18n */
-  trans?: (key: string) => string;
+  trans?: TransFn;
 }
 
 export function ControlSection({
@@ -63,8 +64,9 @@ export function ControlSection({
   onAdd,
   onRemove,
   onClear,
-  trans: t = (k) => k,
+  trans: transProp,
 }: ControlSectionProps) {
+  const t = useTranslation(transProp);
   // Filter out already-added fields from dropdown options
   const addedFieldNames = new Set(fields.map((f) => f.field));
   const dropdownOptions = availableFields
@@ -130,7 +132,7 @@ export function ControlSection({
 
       {/* Sortable field list */}
       {fields.length > 0 && (
-        <div className="flex flex-wrap gap-1" role="list" aria-label={`${title} fields`}>
+        <div className="flex flex-wrap gap-1" role="list" aria-label={t('CONTROL.SECTION_FIELDS', title) || `${title} fields`}>
           <SortableContext items={fieldIds} strategy={verticalListSortingStrategy}>
             {fields.map((f) => (
               <FieldPill

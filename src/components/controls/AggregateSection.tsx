@@ -10,6 +10,7 @@ import { Select } from '@mieweb/ui/components/Select';
 import { Button } from '@mieweb/ui/components/Button';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 import { Switch } from '@mieweb/ui/components/Switch';
+import { useTranslation, type TransFn } from '../../i18n';
 
 export interface AggregateFunction {
   /** Function name (key) */
@@ -46,7 +47,7 @@ export interface AggregateSectionProps {
   /** Called when entries change */
   onChange: (entries: AggregateEntry[]) => void;
   /** i18n */
-  trans?: (key: string) => string;
+  trans?: TransFn;
 }
 
 export function AggregateSection({
@@ -54,8 +55,9 @@ export function AggregateSection({
   entries,
   availableFields,
   onChange,
-  trans: t = (k) => k,
+  trans: transProp,
 }: AggregateSectionProps) {
+  const t = useTranslation(transProp);
   const [addingFn, setAddingFn] = useState('');
 
   const handleAddFunction = useCallback(

@@ -9,6 +9,7 @@ import { useState, useCallback, useMemo } from 'react';
 
 import { useView, useSource, type ViewInstance } from '../adapters/use-data';
 import { type PrefsInstance } from '../adapters/use-prefs';
+import { TransProvider, useTranslation, type TransFn } from '../i18n';
 import { TitleBar } from './TitleBar';
 import { GridToolbar } from './GridToolbar';
 import { ControlPanel } from './controls/ControlPanel';
@@ -77,8 +78,8 @@ export interface DataGridProps {
   className?: string;
   /** Children rendered in the content area (e.g. table renderer) */
   children?: React.ReactNode;
-  /** i18n function — defaults to identity */
-  trans?: (key: string, ...args: unknown[]) => string;
+  /** i18n function — defaults to identity. Also available via TransProvider / useTranslation(). */
+  trans?: TransFn;
   /** Enable debug button */
   debug?: boolean;
   /** Column filter configurations for the filter bar */
@@ -126,7 +127,7 @@ export function DataGrid({
   onToggle,
   className = '',
   children,
-  trans: t = defaultTrans,
+  trans: transProp,
   debug = false,
   filterColumns = [],
   allColumns = [],
@@ -142,6 +143,9 @@ export function DataGrid({
   groupFunctionDefs = [],
   onGroupFunctionSelect,
 }: DataGridProps) {
+  // ── i18n via context (with optional prop override) ─
+  const t = useTranslation(transProp);
+
   // ── Adapter hooks ──────────────────────────────
   const viewState = useView(view);
   const sourceState = useSource(view.source);
@@ -407,13 +411,24 @@ export function DataGrid({
   }, [viewState]);
 
   // ── Render ─────────────────────────────────────
+  const gridTableId = `wcdv-grid-table-${title?.replace(/\s+/g, '-') || 'main'}`;
+
   return (
+    <TransProvider value={t}>
     <div
       className={`wcdv-grid flex flex-col border border-gray-200 rounded-lg bg-white shadow-sm ${className}`}
       style={height ? { height } : undefined}
       role="region"
       aria-label={title || t('GRID.TITLEBAR.TITLE')}
     >
+      {/* Skip to data table */}
+      <a
+        href={`#${gridTableId}`}
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:text-blue-700 focus:shadow-lg focus:rounded"
+      >
+        {t('GRID.SKIP_TO_TABLE') || 'Skip to data table'}
+      </a>
+
       {/* Title Bar */}
       <TitleBar
         title={title}
@@ -425,7 +440,6 @@ export function DataGrid({
         cancellable={sourceState.source.isCancellable()}
         collapsed={collapsed}
         debug={debug}
-        trans={t}
         prefs={prefs}
         onToggle={handleToggle}
         onToggleControls={handleToggleControls}
@@ -447,7 +461,6 @@ export function DataGrid({
               tableDef={tableDef}
               rowMode={rowMode}
               view={view}
-              trans={t}
               onRowModeChange={handleRowModeChange}
               onRedraw={() => view.getData()}
               onOpenColumnConfig={openColumnConfig}
@@ -473,24 +486,23 @@ export function DataGrid({
               onGroupChange={handleGroupChange}
               onPivotChange={handlePivotChange}
               onAggregateChange={handleAggregateChange}
-              trans={t}
             />
           )}
 
           {/* Operations Palette (hidden with controls) */}
           {controlsVisible && operations.length > 0 && (
-            <OperationsPalette operations={operations} trans={t} />
+            <OperationsPalette operations={operations} />
           )}
 
           {/* Loading overlay */}
           <LoadingOverlay
             loading={viewState.loading}
             fetching={sourceState.fetching}
-            trans={t}
           />
 
           {/* Data content area */}
           <div
+            id={gridTableId}
             className="wcdv-grid-table flex-1 min-h-0 overflow-auto relative"
             role="grid"
             aria-busy={viewState.loading}
@@ -517,7 +529,6 @@ export function DataGrid({
         onOpenChange={setColConfigOpen}
         columns={columnConfigs}
         onSave={handleColumnConfigSave}
-        trans={t}
       />
 
       <TemplateEditorDialog
@@ -525,7 +536,6 @@ export function DataGrid({
         onOpenChange={setTemplateEditorOpen}
         templates={templates}
         onSave={handleTemplateSave}
-        trans={t}
       />
 
       <DebugDialog
@@ -555,7 +565,6 @@ export function DataGrid({
             {},
           ),
         } : undefined}
-        trans={t}
       />
 
       <GridTableOptionsDialog
@@ -563,7 +572,6 @@ export function DataGrid({
         onOpenChange={setTableOptsOpen}
         displayFormat={displayFormat}
         onSave={handleDisplayFormatSave}
-        trans={t}
       />
 
       <GroupFunctionDialog
@@ -573,7 +581,6 @@ export function DataGrid({
         currentFunction={groupFnCurrent}
         fieldName={groupFnField}
         onSelect={handleGroupFnSelect}
-        trans={t}
       />
 
       {prefs && (
@@ -586,13 +593,9 @@ export function DataGrid({
           onCreate={(name) => prefs.addPerspective(name)}
           onRename={(id, name) => prefs.renamePerspective(id, name)}
           onDelete={(id) => prefs.deletePerspective(id)}
-          trans={t}
         />
       )}
     </div>
+    </TransProvider>
   );
-}
-
-function defaultTrans(key: string): string {
-  return key;
 }

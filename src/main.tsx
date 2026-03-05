@@ -377,7 +377,7 @@ function App() {
       </header>
 
       {/* Tab bar */}
-      <nav
+      <div
         className="bg-white border-b border-gray-200 px-6"
         role="tablist"
         aria-label="Demo examples"
@@ -400,7 +400,7 @@ function App() {
             </button>
           ))}
         </div>
-      </nav>
+      </div>
 
       {/* Tab content */}
       <main className="p-6">
