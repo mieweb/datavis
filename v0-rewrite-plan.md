@@ -1,7 +1,7 @@
 # WC DataVis v0 Rewrite Plan — Align to UI.mieweb.org
 
-> **Status:** Phase 0, 1, 2 & 3 Complete  
-> **Date:** 2026-03-04  
+> **Status:** Phase 0, 1, 2, 3 & 4 Complete  
+> **Date:** 2026-03-05  
 > **Goal:** Replace all legacy/third-party UI widgets with `@mieweb/ui` (React + Tailwind) components while retaining the existing data-processing libraries unchanged.
 
 ---
@@ -228,16 +228,16 @@ graph LR
 - [x] Group Function Window → `<Modal>` + form inputs
 - [x] Perspective Manager → `<Modal>` + `<Select>` + `<Button>`
 
-### Phase 4 — Table Renderer (3–4 weeks)
+### Phase 4 — Table Renderer ✅
 
-- [ ] React-based table renderer (or evaluate `AGGrid` via `@mieweb/ui/ag-grid`)
-- [ ] Column resize (CSS-based or library)
-- [ ] Column reorder (DnD)
-- [ ] Sticky headers
-- [ ] Context menu → `<Dropdown>` right-click
-- [ ] Sort icons, filter indicators
-- [ ] Group detail / summary / pivot sub-renderers
-- [ ] Progress bar → `<Progress>`
+- [x] React-based table renderer (or evaluate `AGGrid` via `@mieweb/ui/ag-grid`)
+- [x] Column resize (CSS-based or library)
+- [x] Column reorder (DnD)
+- [x] Sticky headers
+- [x] Context menu → `<Dropdown>` right-click
+- [x] Sort icons, filter indicators
+- [x] Group detail / summary / pivot sub-renderers
+- [x] Progress bar → `<Progress>`
 
 ### Phase 5 — Graph Shell (1–2 weeks)
 

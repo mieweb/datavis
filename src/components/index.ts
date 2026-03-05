@@ -65,6 +65,50 @@ export {
   type PerspectiveManagerDialogProps,
 } from './dialogs/PerspectiveManagerDialog';
 
+// Table renderer components (Phase 4)
+export {
+  TableRenderer,
+  type TableRendererProps,
+} from './table/TableRenderer';
+export {
+  PlainTable,
+} from './table/PlainTable';
+export {
+  GroupDetailTable,
+  type GroupDetailTableProps,
+} from './table/GroupDetailTable';
+export {
+  GroupSummaryTable,
+  type GroupSummaryTableProps,
+} from './table/GroupSummaryTable';
+export {
+  PivotTable,
+  type PivotTableProps,
+  type PivotData,
+} from './table/PivotTable';
+export {
+  HeaderContextMenu,
+  type HeaderContextMenuProps,
+} from './table/HeaderContextMenu';
+export {
+  TableProgress,
+  type TableProgressProps,
+} from './table/TableProgress';
+export type {
+  TableColumn,
+  SortDirection,
+  SortSpec,
+  RowData,
+  TableRow,
+  SelectionState,
+  ContextMenuItem,
+  GroupMeta,
+  PivotHeader,
+  TableFeatures,
+  CellFormatter,
+  BaseTableProps,
+} from './table/types';
+
 // Type exports
 export type {
   FilterOperator,

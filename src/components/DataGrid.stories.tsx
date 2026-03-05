@@ -2,9 +2,11 @@
  * DataGrid stories — demonstrates the grid shell component with mock data.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { DataGrid } from '../components/DataGrid';
+import { TableRenderer } from '../components/table/TableRenderer';
+import type { TableColumn, SortSpec } from '../components/table/types';
 import type { ViewInstance } from '../adapters/use-data';
 
 // ───────────────────────────────────────────────────────────
@@ -138,6 +140,14 @@ export default meta;
 
 export const Default: StoryFn = () => {
     const view = useMemo(() => createMockView(), []);
+    const [sort, setSort] = useState<SortSpec | null>(null);
+
+    const columns: TableColumn[] = [
+      { field: 'name', header: 'Name', width: 150, sortable: true, resizable: true },
+      { field: 'age', header: 'Age', width: 80, sortable: true, resizable: true, align: 'right', typeInfo: { type: 'number' } },
+      { field: 'department', header: 'Department', width: 140, sortable: true, resizable: true },
+    ];
+
     return (
       <DataGrid
         view={view}
@@ -145,10 +155,29 @@ export const Default: StoryFn = () => {
         helpText="This is a demo grid with mock data"
         showToolbar={true}
       >
-        <div className="p-4 text-gray-500 text-center">
-          <p>Table renderer will be implemented in Phase 4.</p>
-          <p className="text-sm mt-2">Data loads via the adapter hooks.</p>
-        </div>
+        <TableRenderer
+          viewData={{
+            isPlain: true,
+            isGroup: false,
+            isPivot: false,
+            data: [
+              { name: 'Alice', age: 30, department: 'Engineering' },
+              { name: 'Bob', age: 25, department: 'Marketing' },
+              { name: 'Charlie', age: 35, department: 'Engineering' },
+            ],
+          }}
+          columns={columns}
+          sort={sort}
+          totalRows={3}
+          features={{
+            columnResize: true,
+            columnReorder: true,
+            stickyHeaders: true,
+            zebraStripe: true,
+            keyboardNav: true,
+          }}
+          onSort={(field, direction) => setSort({ field, direction })}
+        />
       </DataGrid>
     );
   };

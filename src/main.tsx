@@ -1,15 +1,32 @@
-import { useMemo, useCallback } from 'react';
+/**
+ * Demo app — three example DataGrid pages:
+ *
+ * 1. Simple     — 5 rows, 4 columns (employee directory)
+ * 2. Wide (50c) — 20 rows, 50 columns (contact + appointment + location)
+ * 3. Large (5K) — 5 000 rows, 33 columns (financial ledger + inventory)
+ */
+
+import { useMemo, useState } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import { DataGrid } from './components/DataGrid';
+import { TableRenderer } from './components/table/TableRenderer';
+import type { TableColumn, SortSpec } from './components/table/types';
 import type { ViewInstance } from './adapters/use-data';
 import type { SourceInstance } from './adapters/use-data';
 import type { ColumnFilterConfig } from './components/filters/types';
 import type { AggregateFunction } from './components/controls/AggregateSection';
 
-/**
- * Creates a mock Source that mimics the wcdatavis event system.
- */
+import {
+  SIMPLE_DATA, SIMPLE_COLUMNS, SIMPLE_FILTERS,
+  generateWideData, WIDE_COLUMNS, WIDE_FILTERS,
+  generateLedgerData, LEDGER_COLUMNS, LEDGER_FILTERS,
+} from './demo/data';
+
+// ───────────────────────────────────────────────────────────
+// Mock adapter factories
+// ───────────────────────────────────────────────────────────
+
 function createMockSource(): SourceInstance {
   const listeners: Record<string, Array<{ cb: (...args: unknown[]) => void; who: unknown }>> = {};
   return {
@@ -37,10 +54,7 @@ function createMockSource(): SourceInstance {
   };
 }
 
-/**
- * Creates a mock ComputedView that simulates the data pipeline.
- */
-function createMockView(): ViewInstance {
+function createMockView(data: Record<string, unknown>[], rowCount: number): ViewInstance {
   const source = createMockSource();
   const listeners: Record<string, Array<{ cb: (...args: unknown[]) => void; who: unknown }>> = {};
   const view = {
@@ -59,30 +73,24 @@ function createMockView(): ViewInstance {
     fire(event: string, ...args: unknown[]) {
       (listeners[event] ?? []).forEach((l) => l.cb(...args));
     },
-    getData(cont?: (ok: boolean, data: unknown) => void) {
+    getData(cont?: (ok: boolean, d: unknown) => void) {
       setTimeout(() => {
         view.fire('workBegin');
         setTimeout(() => {
-          view.data = {
+          view.data = { isPlain: true, isGroup: false, isPivot: false, data };
+          view.fire('workEnd', {
             isPlain: true, isGroup: false, isPivot: false,
-            data: [
-              { name: 'Alice Johnson', age: 30, department: 'Engineering', status: 'Active' },
-              { name: 'Bob Smith', age: 25, department: 'Marketing', status: 'Active' },
-              { name: 'Charlie Brown', age: 35, department: 'Engineering', status: 'Inactive' },
-              { name: 'Diana Prince', age: 28, department: 'Design', status: 'Active' },
-              { name: 'Eve Torres', age: 32, department: 'Marketing', status: 'Active' },
-            ],
-          };
-          view.fire('workEnd', { isPlain: true, isGroup: false, isPivot: false, numRows: 5, totalRows: 5, numGroups: 0 });
+            numRows: rowCount, totalRows: rowCount, numGroups: 0,
+          });
           cont?.(true, view.data);
-        }, 400);
-      }, 200);
+        }, data.length > 1000 ? 600 : 300);
+      }, 100);
     },
     getTypeInfo(cont?: (ok: boolean, ti: unknown) => void) { cont?.(true, {}); },
     setSort() {}, setFilter() {}, setGroup() {}, setPivot() {}, setAggregate() {},
     clearSort() {}, clearFilter() {}, clearGroup() {}, clearPivot() {}, clearAggregate() {},
     getSort() { return null; }, getAggregate() { return null; },
-    getRowCount() { return 5; }, getTotalRowCount() { return 5; },
+    getRowCount() { return rowCount; }, getTotalRowCount() { return rowCount; },
     clearCache() {}, refresh() { view.getData(); }, reset() {},
     setColConfig() {}, setPrefs() {}, unlimit() {},
     getUniqueVals(cont: (ok: boolean, vals: unknown) => void) { cont(true, {}); },
@@ -90,183 +98,286 @@ function createMockView(): ViewInstance {
   return view;
 }
 
-/**
- * Demo app — exercises the Phase 0/1 DataGrid shell.
- */
+// ───────────────────────────────────────────────────────────
+// Shared i18n labels
+// ───────────────────────────────────────────────────────────
+
+const LABELS: Record<string, string> = {
+  'GRID.TITLEBAR.TITLE': 'Grid',
+  'GRID.TITLEBAR.LOADING': 'Loading…',
+  'GRID.TITLEBAR.RECORD_COUNT_SINGULAR': 'record',
+  'GRID.TITLEBAR.RECORD_COUNT_PLURAL': 'records',
+  'GRID.TITLEBAR.RECORD_COUNT_FILTERED': '%d of %d records',
+  'GRID.TITLEBAR.CLEAR_FILTER': 'Clear Filter',
+  'GRID.TITLEBAR.CANCEL': 'Cancel',
+  'GRID.TITLEBAR.HELP': 'Help',
+  'GRID.TITLEBAR.DEBUG': 'Debug',
+  'GRID.TITLEBAR.EXPORT': 'Export',
+  'GRID.TITLEBAR.REFRESH': 'Refresh',
+  'GRID.TITLEBAR.CONTROLS': 'Controls',
+  'GRID.TITLEBAR.COLLAPSE': 'Collapse',
+  'GRID.TITLEBAR.EXPAND': 'Expand',
+  'GRID.LOADING.FETCHING': 'Fetching data…',
+  'GRID.LOADING.PROCESSING': 'Processing…',
+  'GRID_TOOLBAR.LABEL': 'Grid Toolbar',
+  'GRID_TOOLBAR.PLAIN.SHOW_MORE_ON_SCROLL': 'Auto-show more',
+  'GRID_TOOLBAR.PLAIN.SHOW_ALL_ROWS': 'Show All',
+  'GRID_TOOLBAR.PLAIN.COLUMNS': 'Columns',
+  'GRID_TOOLBAR.PLAIN.TEMPLATES_EDITOR': 'Templates',
+  'GRID_TOOLBAR.PLAIN.ROW_MODE': 'Row Mode',
+  'GRID_TOOLBAR.PLAIN.ROW_MODE.WRAPPED': 'Wrapped',
+  'GRID_TOOLBAR.PLAIN.ROW_MODE.CLIPPED': 'Clipped',
+  'GRID_TOOLBAR.PLAIN.AUTO_RESIZE_COLUMNS': 'Auto Resize',
+  'GRID_CONTROL.TITLE': 'Controls',
+  'GRID_CONTROL.OPERATIONS.TITLE': 'Actions',
+  'FILTER.TITLE': 'Filters',
+  'FILTER.TOOLBAR': 'Filters',
+  'FILTER.OPERATOR': 'operator',
+  'FILTER.CLEAR_ALL': 'Clear all filters',
+  'FILTER.SELECT_VALUES': 'Select…',
+  'FILTER.ALL_SELECTED': 'All selected',
+  'FILTER.SEARCH': 'Search…',
+  'FILTER.SELECT_ALL': 'All',
+  'FILTER.CLEAR_SELECTION': 'None',
+  'CONTROL.GROUP': 'Group',
+  'CONTROL.PIVOT': 'Pivot',
+  'CONTROL.AGGREGATE': 'Aggregate',
+  'CONTROL.ADD_FIELD': '+ Add field…',
+  'CONTROL.CLEAR': 'Clear all',
+  'CONTROL.REMOVE': 'Remove',
+  'CONTROL.DROP_HINT': 'Add or drag fields here',
+  'CONTROL.ADD_AGGREGATE': '+ Add aggregate…',
+  'CONTROL.SELECT_FIELD': 'Field…',
+  'CONTROL.VISIBLE': 'Visible',
+  'TABLE.SHOWING': 'Showing',
+  'TABLE.OF': 'of',
+  'TABLE.ROWS': 'rows',
+  'TABLE.NO_DATA': 'No data to display',
+  'TABLE.SHOW_MORE': 'Show More',
+  'TABLE.SHOW_ALL': 'Show All',
+  'TABLE.GROUPS': 'groups',
+  'TABLE.TOTAL': 'Total',
+  'TABLE.SORT_ASC': 'Sort Ascending',
+  'TABLE.SORT_DESC': 'Sort Descending',
+  'TABLE.HIDE_COLUMN': 'Hide Column',
+};
+
+const trans = (key: string): string => LABELS[key] ?? key;
+
+const AGG_FUNCTIONS: AggregateFunction[] = [
+  { name: 'sum', label: 'Sum', fieldCount: 1 },
+  { name: 'avg', label: 'Average', fieldCount: 1 },
+  { name: 'count', label: 'Count', fieldCount: 0 },
+  { name: 'min', label: 'Min', fieldCount: 1 },
+  { name: 'max', label: 'Max', fieldCount: 1 },
+];
+
+// ───────────────────────────────────────────────────────────
+// Tab definitions
+// ───────────────────────────────────────────────────────────
+
+type TabKey = 'simple' | 'wide' | 'large';
+
+interface TabDef {
+  key: TabKey;
+  label: string;
+  badge: string;
+}
+
+const TABS: TabDef[] = [
+  { key: 'simple', label: 'Simple', badge: '8 rows × 8 cols' },
+  { key: 'wide', label: 'Wide (50 columns)', badge: '20 rows × 50 cols' },
+  { key: 'large', label: 'Large (5K rows)', badge: '5 000 rows × 33 cols' },
+];
+
+// ───────────────────────────────────────────────────────────
+// GridDemo — one per tab to isolate state
+// ───────────────────────────────────────────────────────────
+
+function GridDemo({
+  title,
+  helpText,
+  data,
+  columns,
+  filters,
+  controlFields,
+  aggregateFields,
+}: {
+  title: string;
+  helpText: string;
+  data: Record<string, unknown>[];
+  columns: TableColumn[];
+  filters: ColumnFilterConfig[];
+  controlFields: { field: string; displayName: string }[];
+  aggregateFields: { field: string; displayName: string }[];
+}) {
+  const view = useMemo(() => createMockView(data, data.length), [data]);
+  const [sort, setSort] = useState<SortSpec | null>(null);
+
+  return (
+    <DataGrid
+      view={view}
+      title={title}
+      helpText={helpText}
+      showToolbar={true}
+      showControls={true}
+      debug={true}
+      trans={trans}
+      filterColumns={filters}
+      controlFields={controlFields}
+      aggregateFields={aggregateFields}
+      aggregateFunctions={AGG_FUNCTIONS}
+    >
+      <TableRenderer
+        viewData={{ isPlain: true, isGroup: false, isPivot: false, data }}
+        columns={columns}
+        sort={sort}
+        totalRows={data.length}
+        features={{
+          columnResize: true,
+          columnReorder: true,
+          stickyHeaders: true,
+          zebraStripe: true,
+          keyboardNav: true,
+          headerContextMenu: true,
+        }}
+        trans={trans}
+        onSort={(field, direction) => setSort({ field, direction })}
+        onRowClick={(row) => console.log('Row clicked:', row.data)}
+      />
+    </DataGrid>
+  );
+}
+
+// ───────────────────────────────────────────────────────────
+// App — tabbed demo
+// ───────────────────────────────────────────────────────────
+
 function App() {
-  const view = useMemo(() => createMockView(), []);
+  const [activeTab, setActiveTab] = useState<TabKey>('simple');
 
-  /** Simple i18n lookup for demo labels */
-  const trans = useCallback((key: string): string => {
-    const labels: Record<string, string> = {
-      'GRID.TITLEBAR.TITLE': 'Grid',
-      'GRID.TITLEBAR.LOADING': 'Loading…',
-      'GRID.TITLEBAR.RECORD_COUNT_SINGULAR': 'record',
-      'GRID.TITLEBAR.RECORD_COUNT_PLURAL': 'records',
-      'GRID.TITLEBAR.RECORD_COUNT_FILTERED': '%d of %d records',
-      'GRID.TITLEBAR.CLEAR_FILTER': 'Clear Filter',
-      'GRID.TITLEBAR.CANCEL': 'Cancel',
-      'GRID.TITLEBAR.HELP': 'Help',
-      'GRID.TITLEBAR.DEBUG': 'Debug',
-      'GRID.TITLEBAR.EXPORT': 'Export',
-      'GRID.TITLEBAR.REFRESH': 'Refresh',
-      'GRID.TITLEBAR.CONTROLS': 'Controls',
-      'GRID.TITLEBAR.COLLAPSE': 'Collapse',
-      'GRID.TITLEBAR.EXPAND': 'Expand',
-      'GRID.LOADING.FETCHING': 'Fetching data…',
-      'GRID.LOADING.PROCESSING': 'Processing…',
-      'GRID_TOOLBAR.LABEL': 'Grid Toolbar',
-      'GRID_TOOLBAR.PLAIN.SHOW_MORE_ON_SCROLL': 'Auto-show more',
-      'GRID_TOOLBAR.PLAIN.SHOW_ALL_ROWS': 'Show All',
-      'GRID_TOOLBAR.PLAIN.COLUMNS': 'Columns',
-      'GRID_TOOLBAR.PLAIN.TEMPLATES_EDITOR': 'Templates',
-      'GRID_TOOLBAR.PLAIN.ROW_MODE': 'Row Mode',
-      'GRID_TOOLBAR.PLAIN.ROW_MODE.WRAPPED': 'Wrapped',
-      'GRID_TOOLBAR.PLAIN.ROW_MODE.CLIPPED': 'Clipped',
-      'GRID_TOOLBAR.PLAIN.AUTO_RESIZE_COLUMNS': 'Auto Resize',
-      'GRID_CONTROL.TITLE': 'Controls',
-      'GRID_CONTROL.OPERATIONS.TITLE': 'Actions',
-      'FILTER.TITLE': 'Filters',
-      'FILTER.TOOLBAR': 'Filters',
-      'FILTER.OPERATOR': 'operator',
-      'FILTER.CLEAR_ALL': 'Clear all filters',
-      'FILTER.SELECT_VALUES': 'Select…',
-      'FILTER.ALL_SELECTED': 'All selected',
-      'FILTER.SEARCH': 'Search…',
-      'FILTER.SELECT_ALL': 'All',
-      'FILTER.CLEAR_SELECTION': 'None',
-      'CONTROL.GROUP': 'Group',
-      'CONTROL.PIVOT': 'Pivot',
-      'CONTROL.AGGREGATE': 'Aggregate',
-      'CONTROL.ADD_FIELD': '+ Add field…',
-      'CONTROL.CLEAR': 'Clear all',
-      'CONTROL.REMOVE': 'Remove',
-      'CONTROL.DROP_HINT': 'Add or drag fields here',
-      'CONTROL.ADD_AGGREGATE': '+ Add aggregate…',
-      'CONTROL.SELECT_FIELD': 'Field…',
-      'CONTROL.VISIBLE': 'Visible',
-    };
-    return labels[key] ?? key;
-  }, []);
+  // Generate data lazily (only once)
+  const wideData = useMemo(() => generateWideData(20), []);
+  const ledgerData = useMemo(() => generateLedgerData(5000), []);
 
-  const filterColumns: ColumnFilterConfig[] = useMemo(
+  // Control/aggregate fields derived from columns
+  const simpleControlFields = useMemo(
+    () => SIMPLE_COLUMNS.map((c) => ({ field: c.field, displayName: c.header })),
+    [],
+  );
+  const wideControlFields = useMemo(
+    () => WIDE_COLUMNS.slice(0, 20).map((c) => ({ field: c.field, displayName: c.header })),
+    [],
+  );
+  const ledgerControlFields = useMemo(
+    () => LEDGER_COLUMNS
+      .filter((c) => !['memo', 'reference'].includes(c.field))
+      .slice(0, 15)
+      .map((c) => ({ field: c.field, displayName: c.header })),
+    [],
+  );
+
+  const simpleAggFields = useMemo(
     () => [
-      { field: 'name', displayName: 'Name', filterType: 'string', widget: 'textbox', visible: true },
-      {
-        field: 'department',
-        displayName: 'Department',
-        filterType: 'string',
-        widget: 'dropdown',
-        options: ['Engineering', 'Marketing', 'Design'],
-        visible: true,
-      },
-      { field: 'age', displayName: 'Age', filterType: 'number', visible: true },
-      { field: 'status', displayName: 'Status', filterType: 'string', widget: 'dropdown', options: ['Active', 'Inactive'], visible: true },
+      { field: 'salary', displayName: 'Salary' },
+      { field: 'projects', displayName: 'Projects' },
     ],
     [],
   );
-
-  const controlFields = useMemo(
+  const wideAggFields = useMemo(
     () => [
-      { field: 'name', displayName: 'Name' },
-      { field: 'department', displayName: 'Department' },
-      { field: 'status', displayName: 'Status' },
-      { field: 'age', displayName: 'Age' },
+      { field: 'duration', displayName: 'Duration (min)' },
+      { field: 'attendeeCount', displayName: 'Attendees' },
+      { field: 'squareFootage', displayName: 'Sq Ft' },
     ],
     [],
   );
-
-  const aggregateFields = useMemo(
-    () => [{ field: 'age', displayName: 'Age' }],
-    [],
-  );
-
-  const aggregateFunctions: AggregateFunction[] = useMemo(
+  const ledgerAggFields = useMemo(
     () => [
-      { name: 'sum', label: 'Sum', fieldCount: 1 },
-      { name: 'avg', label: 'Average', fieldCount: 1 },
-      { name: 'count', label: 'Count', fieldCount: 0 },
-      { name: 'min', label: 'Min', fieldCount: 1 },
-      { name: 'max', label: 'Max', fieldCount: 1 },
+      { field: 'debit', displayName: 'Debit' },
+      { field: 'credit', displayName: 'Credit' },
+      { field: 'amount', displayName: 'Amount' },
+      { field: 'quantity', displayName: 'Qty' },
+      { field: 'lineTotal', displayName: 'Line Total' },
+      { field: 'unitCost', displayName: 'Unit Cost' },
     ],
     [],
   );
 
   return (
-    <div className="min-h-screen bg-gray-100 p-6">
-      <h1 className="text-xl font-bold mb-4 text-gray-800">WC DataVis — Phase 3 Demo</h1>
+    <div className="min-h-screen bg-gray-100">
+      {/* Page header */}
+      <header className="bg-white border-b border-gray-200 px-6 py-4">
+        <h1 className="text-xl font-bold text-gray-800">WC DataVis — Demo</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          React table renderer with column resize, reorder, sort, sticky headers, and context menus.
+        </p>
+      </header>
 
-      <DataGrid
-        view={view}
-        title="Employee Directory"
-        helpText="Demo grid with filters and controls. Click the ⚙ Controls button to expand."
-        showToolbar={true}
-        showControls={true}
-        debug={true}
-        trans={trans}
-        filterColumns={filterColumns}
-        controlFields={controlFields}
-        aggregateFields={aggregateFields}
-        aggregateFunctions={aggregateFunctions}
-        columnConfigs={[
-          { field: 'name', displayText: 'Name', isPinned: false, isHidden: false, allowHtml: false, allowFormatting: true, canHide: false },
-          { field: 'age', displayText: 'Age', isPinned: false, isHidden: false, allowHtml: false, allowFormatting: true },
-          { field: 'department', displayText: 'Department', isPinned: false, isHidden: false, allowHtml: false, allowFormatting: true },
-          { field: 'status', displayText: 'Status', isPinned: false, isHidden: false, allowHtml: true, allowFormatting: false },
-        ]}
-        onColumnConfigSave={(cols, cache) => console.log('Column config saved:', cols, cache)}
-        templates={{ whenPlain: { item: '{{name}} — {{department}}' } }}
-        onTemplateSave={(tpls) => console.log('Templates saved:', tpls)}
-        groupFunctionDefs={[
-          { name: 'each', label: 'Each Value', category: 'repeating' },
-          { name: 'unique', label: 'Unique Values', category: 'repeating' },
-          { name: 'year', label: 'Year', category: 'date' },
-          { name: 'month', label: 'Month', category: 'date' },
-          { name: 'week', label: 'Week', category: 'date' },
-        ]}
-        onGroupFunctionSelect={(field, fn) => console.log('Group function:', field, fn)}
-        onDisplayFormatSave={(df) => console.log('Display format:', df)}
-        operations={[
-          { label: 'Edit', icon: '✏️', category: 'Actions', callback: () => alert('Edit clicked') },
-          { label: 'Delete', icon: '🗑️', category: 'Actions', callback: () => alert('Delete clicked') },
-          { label: 'Export CSV', icon: '📥', category: 'Export', callback: () => alert('Export clicked') },
-        ]}
+      {/* Tab bar */}
+      <nav
+        className="bg-white border-b border-gray-200 px-6"
+        role="tablist"
+        aria-label="Demo examples"
       >
-        <div className="p-6">
-          <table className="w-full text-sm border-collapse">
-            <thead>
-              <tr className="bg-gray-50 border-b border-gray-200">
-                <th className="text-left px-3 py-2 font-medium text-gray-600">Name</th>
-                <th className="text-left px-3 py-2 font-medium text-gray-600">Age</th>
-                <th className="text-left px-3 py-2 font-medium text-gray-600">Department</th>
-                <th className="text-left px-3 py-2 font-medium text-gray-600">Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {[
-                { name: 'Alice Johnson', age: 30, department: 'Engineering', status: 'Active' },
-                { name: 'Bob Smith', age: 25, department: 'Marketing', status: 'Active' },
-                { name: 'Charlie Brown', age: 35, department: 'Engineering', status: 'Inactive' },
-                { name: 'Diana Prince', age: 28, department: 'Design', status: 'Active' },
-                { name: 'Eve Torres', age: 32, department: 'Marketing', status: 'Active' },
-              ].map((row, i) => (
-                <tr key={i} className="border-b border-gray-100 hover:bg-blue-50">
-                  <td className="px-3 py-2">{row.name}</td>
-                  <td className="px-3 py-2">{row.age}</td>
-                  <td className="px-3 py-2">{row.department}</td>
-                  <td className="px-3 py-2">
-                    <span className={`inline-block px-2 py-0.5 rounded-full text-xs font-medium ${
-                      row.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'
-                    }`}>
-                      {row.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="flex gap-0">
+          {TABS.map((tab) => (
+            <button
+              key={tab.key}
+              role="tab"
+              aria-selected={activeTab === tab.key}
+              className={`px-4 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === tab.key
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              {tab.label}
+              <span className="ml-2 text-xs font-normal text-gray-400">{tab.badge}</span>
+            </button>
+          ))}
         </div>
-      </DataGrid>
+      </nav>
+
+      {/* Tab content */}
+      <main className="p-6">
+        {activeTab === 'simple' && (
+          <GridDemo
+            title="Employee Directory"
+            helpText="8-row employee table with every data type: string, count, currency, date, boolean, and parent reference (Manager). Try sorting, column resize, and right-click context menus."
+            data={SIMPLE_DATA}
+            columns={SIMPLE_COLUMNS}
+            filters={SIMPLE_FILTERS}
+            controlFields={simpleControlFields}
+            aggregateFields={simpleAggFields}
+          />
+        )}
+
+        {activeTab === 'wide' && (
+          <GridDemo
+            title="Contact Database — 50 Columns"
+            helpText="Wide table with contact info, appointment details, and location properties. Scroll horizontally to see all 50 columns. Try dragging columns to reorder."
+            data={wideData}
+            columns={WIDE_COLUMNS}
+            filters={WIDE_FILTERS}
+            controlFields={wideControlFields}
+            aggregateFields={wideAggFields}
+          />
+        )}
+
+        {activeTab === 'large' && (
+          <GridDemo
+            title="Financial Ledger — 5,000 Transactions"
+            helpText="Large dataset with journal entries, accounts, vendors, customers, and linked inventory items. Tests rendering performance with 5K rows."
+            data={ledgerData}
+            columns={LEDGER_COLUMNS}
+            filters={LEDGER_FILTERS}
+            controlFields={ledgerControlFields}
+            aggregateFields={ledgerAggFields}
+          />
+        )}
+      </main>
     </div>
   );
 }

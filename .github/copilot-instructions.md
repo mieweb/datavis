@@ -105,6 +105,10 @@
 * **No sweeping edits**: Broad refactors or multi-module changes must be split or proposed as new components.
 * **Isolated improvements**: If a change grows complex, extract it into a new function, module, or component instead of modifying multiple areas.
 * **Direct requests only**: Large refactors or architectural shifts should only occur when explicitly requested.
+
+### 🔒 Git Commit Policy
+* **Always ask before committing**: Never run `git commit` without explicit user approval.
+* **Show the proposed message**: Present the commit message and a summary of staged changes for review before committing.
  
 ### Code Quality Checklist
 - [ ] **DRY**: No code duplication - extracted reusable functions?
