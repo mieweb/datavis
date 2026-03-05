@@ -23,6 +23,7 @@ import { GroupDetailTable } from './GroupDetailTable';
 import { GroupSummaryTable } from './GroupSummaryTable';
 import { PivotTable, type PivotData } from './PivotTable';
 import { TableProgress } from './TableProgress';
+import { useSortContext } from './SortContext';
 import type { ViewData } from '../../adapters/use-data';
 import { useTranslation, type TransFn } from '../../i18n';
 
@@ -114,6 +115,11 @@ export function TableRenderer({
   onSelectionChange,
 }: TableRendererProps) {
   const t = useTranslation(transProp);
+
+  // Fall back to SortContext when sort/onSort props are not explicitly passed
+  const sortCtx = useSortContext();
+  const effectiveSort = sort !== undefined ? sort : sortCtx?.sort ?? null;
+  const effectiveOnSort = onSort ?? sortCtx?.onSort;
 
   // No data yet
   if (!viewData) {
@@ -241,13 +247,13 @@ export function TableRenderer({
         <PlainTable
           columns={columns}
           rows={plainRows}
-          sort={sort}
+          sort={effectiveSort}
           features={features}
           totalRows={totalRows}
           limit={limit}
           formatCell={formatCell}
           trans={t}
-          onSort={onSort}
+          onSort={effectiveOnSort}
           onRowClick={onRowClick}
           onRowDoubleClick={onRowDoubleClick}
           onColumnResize={onColumnResize}
@@ -267,12 +273,12 @@ export function TableRenderer({
             groups={groupData.groups}
             groupOrder={groupData.groupOrder}
             groupFields={groupData.groupFields}
-            sort={sort}
+            sort={effectiveSort}
             features={features}
             totalRows={totalRows}
             showTotalRow={showTotalRow}
             trans={t}
-            onSort={onSort}
+            onSort={effectiveOnSort}
           />
         ) : (
           <GroupDetailTable
@@ -282,7 +288,7 @@ export function TableRenderer({
             groupedRows={groupData.groupedRows}
             groupOrder={groupData.groupOrder}
             groupFields={groupData.groupFields}
-            sort={sort}
+            sort={effectiveSort}
             features={features}
             totalRows={totalRows}
             limit={limit}
@@ -290,7 +296,7 @@ export function TableRenderer({
             showTotalRow={showTotalRow}
             initialExpanded={groupsExpanded}
             trans={t}
-            onSort={onSort}
+            onSort={effectiveOnSort}
             onRowClick={onRowClick}
             onRowDoubleClick={onRowDoubleClick}
             onColumnResize={onColumnResize}
@@ -308,11 +314,11 @@ export function TableRenderer({
         <PivotTable
           columns={columns}
           pivotData={pivotData}
-          sort={sort}
+          sort={effectiveSort}
           features={features}
           showTotalCol={showTotalCol}
           trans={t}
-          onSort={onSort}
+          onSort={effectiveOnSort}
         />
       )}
     </div>

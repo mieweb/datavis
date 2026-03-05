@@ -17,7 +17,8 @@ import { type ControlFieldItem } from './controls/ControlSection';
 import { type AggregateEntry, type AggregateFunction } from './controls/AggregateSection';
 import { type ColumnFilterConfig, type FilterSpec } from './filters/types';
 import { FilterContext, columnToFilterConfig, type FilterContextValue } from './filters/FilterContext';
-import type { TableColumn } from './table/types';
+import type { TableColumn, SortSpec, SortDirection } from './table/types';
+import { SortContext, type SortContextValue } from './table/SortContext';
 import { OperationsPalette, type Operation } from './OperationsPalette';
 import { DetailSlider } from './DetailSlider';
 import { LoadingOverlay } from './LoadingOverlay';
@@ -234,6 +235,9 @@ export function DataGrid({
   const [pivotFields, setPivotFields] = useState<ControlFieldItem[]>([]);
   const [aggregateEntries, setAggregateEntries] = useState<AggregateEntry[]>([]);
 
+  // ── Sort state ─────────────────────────────────
+  const [sort, setSort] = useState<SortSpec | null>(null);
+
   // ── Dialog state ───────────────────────────────
   const [colConfigOpen, setColConfigOpen] = useState(false);
   const [templateEditorOpen, setTemplateEditorOpen] = useState(false);
@@ -358,6 +362,25 @@ export function DataGrid({
     [viewState],
   );
 
+  // ── Sort handler ───────────────────────────────
+  const handleSortChange = useCallback(
+    (field: string, direction: SortDirection) => {
+      const spec: SortSpec = { field, direction };
+      setSort(spec);
+      // Convert to legacy View~SortSpec format: { vertical: { field, dir: 'ASC'|'DESC' } }
+      viewState.setSort({
+        vertical: { field, dir: direction.toUpperCase() },
+      });
+    },
+    [viewState],
+  );
+
+  /** Sort context for table renderers */
+  const sortContextValue = useMemo<SortContextValue>(
+    () => ({ sort, onSort: handleSortChange }),
+    [sort, handleSortChange],
+  );
+
   // ── Dialog open helpers ────────────────────────
   const openColumnConfig = useCallback(() => setColConfigOpen(true), []);
   const openTemplateEditor = useCallback(() => setTemplateEditorOpen(true), []);
@@ -473,7 +496,7 @@ export function DataGrid({
           {controlsVisible && (
             <ControlPanel
               filterColumns={mergedFilterColumns}
-              allFilterableFields={allColumns.map((c) => ({ field: c.field, displayName: c.displayName ?? c.field }))}
+              allFilterableFields={allColumns.map((c) => ({ field: c.field, displayName: c.header ?? c.field }))}
               availableFields={controlFields}
               aggregateFields={aggregateFields}
               groupFields={groupFields}
@@ -507,9 +530,11 @@ export function DataGrid({
             role="grid"
             aria-busy={viewState.loading}
           >
+            <SortContext.Provider value={sortContextValue}>
             <FilterContext.Provider value={filterContextValue}>
               {children}
             </FilterContext.Provider>
+            </SortContext.Provider>
           </div>
         </div>
       )}

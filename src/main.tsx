@@ -11,7 +11,7 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import { DataGrid } from './components/DataGrid';
 import { TableRenderer } from './components/table/TableRenderer';
-import type { TableColumn, SortSpec } from './components/table/types';
+import type { TableColumn } from './components/table/types';
 import type { ViewInstance } from './adapters/use-data';
 import type { SourceInstance } from './adapters/use-data';
 import type { ColumnFilterConfig } from './components/filters/types';
@@ -60,6 +60,7 @@ function createMockSource(): SourceInstance {
 interface MockView extends ViewInstance {
   _filterSpec: FilterSpec | null;
   filterSpec: FilterSpec | null;
+  _sortSpec: { vertical?: { field: string; dir: string } } | null;
 }
 
 function createMockView(data: Record<string, unknown>[], rowCount: number): MockView {
@@ -71,6 +72,7 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): Mock
     typeInfo: null,
     filterSpec: null as FilterSpec | null,
     _filterSpec: null as FilterSpec | null,
+    _sortSpec: null as { vertical?: { field: string; dir: string } } | null,
     on(event: string, cb: (...args: unknown[]) => void, opts?: { who?: unknown }) {
       if (!listeners[event]) listeners[event] = [];
       listeners[event].push({ cb, who: opts?.who });
@@ -86,34 +88,57 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): Mock
       setTimeout(() => {
         view.fire('workBegin');
         setTimeout(() => {
-          const filtered = view._filterSpec
+          let result = view._filterSpec
             ? applyFilter(data, view._filterSpec)
-            : data;
-          view.data = { isPlain: true, isGroup: false, isPivot: false, data: filtered };
+            : [...data];
+
+          // Apply sort
+          if (view._sortSpec?.vertical) {
+            const { field, dir } = view._sortSpec.vertical;
+            const direction = dir === 'DESC' ? -1 : 1;
+            result.sort((a, b) => {
+              const va = a[field];
+              const vb = b[field];
+              if (va == null && vb == null) return 0;
+              if (va == null) return direction;
+              if (vb == null) return -direction;
+              if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * direction;
+              if (typeof va === 'boolean' && typeof vb === 'boolean') return ((va ? 1 : 0) - (vb ? 1 : 0)) * direction;
+              return String(va).localeCompare(String(vb)) * direction;
+            });
+          }
+
+          view.data = { isPlain: true, isGroup: false, isPivot: false, data: result };
           view.fire('workEnd', {
             isPlain: true, isGroup: false, isPivot: false,
-            numRows: filtered.length, totalRows: rowCount, numGroups: 0,
+            numRows: result.length, totalRows: rowCount, numGroups: 0,
           });
           cont?.(true, view.data);
         }, data.length > 1000 ? 600 : 300);
       }, 100);
     },
     getTypeInfo(cont?: (ok: boolean, ti: unknown) => void) { cont?.(true, {}); },
-    setSort() {},
+    setSort(spec: unknown) {
+      view._sortSpec = spec as { vertical?: { field: string; dir: string } } | null;
+      view.getData();
+    },
     setFilter(spec: unknown) {
       view._filterSpec = spec as FilterSpec;
       view.filterSpec = spec as FilterSpec;
       view.getData();
     },
     setGroup() {}, setPivot() {}, setAggregate() {},
-    clearSort() {},
+    clearSort() {
+      view._sortSpec = null;
+      view.getData();
+    },
     clearFilter() {
       view._filterSpec = null;
       view.filterSpec = null;
       view.getData();
     },
     clearGroup() {}, clearPivot() {}, clearAggregate() {},
-    getSort() { return null; }, getAggregate() { return null; },
+    getSort() { return view._sortSpec; }, getAggregate() { return null; },
     getRowCount() {
       const d = view.data as { data?: unknown[] } | null;
       return d?.data?.length ?? rowCount;
@@ -200,7 +225,6 @@ function GridDemo({
   aggregateFields: { field: string; displayName: string }[];
 }) {
   const view = useMemo(() => createMockView(data, data.length), [data]);
-  const [sort, setSort] = useState<SortSpec | null>(null);
 
   // Track the filtered data from the mock view's workEnd cycle.
   // When filters are applied, the view re-runs getData() with filtered results.
@@ -235,7 +259,6 @@ function GridDemo({
       <TableRenderer
         viewData={{ isPlain: true, isGroup: false, isPivot: false, data: displayData }}
         columns={columns}
-        sort={sort}
         totalRows={data.length}
         features={{
           columnResize: true,
@@ -246,7 +269,6 @@ function GridDemo({
           headerContextMenu: true,
         }}
         trans={trans}
-        onSort={(field, direction) => setSort({ field, direction })}
         onRowClick={(row) => console.log('Row clicked:', row.data)}
       />
     </DataGrid>

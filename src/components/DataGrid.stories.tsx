@@ -2,11 +2,11 @@
  * DataGrid stories — demonstrates the grid shell component with mock data.
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
 import { DataGrid } from '../components/DataGrid';
 import { TableRenderer } from '../components/table/TableRenderer';
-import type { TableColumn, SortSpec } from '../components/table/types';
+import type { TableColumn } from '../components/table/types';
 import type { ViewInstance } from '../adapters/use-data';
 
 // ───────────────────────────────────────────────────────────
@@ -48,13 +48,18 @@ function createMockSource() {
   };
 }
 
-function createMockView(source = createMockSource()): ViewInstance {
+interface MockView extends ViewInstance {
+  _sortSpec: { vertical?: { field: string; dir: string } } | null;
+}
+
+function createMockView(source = createMockSource()): MockView {
   const listeners: Record<string, Array<{ cb: (...args: unknown[]) => void; who: unknown }>> = {};
   const view = {
     source,
     data: null as unknown,
     typeInfo: null,
     filterSpec: null,
+    _sortSpec: null as { vertical?: { field: string; dir: string } } | null,
     on(event: string, cb: (...args: unknown[]) => void, opts?: { who?: unknown }) {
       if (!listeners[event]) listeners[event] = [];
       listeners[event].push({ cb, who: opts?.who });
@@ -71,15 +76,32 @@ function createMockView(source = createMockSource()): ViewInstance {
       setTimeout(() => {
         view.fire('workBegin');
         setTimeout(() => {
+          const rows = [
+            { name: 'Alice', age: 30, department: 'Engineering' },
+            { name: 'Bob', age: 25, department: 'Marketing' },
+            { name: 'Charlie', age: 35, department: 'Engineering' },
+          ];
+
+          // Apply sort
+          if (view._sortSpec?.vertical) {
+            const { field, dir } = view._sortSpec.vertical;
+            const direction = dir === 'DESC' ? -1 : 1;
+            rows.sort((a, b) => {
+              const va = (a as Record<string, unknown>)[field];
+              const vb = (b as Record<string, unknown>)[field];
+              if (va == null && vb == null) return 0;
+              if (va == null) return direction;
+              if (vb == null) return -direction;
+              if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * direction;
+              return String(va).localeCompare(String(vb)) * direction;
+            });
+          }
+
           view.data = {
             isPlain: true,
             isGroup: false,
             isPivot: false,
-            data: [
-              { name: 'Alice', age: 30, department: 'Engineering' },
-              { name: 'Bob', age: 25, department: 'Marketing' },
-              { name: 'Charlie', age: 35, department: 'Engineering' },
-            ],
+            data: rows,
           };
           view.fire('workEnd', {
             isPlain: true,
@@ -96,17 +118,23 @@ function createMockView(source = createMockSource()): ViewInstance {
     getTypeInfo(cont?: (ok: boolean, ti: unknown) => void) {
       cont?.(true, {});
     },
-    setSort() {},
+    setSort(spec: unknown) {
+      view._sortSpec = spec as { vertical?: { field: string; dir: string } } | null;
+      view.getData();
+    },
     setFilter() {},
     setGroup() {},
     setPivot() {},
     setAggregate() {},
-    clearSort() {},
+    clearSort() {
+      view._sortSpec = null;
+      view.getData();
+    },
     clearFilter() {},
     clearGroup() {},
     clearPivot() {},
     clearAggregate() {},
-    getSort() { return null; },
+    getSort() { return view._sortSpec; },
     getAggregate() { return null; },
     getRowCount() { return 3; },
     getTotalRowCount() { return 3; },
@@ -119,7 +147,7 @@ function createMockView(source = createMockSource()): ViewInstance {
     getUniqueVals(cont: (ok: boolean, vals: unknown) => void) {
       cont(true, {});
     },
-  } as unknown as ViewInstance;
+  } as unknown as MockView;
   return view;
 }
 
@@ -140,7 +168,6 @@ export default meta;
 
 export const Default: StoryFn = () => {
     const view = useMemo(() => createMockView(), []);
-    const [sort, setSort] = useState<SortSpec | null>(null);
 
     const columns: TableColumn[] = [
       { field: 'name', header: 'Name', width: 150, sortable: true, resizable: true },
@@ -167,7 +194,6 @@ export const Default: StoryFn = () => {
             ],
           }}
           columns={columns}
-          sort={sort}
           totalRows={3}
           features={{
             columnResize: true,
@@ -176,7 +202,6 @@ export const Default: StoryFn = () => {
             zebraStripe: true,
             keyboardNav: true,
           }}
-          onSort={(field, direction) => setSort({ field, direction })}
         />
       </DataGrid>
     );

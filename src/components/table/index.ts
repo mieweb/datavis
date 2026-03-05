@@ -30,6 +30,7 @@ export { PivotTable, type PivotTableProps, type PivotData } from './PivotTable';
 // Supporting components
 export { HeaderContextMenu, type HeaderContextMenuProps } from './HeaderContextMenu';
 export { TableProgress, type TableProgressProps } from './TableProgress';
+export { SortContext, useSortContext, type SortContextValue } from './SortContext';
 
 // Hooks
 export { useColumnResize } from './useColumnResize';

@@ -95,6 +95,11 @@ export {
   TableProgress,
   type TableProgressProps,
 } from './table/TableProgress';
+export {
+  SortContext,
+  useSortContext,
+  type SortContextValue,
+} from './table/SortContext';
 export type {
   TableColumn,
   SortDirection,
