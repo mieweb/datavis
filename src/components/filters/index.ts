@@ -2,7 +2,7 @@
  * Filters — public exports.
  */
 
-export { FilterBar, type FilterBarProps } from './FilterBar';
+export { FilterBar, type FilterBarProps, type FilterFieldOption } from './FilterBar';
 export { StringFilter, type StringFilterProps } from './StringFilter';
 export { NumberFilter, type NumberFilterProps } from './NumberFilter';
 export { DateFilter, type DateFilterProps } from './DateFilter';

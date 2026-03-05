@@ -460,6 +460,7 @@ export function DataGrid({
           {controlsVisible && (
             <ControlPanel
               filterColumns={mergedFilterColumns}
+              allFilterableFields={allColumns.map((c) => ({ field: c.field, displayName: c.displayName ?? c.field }))}
               availableFields={controlFields}
               aggregateFields={aggregateFields}
               groupFields={groupFields}
@@ -467,6 +468,8 @@ export function DataGrid({
               aggregateEntries={aggregateEntries}
               aggregateFunctions={aggregateFunctions}
               onFilterChange={handleFilterChange}
+              onRemoveFilterColumn={removeFilterColumn}
+              onAddFilterColumn={addFilterColumn}
               onGroupChange={handleGroupChange}
               onPivotChange={handlePivotChange}
               onAggregateChange={handleAggregateChange}

@@ -32,6 +32,8 @@ import type { ColumnFilterConfig, FilterSpec } from '../filters/types';
 export interface ControlPanelProps {
   /** Column configs for filters */
   filterColumns: ColumnFilterConfig[];
+  /** All columns available for adding to the filter bar */
+  allFilterableFields?: { field: string; displayName: string }[];
   /** Available fields for group/pivot */
   availableFields: AvailableField[];
   /** Available fields for aggregate */
@@ -51,6 +53,8 @@ export interface ControlPanelProps {
 
   /** Handlers */
   onFilterChange: (spec: FilterSpec) => void;
+  onRemoveFilterColumn?: (field: string) => void;
+  onAddFilterColumn?: (field: string) => void;
   onGroupChange: (fields: string[]) => void;
   onPivotChange: (fields: string[]) => void;
   onAggregateChange: (entries: AggregateEntry[]) => void;
@@ -65,6 +69,7 @@ export interface ControlPanelProps {
 
 export function ControlPanel({
   filterColumns,
+  allFilterableFields,
   availableFields,
   aggregateFields,
   groupFields,
@@ -73,6 +78,8 @@ export function ControlPanel({
   aggregateFunctions,
   initialFilterSpec,
   onFilterChange,
+  onRemoveFilterColumn,
+  onAddFilterColumn,
   onGroupChange,
   onPivotChange,
   onAggregateChange,
@@ -200,11 +207,14 @@ export function ControlPanel({
       aria-label={t('CONTROL.TITLE') || 'Controls'}
     >
       {/* Filter Bar */}
-      {filterColumns.length > 0 && (
+      {(filterColumns.length > 0 || (allFilterableFields && allFilterableFields.length > 0)) && (
         <FilterBar
           columns={filterColumns}
           initialSpec={initialFilterSpec}
           onFilterChange={onFilterChange}
+          onRemoveColumn={onRemoveFilterColumn}
+          availableFields={allFilterableFields}
+          onAddColumn={onAddFilterColumn}
           trans={t}
         />
       )}
