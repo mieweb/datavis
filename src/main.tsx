@@ -6,7 +6,7 @@
  * 3. Large (5K) — 5 000 rows, 33 columns (financial ledger + inventory)
  */
 
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
 import { DataGrid } from './components/DataGrid';
@@ -22,6 +22,8 @@ import {
   generateWideData, WIDE_COLUMNS, WIDE_FILTERS,
   generateLedgerData, LEDGER_COLUMNS, LEDGER_FILTERS,
 } from './demo/data';
+import { applyFilter } from './demo/apply-filter';
+import type { FilterSpec } from './components/filters/types';
 
 // ───────────────────────────────────────────────────────────
 // Mock adapter factories
@@ -54,14 +56,20 @@ function createMockSource(): SourceInstance {
   };
 }
 
-function createMockView(data: Record<string, unknown>[], rowCount: number): ViewInstance {
+interface MockView extends ViewInstance {
+  _filterSpec: FilterSpec | null;
+  filterSpec: FilterSpec | null;
+}
+
+function createMockView(data: Record<string, unknown>[], rowCount: number): MockView {
   const source = createMockSource();
   const listeners: Record<string, Array<{ cb: (...args: unknown[]) => void; who: unknown }>> = {};
   const view = {
     source,
     data: null as unknown,
     typeInfo: null,
-    filterSpec: null,
+    filterSpec: null as FilterSpec | null,
+    _filterSpec: null as FilterSpec | null,
     on(event: string, cb: (...args: unknown[]) => void, opts?: { who?: unknown }) {
       if (!listeners[event]) listeners[event] = [];
       listeners[event].push({ cb, who: opts?.who });
@@ -77,24 +85,43 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): View
       setTimeout(() => {
         view.fire('workBegin');
         setTimeout(() => {
-          view.data = { isPlain: true, isGroup: false, isPivot: false, data };
+          const filtered = view._filterSpec
+            ? applyFilter(data, view._filterSpec)
+            : data;
+          view.data = { isPlain: true, isGroup: false, isPivot: false, data: filtered };
           view.fire('workEnd', {
             isPlain: true, isGroup: false, isPivot: false,
-            numRows: rowCount, totalRows: rowCount, numGroups: 0,
+            numRows: filtered.length, totalRows: rowCount, numGroups: 0,
           });
           cont?.(true, view.data);
         }, data.length > 1000 ? 600 : 300);
       }, 100);
     },
     getTypeInfo(cont?: (ok: boolean, ti: unknown) => void) { cont?.(true, {}); },
-    setSort() {}, setFilter() {}, setGroup() {}, setPivot() {}, setAggregate() {},
-    clearSort() {}, clearFilter() {}, clearGroup() {}, clearPivot() {}, clearAggregate() {},
+    setSort() {},
+    setFilter(spec: unknown) {
+      view._filterSpec = spec as FilterSpec;
+      view.filterSpec = spec as FilterSpec;
+      view.getData();
+    },
+    setGroup() {}, setPivot() {}, setAggregate() {},
+    clearSort() {},
+    clearFilter() {
+      view._filterSpec = null;
+      view.filterSpec = null;
+      view.getData();
+    },
+    clearGroup() {}, clearPivot() {}, clearAggregate() {},
     getSort() { return null; }, getAggregate() { return null; },
-    getRowCount() { return rowCount; }, getTotalRowCount() { return rowCount; },
+    getRowCount() {
+      const d = view.data as { data?: unknown[] } | null;
+      return d?.data?.length ?? rowCount;
+    },
+    getTotalRowCount() { return rowCount; },
     clearCache() {}, refresh() { view.getData(); }, reset() {},
     setColConfig() {}, setPrefs() {}, unlimit() {},
     getUniqueVals(cont: (ok: boolean, vals: unknown) => void) { cont(true, {}); },
-  } as unknown as ViewInstance;
+  } as unknown as MockView;
   return view;
 }
 
@@ -214,6 +241,21 @@ function GridDemo({
   const view = useMemo(() => createMockView(data, data.length), [data]);
   const [sort, setSort] = useState<SortSpec | null>(null);
 
+  // Track the filtered data from the mock view's workEnd cycle.
+  // When filters are applied, the view re-runs getData() with filtered results.
+  const [displayData, setDisplayData] = useState<Record<string, unknown>[]>(data);
+
+  useEffect(() => {
+    const handler = () => {
+      const viewData = (view as unknown as { data: { data: Record<string, unknown>[] } | null }).data;
+      if (viewData?.data) {
+        setDisplayData(viewData.data);
+      }
+    };
+    view.on('workEnd', handler, { who: 'GridDemo' });
+    return () => view.off('workEnd', 'GridDemo');
+  }, [view]);
+
   return (
     <DataGrid
       view={view}
@@ -224,12 +266,13 @@ function GridDemo({
       debug={true}
       trans={trans}
       filterColumns={filters}
+      allColumns={columns}
       controlFields={controlFields}
       aggregateFields={aggregateFields}
       aggregateFunctions={AGG_FUNCTIONS}
     >
       <TableRenderer
-        viewData={{ isPlain: true, isGroup: false, isPivot: false, data }}
+        viewData={{ isPlain: true, isGroup: false, isPivot: false, data: displayData }}
         columns={columns}
         sort={sort}
         totalRows={data.length}
@@ -253,8 +296,27 @@ function GridDemo({
 // App — tabbed demo
 // ───────────────────────────────────────────────────────────
 
+function getTabFromHash(): TabKey {
+  const hash = window.location.hash.replace('#', '').toLowerCase();
+  if (hash === 'wide' || hash === 'large') return hash;
+  return 'simple';
+}
+
 function App() {
-  const [activeTab, setActiveTab] = useState<TabKey>('simple');
+  const [activeTab, setActiveTab] = useState<TabKey>(getTabFromHash);
+
+  // Sync hash → state on popstate (browser back/forward)
+  useEffect(() => {
+    const onHashChange = () => setActiveTab(getTabFromHash());
+    window.addEventListener('hashchange', onHashChange);
+    return () => window.removeEventListener('hashchange', onHashChange);
+  }, []);
+
+  // Update hash when tab changes
+  const switchTab = (key: TabKey) => {
+    window.location.hash = key;
+    setActiveTab(key);
+  };
 
   // Generate data lazily (only once)
   const wideData = useMemo(() => generateWideData(20), []);
@@ -331,7 +393,7 @@ function App() {
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
               }`}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => switchTab(tab.key)}
             >
               {tab.label}
               <span className="ml-2 text-xs font-normal text-gray-400">{tab.badge}</span>

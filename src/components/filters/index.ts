@@ -9,6 +9,12 @@ export { DateFilter, type DateFilterProps } from './DateFilter';
 export { BooleanFilter, type BooleanFilterProps } from './BooleanFilter';
 export { FilterOperatorSelect, type FilterOperatorSelectProps } from './FilterOperatorSelect';
 export {
+  FilterContext,
+  useFilterContext,
+  columnToFilterConfig,
+  type FilterContextValue,
+} from './FilterContext';
+export {
   STRING_OPERATORS,
   NUMBER_OPERATORS,
   DATE_OPERATORS,

@@ -110,7 +110,7 @@ export function FilterBar({
       </div>
 
       {/* Filter widgets — laid out in a responsive grid */}
-      <div className="wcdv-filter-bar-fields grid gap-1" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(180px, 1fr))` }}>
+      <div className="wcdv-filter-bar-fields grid gap-1" style={{ gridTemplateColumns: `repeat(auto-fill, minmax(220px, 1fr))` }}>
         {visibleColumns.map((col) => (
           <div
             key={col.field}

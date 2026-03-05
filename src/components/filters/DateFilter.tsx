@@ -184,7 +184,7 @@ export function DateFilter({
       {(operator === '$eq' || operator === '$lte' || operator === '$gte') && (
         <input
           type={inputType}
-          className="h-7 rounded border border-gray-300 bg-white text-xs px-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          className="flex-1 min-w-0 h-7 rounded border border-gray-300 bg-white text-xs px-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
           value={dateValue}
           onChange={(e) => {
             setDateValue(e.target.value);

@@ -44,6 +44,7 @@ import { useColumnResize } from './useColumnResize';
 import { useColumnReorder } from './useColumnReorder';
 import { useKeyboardNav } from './useKeyboardNav';
 import { HeaderContextMenu } from './HeaderContextMenu';
+import { useFilterContext } from '../filters/FilterContext';
 
 // ───────────────────────────────────────────────────────────
 // Sort icon
@@ -70,6 +71,22 @@ function SortIcon({ direction }: { direction?: SortDirection }) {
   );
 }
 
+/** Small funnel icon — filled when filter is active */
+function FilterIcon({ active }: { active?: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      className={`w-3 h-3 flex-shrink-0 ${
+        active ? 'text-blue-500' : 'text-gray-300 hover:text-gray-500'
+      }`}
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M1.5 1.5h13L10 7.5v5l-4-2.5V7.5L1.5 1.5z" />
+    </svg>
+  );
+}
+
 // ───────────────────────────────────────────────────────────
 // Sortable Header Cell
 // ───────────────────────────────────────────────────────────
@@ -78,6 +95,10 @@ interface SortableHeaderProps {
   column: TableColumn;
   sortDir?: SortDirection;
   resizable: boolean;
+  /** Whether this column currently has an active filter */
+  filterActive?: boolean;
+  /** Called when the filter icon is clicked */
+  onFilterClick?: () => void;
   onSort?: (field: string, direction: SortDirection) => void;
   onResizeStart?: (
     field: string,
@@ -91,6 +112,8 @@ function SortableHeaderCell({
   column,
   sortDir,
   resizable,
+  filterActive,
+  onFilterClick,
   onSort,
   onResizeStart,
   onContextMenu,
@@ -145,16 +168,35 @@ function SortableHeaderCell({
       {...attributes}
       {...listeners}
     >
-      <button
-        type="button"
-        className="flex w-full items-center gap-0.5 bg-transparent border-none p-0 text-left text-inherit font-inherit cursor-pointer"
-        onClick={handleClick}
-        tabIndex={-1}
-        aria-label={`Sort by ${column.header}`}
-      >
-        <span className="truncate">{column.header}</span>
-        {(column.sortable !== false) && <SortIcon direction={sortDir} />}
-      </button>
+      <div className="flex items-center w-full gap-0.5">
+        <button
+          type="button"
+          className="flex flex-1 items-center gap-0.5 min-w-0 bg-transparent border-none p-0 text-left text-inherit font-inherit cursor-pointer"
+          onClick={handleClick}
+          tabIndex={-1}
+          aria-label={`Sort by ${column.header}`}
+        >
+          <span className="truncate">{column.header}</span>
+          {(column.sortable !== false) && <SortIcon direction={sortDir} />}
+        </button>
+
+        {/* Filter icon — adds this column to the filter bar */}
+        {onFilterClick && (
+          <button
+            type="button"
+            className="flex-shrink-0 p-0 border-none bg-transparent cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              onFilterClick();
+            }}
+            tabIndex={-1}
+            aria-label={filterActive ? `Filter active on ${column.header}` : `Add filter for ${column.header}`}
+            title={filterActive ? 'Filter active' : 'Add filter'}
+          >
+            <FilterIcon active={filterActive} />
+          </button>
+        )}
+      </div>
 
       {/* Resize handle */}
       {resizable && (
@@ -196,6 +238,9 @@ export function PlainTable({
   onSelectionChange,
   className = '',
 }: BaseTableProps) {
+  // ── Filter context (provided by DataGrid) ─────
+  const filterCtx = useFilterContext();
+
   // ── Column state ───────────────────────────────
   const [columns, setColumns] = useState<TableColumn[]>(initialColumns);
 
@@ -388,7 +433,7 @@ export function PlainTable({
           collisionDetection={closestCenter}
           onDragEnd={features.columnReorder !== false ? handleDragEnd : undefined}
         >
-          <table className="w-full border-collapse" role="grid">
+          <table className="min-w-full border-collapse" role="grid">
             {/* ── Header ── */}
             <thead
               className={
@@ -412,6 +457,18 @@ export function PlainTable({
                       resizable={
                         features.columnResize !== false &&
                         col.resizable !== false
+                      }
+                      filterActive={filterCtx?.activeFilterFields.has(col.field)}
+                      onFilterClick={
+                        filterCtx
+                          ? () => {
+                              if (filterCtx.activeFilterFields.has(col.field)) {
+                                filterCtx.removeFilterColumn(col.field);
+                              } else {
+                                filterCtx.addFilterColumn(col.field);
+                              }
+                            }
+                          : undefined
                       }
                       onSort={onSort}
                       onResizeStart={handleResizeMouseDown}

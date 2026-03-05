@@ -15,6 +15,8 @@ import { ControlPanel } from './controls/ControlPanel';
 import { type ControlFieldItem } from './controls/ControlSection';
 import { type AggregateEntry, type AggregateFunction } from './controls/AggregateSection';
 import { type ColumnFilterConfig, type FilterSpec } from './filters/types';
+import { FilterContext, columnToFilterConfig, type FilterContextValue } from './filters/FilterContext';
+import type { TableColumn } from './table/types';
 import { OperationsPalette, type Operation } from './OperationsPalette';
 import { DetailSlider } from './DetailSlider';
 import { LoadingOverlay } from './LoadingOverlay';
@@ -81,6 +83,8 @@ export interface DataGridProps {
   debug?: boolean;
   /** Column filter configurations for the filter bar */
   filterColumns?: ColumnFilterConfig[];
+  /** All table columns — used to derive filter configs when filter icon is clicked */
+  allColumns?: TableColumn[];
   /** Available fields for group/pivot controls */
   controlFields?: { field: string; displayName: string; disabled?: boolean }[];
   /** Available fields for aggregate controls */
@@ -125,6 +129,7 @@ export function DataGrid({
   trans: t = defaultTrans,
   debug = false,
   filterColumns = [],
+  allColumns = [],
   controlFields = [],
   aggregateFields = [],
   aggregateFunctions = [],
@@ -144,6 +149,73 @@ export function DataGrid({
   // ── Local UI state ─────────────────────────────
   const [collapsed, setCollapsed] = useState(false);
   const [controlsVisible, setControlsVisible] = useState(initialShowControls);
+
+  // ── Dynamic filter columns ─────────────────────
+  const [dynamicFilterColumns, setDynamicFilterColumns] = useState<ColumnFilterConfig[]>([]);
+  /** Static filter fields the user has hidden via the header icon */
+  const [hiddenStaticFilters, setHiddenStaticFilters] = useState<Set<string>>(new Set());
+
+  /** Merged filter columns: static (minus hidden) + dynamic (added via header icons) */
+  const mergedFilterColumns = useMemo(() => {
+    const visibleStatic = filterColumns.filter((c) => !hiddenStaticFilters.has(c.field));
+    const staticFields = new Set(visibleStatic.map((c) => c.field));
+    const newDynamic = dynamicFilterColumns.filter((c) => !staticFields.has(c.field));
+    return [...visibleStatic, ...newDynamic];
+  }, [filterColumns, dynamicFilterColumns, hiddenStaticFilters]);
+
+  /** Set of field names that currently have a filter widget */
+  const activeFilterFields = useMemo(
+    () => new Set(mergedFilterColumns.map((c) => c.field)),
+    [mergedFilterColumns],
+  );
+
+  const addFilterColumn = useCallback(
+    (field: string) => {
+      // If it's a hidden static filter, just un-hide it
+      if (hiddenStaticFilters.has(field)) {
+        setHiddenStaticFilters((prev) => {
+          const next = new Set(prev);
+          next.delete(field);
+          return next;
+        });
+        setControlsVisible(true);
+        return;
+      }
+
+      // Already in the filter bar — nothing to do
+      if (activeFilterFields.has(field)) return;
+
+      // Derive config from allColumns metadata, or fall back to string filter
+      const col = allColumns.find((c) => c.field === field);
+      const config: ColumnFilterConfig = col
+        ? columnToFilterConfig(col)
+        : { field, displayName: field, filterType: 'string', widget: 'textbox', visible: true };
+
+      setDynamicFilterColumns((prev) => [...prev, config]);
+
+      // Auto-open controls so the user sees the new filter
+      setControlsVisible(true);
+    },
+    [activeFilterFields, hiddenStaticFilters, allColumns],
+  );
+
+  const removeFilterColumn = useCallback(
+    (field: string) => {
+      // Check if it's a static filter
+      if (filterColumns.some((c) => c.field === field)) {
+        setHiddenStaticFilters((prev) => new Set(prev).add(field));
+      }
+      // Also remove from dynamic list (in case it was added dynamically)
+      setDynamicFilterColumns((prev) => prev.filter((c) => c.field !== field));
+    },
+    [filterColumns],
+  );
+
+  /** Context value for table header filter icons */
+  const filterContextValue = useMemo<FilterContextValue>(
+    () => ({ addFilterColumn, removeFilterColumn, activeFilterFields }),
+    [addFilterColumn, removeFilterColumn, activeFilterFields],
+  );
   const [sliderOpen, setSliderOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [sliderHeader, _setSliderHeader] = useState('');
@@ -387,7 +459,7 @@ export function DataGrid({
           {/* Control Panel */}
           {controlsVisible && (
             <ControlPanel
-              filterColumns={filterColumns}
+              filterColumns={mergedFilterColumns}
               availableFields={controlFields}
               aggregateFields={aggregateFields}
               groupFields={groupFields}
@@ -420,7 +492,9 @@ export function DataGrid({
             role="grid"
             aria-busy={viewState.loading}
           >
-            {children}
+            <FilterContext.Provider value={filterContextValue}>
+              {children}
+            </FilterContext.Provider>
           </div>
         </div>
       )}

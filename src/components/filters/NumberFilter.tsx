@@ -157,18 +157,20 @@ function NumberTextboxFilter({
         aria-label={`${label} ${t('FILTER.OPERATOR')}`}
       />
       {!isNoInput && (
-        <Input
-          size="sm"
-          hideLabel
-          label={label}
-          type="number"
-          value={textValue}
-          onChange={(e) => setTextValue(e.target.value)}
-          onBlur={handleTextCommit}
-          onKeyDown={handleKeyDown}
-          placeholder={label}
-          aria-label={`${t('FILTER.VALUE_FOR')} ${label}`}
-        />
+        <div className="flex-1 min-w-0">
+          <Input
+            size="sm"
+            hideLabel
+            label={label}
+            type="number"
+            value={textValue}
+            onChange={(e) => setTextValue(e.target.value)}
+            onBlur={handleTextCommit}
+            onKeyDown={handleKeyDown}
+            placeholder={label}
+            aria-label={`${t('FILTER.VALUE_FOR')} ${label}`}
+          />
+        </div>
       )}
       {isNoInput && (
         <span className="text-xs text-gray-400 italic px-1" role="status">
