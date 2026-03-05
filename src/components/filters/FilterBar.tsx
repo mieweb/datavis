@@ -104,6 +104,8 @@ export function FilterBar({
   // "Add field" dropdown open state
   const [addOpen, setAddOpen] = useState(false);
   const addRef = useRef<HTMLDivElement>(null);
+  // Track which field was just added so we can auto-focus its operator select
+  const [pendingFocusField, setPendingFocusField] = useState<string | null>(null);
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -116,6 +118,13 @@ export function FilterBar({
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [addOpen]);
+
+  // Clear pending focus after the newly-added filter has mounted
+  useEffect(() => {
+    if (!pendingFocusField) return;
+    const timer = setTimeout(() => setPendingFocusField(null), 100);
+    return () => clearTimeout(timer);
+  }, [pendingFocusField]);
 
   if (visibleColumns.length === 0 && addableFields.length === 0) return null;
 
@@ -178,6 +187,7 @@ export function FilterBar({
               value={specs[col.field] ?? undefined}
               onChange={handleFieldChange}
               trans={t}
+              autoFocus={pendingFocusField === col.field}
             />
           </div>
         ))}
@@ -210,6 +220,7 @@ export function FilterBar({
                     role="option"
                     className="w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 hover:text-blue-700 transition-colors"
                     onClick={() => {
+                      setPendingFocusField(f.field);
                       onAddColumn(f.field);
                       setAddOpen(false);
                     }}
@@ -235,9 +246,10 @@ interface FilterWidgetProps {
   value?: FieldFilterSpec;
   onChange: (field: string, spec: FieldFilterSpec | null) => void;
   trans: (key: string) => string;
+  autoFocus?: boolean;
 }
 
-function FilterWidget({ column, value, onChange, trans }: FilterWidgetProps) {
+function FilterWidget({ column, value, onChange, trans, autoFocus }: FilterWidgetProps) {
   const { field, displayName, filterType, widget, options, includeOperators, excludeOperators } = column;
 
   switch (filterType) {
@@ -252,6 +264,7 @@ function FilterWidget({ column, value, onChange, trans }: FilterWidgetProps) {
           excludeOperators={excludeOperators}
           value={value}
           onChange={onChange}
+          autoFocus={autoFocus}
           trans={trans}
         />
       );
@@ -267,6 +280,7 @@ function FilterWidget({ column, value, onChange, trans }: FilterWidgetProps) {
           excludeOperators={excludeOperators}
           value={value}
           onChange={onChange}
+          autoFocus={autoFocus}
           trans={trans}
         />
       );
@@ -281,6 +295,7 @@ function FilterWidget({ column, value, onChange, trans }: FilterWidgetProps) {
           excludeOperators={excludeOperators}
           value={value}
           onChange={onChange}
+          autoFocus={autoFocus}
           trans={trans}
         />
       );
@@ -295,6 +310,7 @@ function FilterWidget({ column, value, onChange, trans }: FilterWidgetProps) {
           excludeOperators={excludeOperators}
           value={value}
           onChange={onChange}
+          autoFocus={autoFocus}
           trans={trans}
         />
       );
@@ -317,6 +333,7 @@ function FilterWidget({ column, value, onChange, trans }: FilterWidgetProps) {
           widget="textbox"
           value={value}
           onChange={onChange}
+          autoFocus={autoFocus}
           trans={trans}
         />
       );

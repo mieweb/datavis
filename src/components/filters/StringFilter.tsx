@@ -33,6 +33,8 @@ export interface StringFilterProps {
   value?: FieldFilterSpec;
   /** Change handler */
   onChange: (field: string, spec: FieldFilterSpec | null) => void;
+  /** Auto-focus the operator select on mount */
+  autoFocus?: boolean;
   /** i18n */
   trans?: (key: string) => string;
 }
@@ -46,6 +48,7 @@ export function StringFilter({
   excludeOperators,
   value,
   onChange,
+  autoFocus,
   trans: t = (k) => k,
 }: StringFilterProps) {
   // Determine which operators to show
@@ -161,6 +164,7 @@ export function StringFilter({
             value={operator}
             onChange={handleOperatorChange}
             aria-label={`${label} ${t('FILTER.OPERATOR')}`}
+            autoFocus={autoFocus}
           />
           <MultiSelectDropdown
             options={options}
@@ -184,6 +188,7 @@ export function StringFilter({
         value={operator}
         onChange={handleOperatorChange}
         aria-label={`${label} ${t('FILTER.OPERATOR')}`}
+        autoFocus={autoFocus}
       />
       {!isNoInput && (
         <div className="flex-1 min-w-0">

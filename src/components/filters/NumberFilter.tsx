@@ -33,6 +33,8 @@ export interface NumberFilterProps {
   value?: FieldFilterSpec;
   /** Change handler */
   onChange: (field: string, spec: FieldFilterSpec | null) => void;
+  /** Auto-focus the operator select on mount */
+  autoFocus?: boolean;
   /** i18n */
   trans?: (key: string) => string;
 }
@@ -45,6 +47,7 @@ export function NumberFilter({
   excludeOperators,
   value,
   onChange,
+  autoFocus,
   trans: t = (k) => k,
 }: NumberFilterProps) {
   if (widget === 'checkbox') {
@@ -78,6 +81,7 @@ export function NumberFilter({
       excludeOperators={excludeOperators}
       value={value}
       onChange={onChange}
+      autoFocus={autoFocus}
       trans={t}
     />
   );
@@ -94,6 +98,7 @@ function NumberTextboxFilter({
   excludeOperators,
   value,
   onChange,
+  autoFocus,
   trans: t = (k) => k,
 }: Omit<NumberFilterProps, 'widget'>) {
   const operators = NUMBER_OPERATORS.filter((op) => {
@@ -155,6 +160,7 @@ function NumberTextboxFilter({
         value={operator}
         onChange={handleOperatorChange}
         aria-label={`${label} ${t('FILTER.OPERATOR')}`}
+        autoFocus={autoFocus}
       />
       {!isNoInput && (
         <div className="flex-1 min-w-0">

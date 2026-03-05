@@ -7,7 +7,7 @@
  * Operators: On, Between, Before, After, Every, Current, Last
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { Select } from '@mieweb/ui/components/Select';
 import { FilterOperatorSelect } from './FilterOperatorSelect';
 import {
@@ -33,6 +33,8 @@ export interface DateFilterProps {
   value?: FieldFilterSpec;
   /** Change handler */
   onChange: (field: string, spec: FieldFilterSpec | null) => void;
+  /** Auto-focus the operator select on mount */
+  autoFocus?: boolean;
   /** i18n */
   trans?: (key: string) => string;
 }
@@ -60,6 +62,7 @@ export function DateFilter({
   excludeOperators,
   value,
   onChange,
+  autoFocus,
   trans: t = (k) => k,
 }: DateFilterProps) {
   const operators = DATE_OPERATORS.filter((op) => {
@@ -103,6 +106,9 @@ export function DateFilter({
 
   const isNoInput = operators.find((o) => o.value === operator)?.noInput;
   const inputType = includeTime ? 'datetime-local' : 'date';
+
+  // Ref for the "end" date input in Between mode
+  const endDateRef = useRef<HTMLInputElement>(null);
 
   const emitChange = useCallback(
     (
@@ -178,6 +184,7 @@ export function DateFilter({
         value={operator}
         onChange={handleOperatorChange}
         aria-label={`${label} ${t('FILTER.OPERATOR')}`}
+        autoFocus={autoFocus}
       />
 
       {/* Single date: On / Before / After */}
@@ -204,11 +211,22 @@ export function DateFilter({
             onChange={(e) => {
               setRangeStart(e.target.value);
               emitChange(operator, { start: e.target.value, end: rangeEnd });
+              // Auto-focus end date only when a complete, valid date is entered.
+              // Browser fires onChange with year=0001 while user is still typing
+              // month/day segments, so require year >= 1000 to be sure.
+              const input = e.target;
+              const year = input.valueAsDate?.getFullYear() ?? 0;
+              if (input.value && input.validity.valid && !isNaN(input.valueAsNumber) && year >= 1000 && endDateRef.current) {
+                requestAnimationFrame(() => {
+                  endDateRef.current?.focus();
+                });
+              }
             }}
             aria-label={`${label} ${t('FILTER.DATE_FROM') || 'from'}`}
           />
           <span className="text-xs text-gray-400">–</span>
           <input
+            ref={endDateRef}
             type={inputType}
             className="h-7 rounded border border-gray-300 bg-white text-xs px-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
             value={rangeEnd}
