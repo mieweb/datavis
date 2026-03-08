@@ -154,7 +154,7 @@ export function TableRenderer({
     const groupOrder: string[] = [];
 
     if (groupMetadata) {
-      // Use group metadata if available
+      // Use group metadata for headers (aggregates, count, etc.)
       for (const [key, meta] of Object.entries(groupMetadata)) {
         const m = meta as Record<string, unknown>;
         groups[key] = {
@@ -167,10 +167,17 @@ export function TableRenderer({
         groupOrder.push(key);
         groupedRows[key] = [];
       }
-    }
 
-    // If no metadata, derive groups from data
-    if (groupOrder.length === 0 && data.length > 0) {
+      // Bucket data rows into groups (metadata only has headers)
+      for (const [idx, row] of data.entries()) {
+        const key = groupFields
+          .map((f) => String(row[f] ?? ''))
+          .join('|||');
+        if (!groupedRows[key]) groupedRows[key] = [];
+        groupedRows[key].push({ rowNum: idx, data: row });
+      }
+    } else if (data.length > 0) {
+      // No metadata — derive groups entirely from data
       for (const [idx, row] of data.entries()) {
         const key = groupFields
           .map((f) => String(row[f] ?? ''))

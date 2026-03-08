@@ -62,11 +62,17 @@ interface GroupSpec {
   fieldNames: { field: string; fun?: string }[];
 }
 
+interface AggSpec {
+  fn: string;
+  fields: string[];
+}
+
 interface MockView extends ViewInstance {
   _filterSpec: FilterSpec | null;
   filterSpec: FilterSpec | null;
   _sortSpec: { vertical?: { field: string; dir: string } } | null;
   _groupSpec: GroupSpec | null;
+  _aggSpec: AggSpec[] | null;
 }
 
 function createMockView(data: Record<string, unknown>[], rowCount: number): MockView {
@@ -80,6 +86,7 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): Mock
     _filterSpec: null as FilterSpec | null,
     _sortSpec: null as { vertical?: { field: string; dir: string } } | null,
     _groupSpec: null as GroupSpec | null,
+    _aggSpec: null as AggSpec[] | null,
     on(event: string, cb: (...args: unknown[]) => void, opts?: { who?: unknown }) {
       if (!listeners[event]) listeners[event] = [];
       listeners[event].push({ cb, who: opts?.who });
@@ -119,10 +126,48 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): Mock
           const groupFields = (view._groupSpec?.fieldNames ?? []).map((f) => f.field);
           const isGroup = groupFields.length > 0;
 
+          // Compute per-group aggregates when both grouping and aggregates are active
+          let groupMetadata: Record<string, unknown> | undefined;
+          if (isGroup) {
+            const buckets = new Map<string, Record<string, unknown>[]>();
+            for (const row of result) {
+              const key = groupFields.map((f) => String(row[f] ?? '')).join('|||');
+              if (!buckets.has(key)) buckets.set(key, []);
+              buckets.get(key)!.push(row);
+            }
+            if (view._aggSpec && view._aggSpec.length > 0) {
+              const aggSpecs: AggSpec[] = view._aggSpec;
+              groupMetadata = {};
+              for (const [key, rows] of buckets) {
+                const aggregates: Record<string, unknown> = {};
+                for (const agg of aggSpecs) {
+                  const field: string | undefined = agg.fields[0];
+                  const label = field ? `${agg.fn}(${field})` : agg.fn;
+                  if (agg.fn === 'count') {
+                    aggregates[label] = rows.length;
+                  } else if (field) {
+                    const nums = rows.map((r) => Number(r[field])).filter((n) => !isNaN(n));
+                    if (agg.fn === 'sum') aggregates[label] = nums.reduce((a, b) => a + b, 0);
+                    else if (agg.fn === 'avg') aggregates[label] = nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
+                    else if (agg.fn === 'min') aggregates[label] = nums.length ? Math.min(...nums) : null;
+                    else if (agg.fn === 'max') aggregates[label] = nums.length ? Math.max(...nums) : null;
+                  }
+                }
+                groupMetadata[key] = {
+                  groupValues: Object.fromEntries(groupFields.map((f) => [f, rows[0]?.[f]])),
+                  count: rows.length,
+                  level: 0,
+                  aggregates,
+                };
+              }
+            }
+          }
+
           view.data = {
             isPlain: !isGroup, isGroup, isPivot: false,
             data: result,
             ...(isGroup ? { groupFields } : {}),
+            ...(groupMetadata ? { groupMetadata } : {}),
           };
           view.fire('workEnd', {
             isPlain: !isGroup, isGroup, isPivot: false,
@@ -153,6 +198,7 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): Mock
       view.getData();
     },
     setAggregate(spec: unknown) {
+      view._aggSpec = spec as AggSpec[] | null;
       view.fire('aggregateSet', spec);
       view.getData();
     },
@@ -175,6 +221,7 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): Mock
       view.getData();
     },
     clearAggregate() {
+      view._aggSpec = null;
       view.fire('aggregateSet', null);
       view.getData();
     },
