@@ -9,6 +9,12 @@ import { useState, useCallback, useMemo } from 'react';
 
 import { useView, useSource, type ViewInstance } from '../adapters/use-data';
 import { type PrefsInstance } from '../adapters/use-prefs';
+import {
+  buildGroupSpec,
+  getGroupFunctionLabel,
+  filterGroupFunctionsForType,
+  needsGroupFunction,
+} from '../adapters/group-adapter';
 import { TransProvider, useTranslation, type TransFn } from '../i18n';
 import { TitleBar } from './TitleBar';
 import { GridToolbar } from './GridToolbar';
@@ -88,7 +94,7 @@ export interface DataGridProps {
   /** All table columns — used to derive filter configs when filter icon is clicked */
   allColumns?: TableColumn[];
   /** Available fields for group/pivot controls */
-  controlFields?: { field: string; displayName: string; disabled?: boolean }[];
+  controlFields?: { field: string; displayName: string; disabled?: boolean; type?: string }[];
   /** Available fields for aggregate controls */
   aggregateFields?: { field: string; displayName: string }[];
   /** Available aggregate functions */
@@ -244,11 +250,37 @@ export function DataGrid({
   const [debugOpen, setDebugOpen] = useState(false);
   const [tableOptsOpen, setTableOptsOpen] = useState(false);
   const [groupFnOpen, setGroupFnOpen] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [groupFnField, _setGroupFnField] = useState<string | undefined>();
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const [groupFnCurrent, _setGroupFnCurrent] = useState<string | undefined>();
+  /** Which field the group function dialog is editing */
+  const [groupFnField, setGroupFnField] = useState<string | undefined>();
+  /** The current function name for the field being edited */
+  const [groupFnCurrent, setGroupFnCurrent] = useState<string | undefined>();
+  /** Whether we're editing a group vs pivot function */
+  const [groupFnTarget, setGroupFnTarget] = useState<'group' | 'pivot'>('group');
   const [perspectiveOpen, setPerspectiveOpen] = useState(false);
+
+  /** Per-field group function map: field → function name */
+  const [groupFunMap, setGroupFunMap] = useState<Record<string, string>>({});
+  /** Per-field pivot function map: field → function name */
+  const [pivotFunMap, setPivotFunMap] = useState<Record<string, string>>({});
+
+  // Enrich group fields with function subtitles
+  const enrichedGroupFields = useMemo(
+    () =>
+      groupFields.map((f) => ({
+        ...f,
+        subtitle: getGroupFunctionLabel(groupFunctionDefs, groupFunMap[f.field]),
+      })),
+    [groupFields, groupFunMap, groupFunctionDefs],
+  );
+
+  const enrichedPivotFields = useMemo(
+    () =>
+      pivotFields.map((f) => ({
+        ...f,
+        subtitle: getGroupFunctionLabel(groupFunctionDefs, pivotFunMap[f.field]),
+      })),
+    [pivotFields, pivotFunMap, groupFunctionDefs],
+  );
 
   // Derive data mode (plain/group/pivot) from view data
   const dataMode = useMemo(() => {
@@ -312,36 +344,84 @@ export function DataGrid({
 
   const handleGroupChange = useCallback(
     (fields: string[]) => {
-      setGroupFields(
-        fields.map((f) => ({
-          field: f,
-          displayName: controlFields.find((cf) => cf.field === f)?.displayName ?? f,
-        })),
-      );
+      // Preserve existing function assignments for fields that remain
+      const newGroupFields = fields.map((f) => ({
+        field: f,
+        displayName: controlFields.find((cf) => cf.field === f)?.displayName ?? f,
+      }));
+      setGroupFields(newGroupFields);
+
+      // Clean up function map: remove entries for removed fields
+      setGroupFunMap((prev) => {
+        const next: Record<string, string> = {};
+        for (const f of fields) {
+          if (prev[f]) next[f] = prev[f];
+        }
+        return next;
+      });
+
       if (fields.length === 0) {
         viewState.clearGroup();
       } else {
-        viewState.setGroup({ fieldNames: fields });
+        // Build spec with function assignments
+        const specFields = fields.map((f) => ({ field: f, fun: groupFunMap[f] }));
+        viewState.setGroup(buildGroupSpec(specFields));
+      }
+
+      // Auto-open group function dialog for newly added date/datetime/time fields
+      if (fields.length > groupFields.length) {
+        const newField = fields[fields.length - 1];
+        const cf = controlFields.find((c) => c.field === newField);
+        const fieldType = cf?.type;
+        if (fieldType && needsGroupFunction(fieldType)) {
+          setGroupFnField(newField);
+          setGroupFnCurrent(undefined);
+          setGroupFnTarget('group');
+          setGroupFnOpen(true);
+        }
       }
     },
-    [controlFields, viewState],
+    [controlFields, viewState, groupFunMap, groupFields.length],
   );
 
   const handlePivotChange = useCallback(
     (fields: string[]) => {
-      setPivotFields(
-        fields.map((f) => ({
-          field: f,
-          displayName: controlFields.find((cf) => cf.field === f)?.displayName ?? f,
-        })),
-      );
+      const newPivotFields = fields.map((f) => ({
+        field: f,
+        displayName: controlFields.find((cf) => cf.field === f)?.displayName ?? f,
+      }));
+      setPivotFields(newPivotFields);
+
+      // Clean up function map
+      setPivotFunMap((prev) => {
+        const next: Record<string, string> = {};
+        for (const f of fields) {
+          if (prev[f]) next[f] = prev[f];
+        }
+        return next;
+      });
+
       if (fields.length === 0) {
-        viewState.clearGroup(); // clear pivot by resetting group
+        viewState.clearPivot();
       } else {
-        viewState.setPivot({ fieldNames: fields });
+        const specFields = fields.map((f) => ({ field: f, fun: pivotFunMap[f] }));
+        viewState.setPivot(buildGroupSpec(specFields));
+      }
+
+      // Auto-open for newly added date/datetime/time pivot fields
+      if (fields.length > pivotFields.length) {
+        const newField = fields[fields.length - 1];
+        const cf = controlFields.find((c) => c.field === newField);
+        const fieldType = cf?.type;
+        if (fieldType && needsGroupFunction(fieldType)) {
+          setGroupFnField(newField);
+          setGroupFnCurrent(undefined);
+          setGroupFnTarget('pivot');
+          setGroupFnOpen(true);
+        }
       }
     },
-    [controlFields, viewState],
+    [controlFields, viewState, pivotFunMap, pivotFields.length],
   );
 
   const handleAggregateChange = useCallback(
@@ -390,9 +470,26 @@ export function DataGrid({
 
   const handleColumnConfigSave = useCallback(
     (cols: ColumnConfig[], clearCache: string[]) => {
+      // Push column config to the legacy view for rendering compatibility
+      try {
+        const serialized = {
+          _keys: cols.map((c) => c.field),
+          _values: cols.map((c) => ({
+            displayText: c.displayText,
+            isPinned: c.isPinned,
+            isHidden: c.isHidden,
+            allowHtml: c.allowHtml,
+            allowFormatting: c.allowFormatting,
+            canHide: c.canHide,
+          })),
+        };
+        view.setColConfig(serialized);
+      } catch {
+        // Legacy view may not have setColConfig; ignore
+      }
       onColumnConfigSave?.(cols, clearCache);
     },
-    [onColumnConfigSave],
+    [view, onColumnConfigSave],
   );
 
   const handleTemplateSave = useCallback(
@@ -411,12 +508,84 @@ export function DataGrid({
 
   const handleGroupFnSelect = useCallback(
     (fnName: string | null) => {
-      if (groupFnField) {
-        onGroupFunctionSelect?.(groupFnField, fnName);
+      if (!groupFnField) return;
+
+      const effectiveFn = fnName === 'none' ? undefined : (fnName ?? undefined);
+
+      if (groupFnTarget === 'group') {
+        // Update group function map
+        setGroupFunMap((prev) => {
+          const next = { ...prev };
+          if (effectiveFn) {
+            next[groupFnField] = effectiveFn;
+          } else {
+            delete next[groupFnField];
+          }
+          return next;
+        });
+
+        // Re-send group spec to view with updated function
+        const fields = groupFields.map((f) => f.field);
+        const specFields = fields.map((f) => ({
+          field: f,
+          fun: f === groupFnField ? effectiveFn : groupFunMap[f],
+        }));
+        viewState.setGroup(buildGroupSpec(specFields));
+      } else {
+        // Update pivot function map
+        setPivotFunMap((prev) => {
+          const next = { ...prev };
+          if (effectiveFn) {
+            next[groupFnField] = effectiveFn;
+          } else {
+            delete next[groupFnField];
+          }
+          return next;
+        });
+
+        const fields = pivotFields.map((f) => f.field);
+        const specFields = fields.map((f) => ({
+          field: f,
+          fun: f === groupFnField ? effectiveFn : pivotFunMap[f],
+        }));
+        viewState.setPivot(buildGroupSpec(specFields));
       }
+
+      // Also notify external handler if provided
+      onGroupFunctionSelect?.(groupFnField, fnName);
     },
-    [groupFnField, onGroupFunctionSelect],
+    [groupFnField, groupFnTarget, groupFields, pivotFields, groupFunMap, pivotFunMap, viewState, onGroupFunctionSelect],
   );
+
+  // ── Group function click handlers ──────────────
+  const handleGroupFunctionClick = useCallback(
+    (field: string) => {
+      setGroupFnField(field);
+      setGroupFnCurrent(groupFunMap[field]);
+      setGroupFnTarget('group');
+      setGroupFnOpen(true);
+    },
+    [groupFunMap],
+  );
+
+  const handlePivotFunctionClick = useCallback(
+    (field: string) => {
+      setGroupFnField(field);
+      setGroupFnCurrent(pivotFunMap[field]);
+      setGroupFnTarget('pivot');
+      setGroupFnOpen(true);
+    },
+    [pivotFunMap],
+  );
+
+  /** Filter group function defs to those applicable for the selected field's type */
+  const filteredGroupFnDefs = useMemo(() => {
+    if (!groupFnField) return groupFunctionDefs;
+    const cf = controlFields.find((c) => c.field === groupFnField);
+    const fieldType = cf?.type;
+    if (!fieldType) return groupFunctionDefs;
+    return filterGroupFunctionsForType(groupFunctionDefs, fieldType);
+  }, [groupFnField, controlFields, groupFunctionDefs]);
 
   // ── Filter status ──────────────────────────────
   const hasActiveFilter = useMemo(() => {
@@ -499,8 +668,8 @@ export function DataGrid({
               allFilterableFields={allColumns.map((c) => ({ field: c.field, displayName: c.header ?? c.field }))}
               availableFields={controlFields}
               aggregateFields={aggregateFields}
-              groupFields={groupFields}
-              pivotFields={pivotFields}
+              groupFields={enrichedGroupFields}
+              pivotFields={enrichedPivotFields}
               aggregateEntries={aggregateEntries}
               aggregateFunctions={aggregateFunctions}
               onFilterChange={handleFilterChange}
@@ -509,6 +678,8 @@ export function DataGrid({
               onGroupChange={handleGroupChange}
               onPivotChange={handlePivotChange}
               onAggregateChange={handleAggregateChange}
+              onGroupFunctionClick={handleGroupFunctionClick}
+              onPivotFunctionClick={handlePivotFunctionClick}
             />
           )}
 
@@ -602,7 +773,7 @@ export function DataGrid({
       <GroupFunctionDialog
         open={groupFnOpen}
         onOpenChange={setGroupFnOpen}
-        groupFunctions={groupFunctionDefs}
+        groupFunctions={filteredGroupFnDefs}
         currentFunction={groupFnCurrent}
         fieldName={groupFnField}
         onSelect={handleGroupFnSelect}

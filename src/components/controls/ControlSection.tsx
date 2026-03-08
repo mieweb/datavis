@@ -52,6 +52,10 @@ export interface ControlSectionProps {
   onReorder?: (fields: string[]) => void;
   /** Called to clear all fields */
   onClear: () => void;
+  /** Called when user clicks the group-function button on a pill */
+  onFunctionClick?: (field: string) => void;
+  /** Whether to show the group-function button on pills */
+  showFunctionButton?: boolean;
   /** i18n */
   trans?: TransFn;
 }
@@ -64,6 +68,8 @@ export function ControlSection({
   onAdd,
   onRemove,
   onClear,
+  onFunctionClick,
+  showFunctionButton = false,
   trans: transProp,
 }: ControlSectionProps) {
   const t = useTranslation(transProp);
@@ -141,6 +147,8 @@ export function ControlSection({
                 label={f.displayName}
                 subtitle={f.subtitle}
                 onRemove={onRemove}
+                onFunctionClick={onFunctionClick}
+                showFunctionButton={showFunctionButton}
                 trans={t}
               />
             ))}

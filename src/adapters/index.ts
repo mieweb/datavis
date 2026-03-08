@@ -39,3 +39,28 @@ export {
   type TypeRegistry,
   type FieldTypeInfo,
 } from './type-adapter';
+
+export {
+  adaptGroupFunctionRegistry,
+  getBuiltinGroupFunctions,
+  filterGroupFunctionsForType,
+  supportsGroup,
+  needsGroupFunction,
+  buildGroupSpec,
+  getGroupFunctionLabel,
+  GROUP_FUNCTION_ALLOWED_TYPES,
+  type GroupSpec,
+  type GroupFieldSpec,
+  type LegacyGroupFunction,
+} from './group-adapter';
+
+export {
+  ordMapToColumnConfigs,
+  ordMapToExtendedConfigs,
+  columnConfigsToOrdMap,
+  determineColumns,
+  buildDefaultColumnConfigs,
+  type LegacyFieldColConfig,
+  type SerializedOrdMap,
+  type FieldTypeEntry,
+} from './colconfig-adapter';

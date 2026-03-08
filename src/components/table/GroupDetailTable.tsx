@@ -89,6 +89,15 @@ export function GroupDetailTable({
     [],
   );
 
+  const allExpanded = groupOrder.length > 0 && groupOrder.every((k) => expandedGroups.has(k));
+
+  const toggleAll = useCallback(() => {
+    setExpandedGroups((prev) => {
+      if (groupOrder.every((k) => prev.has(k))) return new Set();
+      return new Set(groupOrder);
+    });
+  }, [groupOrder]);
+
   // Non-group columns (for detail rows)
   const dataColumns = useMemo(
     () => columns.filter((c) => !groupFields.includes(c.field)),
@@ -141,8 +150,23 @@ export function GroupDetailTable({
             }
           >
             <tr>
-              {/* Expand/collapse column */}
-              <th className="w-8 border-b border-r border-gray-200 bg-gray-50 px-1 py-2" />
+              {/* Expand/collapse all groups */}
+              <th className="wcdv-group-toggle-all w-8 border-b border-r border-gray-200 bg-gray-50 px-1 py-2 text-center">
+                <button
+                  type="button"
+                  className="inline-flex items-center justify-center bg-transparent border-none p-0 cursor-pointer text-gray-500 hover:text-gray-800 transition-colors"
+                  onClick={toggleAll}
+                  aria-label={t('TABLE.TOGGLE_ALL_GROUPS') || (allExpanded ? 'Collapse all groups' : 'Expand all groups')}
+                >
+                  <span
+                    className="inline-block transition-transform text-xs"
+                    style={{ transform: allExpanded ? 'rotate(90deg)' : 'rotate(0)' }}
+                    aria-hidden="true"
+                  >
+                    ▶
+                  </span>
+                </button>
+              </th>
               {dataColumns
                 .filter((c) => c.visible !== false)
                 .map((col) => (

@@ -2,7 +2,8 @@
  * FieldPill — a draggable field chip used in control panel sections.
  *
  * Shows the field display name with a remove button. Can be reordered
- * within its parent list via @dnd-kit/sortable.
+ * within its parent list via @dnd-kit/sortable. Optionally shows a
+ * "bolt" button for selecting a group function.
  */
 
 import { useSortable } from '@dnd-kit/sortable';
@@ -20,6 +21,10 @@ export interface FieldPillProps {
   subtitle?: string;
   /** Remove handler */
   onRemove: (id: string) => void;
+  /** Called when the user clicks the group-function button (bolt icon) */
+  onFunctionClick?: (id: string) => void;
+  /** Whether to show the group function button */
+  showFunctionButton?: boolean;
   /** i18n */
   trans?: TransFn;
 }
@@ -29,6 +34,8 @@ export function FieldPill({
   label,
   subtitle,
   onRemove,
+  onFunctionClick,
+  showFunctionButton = false,
   trans: transProp,
 }: FieldPillProps) {
   const t = useTranslation(transProp);
@@ -61,7 +68,23 @@ export function FieldPill({
       <span className="text-gray-400 select-none" aria-hidden="true">⠿</span>
       <span className="truncate max-w-[120px]">{label}</span>
       {subtitle && (
-        <span className="text-gray-400 text-[10px]">({subtitle})</span>
+        <span className="text-blue-500 text-[10px] font-medium">({subtitle})</span>
+      )}
+      {showFunctionButton && (
+        <Tooltip content={t('CONTROL.GROUP_FUNCTION') || 'Group function'}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className={`!p-0 !min-w-0 !h-4 !w-4 ${subtitle ? 'text-blue-500' : 'text-gray-400'} hover:text-blue-600`}
+            onClick={(e) => {
+              e.stopPropagation();
+              onFunctionClick?.(id);
+            }}
+            aria-label={`${t('CONTROL.GROUP_FUNCTION') || 'Group function'} ${label}`}
+          >
+            ⚡
+          </Button>
+        </Tooltip>
       )}
       <Tooltip content={t('CONTROL.REMOVE_FIELD') || 'Remove'}>
         <Button

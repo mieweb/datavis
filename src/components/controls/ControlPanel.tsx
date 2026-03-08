@@ -59,6 +59,10 @@ export interface ControlPanelProps {
   onGroupChange: (fields: string[]) => void;
   onPivotChange: (fields: string[]) => void;
   onAggregateChange: (entries: AggregateEntry[]) => void;
+  /** Called when user clicks the group-function button on a group pill */
+  onGroupFunctionClick?: (field: string) => void;
+  /** Called when user clicks the group-function button on a pivot pill */
+  onPivotFunctionClick?: (field: string) => void;
 
   /** i18n */
   trans?: TransFn;
@@ -84,6 +88,8 @@ export function ControlPanel({
   onGroupChange,
   onPivotChange,
   onAggregateChange,
+  onGroupFunctionClick,
+  onPivotFunctionClick,
   trans: transProp,
 }: ControlPanelProps) {
   const t = useTranslation(transProp);
@@ -236,6 +242,8 @@ export function ControlPanel({
             onAdd={handleGroupAdd}
             onRemove={handleGroupRemove}
             onClear={handleGroupClear}
+            onFunctionClick={onGroupFunctionClick}
+            showFunctionButton={true}
           />
 
           {/* Pivot */}
@@ -247,6 +255,8 @@ export function ControlPanel({
             onAdd={handlePivotAdd}
             onRemove={handlePivotRemove}
             onClear={handlePivotClear}
+            onFunctionClick={onPivotFunctionClick}
+            showFunctionButton={true}
           />
 
           {/* Aggregate */}

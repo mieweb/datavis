@@ -16,6 +16,7 @@ import type { ViewInstance } from './adapters/use-data';
 import type { SourceInstance } from './adapters/use-data';
 import type { ColumnFilterConfig } from './components/filters/types';
 import type { AggregateFunction } from './components/controls/AggregateSection';
+import { getBuiltinGroupFunctions } from './adapters/group-adapter';
 
 import {
   SIMPLE_DATA, SIMPLE_COLUMNS, SIMPLE_FILTERS,
@@ -57,10 +58,15 @@ function createMockSource(): SourceInstance {
   };
 }
 
+interface GroupSpec {
+  fieldNames: { field: string; fun?: string }[];
+}
+
 interface MockView extends ViewInstance {
   _filterSpec: FilterSpec | null;
   filterSpec: FilterSpec | null;
   _sortSpec: { vertical?: { field: string; dir: string } } | null;
+  _groupSpec: GroupSpec | null;
 }
 
 function createMockView(data: Record<string, unknown>[], rowCount: number): MockView {
@@ -73,6 +79,7 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): Mock
     filterSpec: null as FilterSpec | null,
     _filterSpec: null as FilterSpec | null,
     _sortSpec: null as { vertical?: { field: string; dir: string } } | null,
+    _groupSpec: null as GroupSpec | null,
     on(event: string, cb: (...args: unknown[]) => void, opts?: { who?: unknown }) {
       if (!listeners[event]) listeners[event] = [];
       listeners[event].push({ cb, who: opts?.who });
@@ -88,7 +95,7 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): Mock
       setTimeout(() => {
         view.fire('workBegin');
         setTimeout(() => {
-          let result = view._filterSpec
+          const result = view._filterSpec
             ? applyFilter(data, view._filterSpec)
             : [...data];
 
@@ -108,10 +115,19 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): Mock
             });
           }
 
-          view.data = { isPlain: true, isGroup: false, isPivot: false, data: result };
+          // Determine group mode
+          const groupFields = (view._groupSpec?.fieldNames ?? []).map((f) => f.field);
+          const isGroup = groupFields.length > 0;
+
+          view.data = {
+            isPlain: !isGroup, isGroup, isPivot: false,
+            data: result,
+            ...(isGroup ? { groupFields } : {}),
+          };
           view.fire('workEnd', {
-            isPlain: true, isGroup: false, isPivot: false,
-            numRows: result.length, totalRows: rowCount, numGroups: 0,
+            isPlain: !isGroup, isGroup, isPivot: false,
+            numRows: result.length, totalRows: rowCount,
+            numGroups: isGroup ? new Set(result.map((r) => groupFields.map((f) => r[f]).join('|||'))).size : 0,
           });
           cont?.(true, view.data);
         }, data.length > 1000 ? 600 : 300);
@@ -127,7 +143,19 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): Mock
       view.filterSpec = spec as FilterSpec;
       view.getData();
     },
-    setGroup() {}, setPivot() {}, setAggregate() {},
+    setGroup(spec: unknown) {
+      view._groupSpec = spec as GroupSpec | null;
+      view.fire('groupSet', spec);
+      view.getData();
+    },
+    setPivot(spec: unknown) {
+      view.fire('pivotSet', spec);
+      view.getData();
+    },
+    setAggregate(spec: unknown) {
+      view.fire('aggregateSet', spec);
+      view.getData();
+    },
     clearSort() {
       view._sortSpec = null;
       view.getData();
@@ -137,7 +165,19 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): Mock
       view.filterSpec = null;
       view.getData();
     },
-    clearGroup() {}, clearPivot() {}, clearAggregate() {},
+    clearGroup() {
+      view._groupSpec = null;
+      view.fire('groupSet', null);
+      view.getData();
+    },
+    clearPivot() {
+      view.fire('pivotSet', null);
+      view.getData();
+    },
+    clearAggregate() {
+      view.fire('aggregateSet', null);
+      view.getData();
+    },
     getSort() { return view._sortSpec; }, getAggregate() { return null; },
     getRowCount() {
       const d = view.data as { data?: unknown[] } | null;
@@ -223,25 +263,29 @@ function GridDemo({
   data: Record<string, unknown>[];
   columns: TableColumn[];
   filters: ColumnFilterConfig[];
-  controlFields: { field: string; displayName: string }[];
+  controlFields: { field: string; displayName: string; type?: string }[];
   aggregateFields: { field: string; displayName: string }[];
 }) {
   const view = useMemo(() => createMockView(data, data.length), [data]);
+  const groupFnDefs = useMemo(() => getBuiltinGroupFunctions(trans), []);
 
   // Track the filtered data from the mock view's workEnd cycle.
   // When filters are applied, the view re-runs getData() with filtered results.
-  const [displayData, setDisplayData] = useState<Record<string, unknown>[]>(data);
+  // Track the full view data object (not just the rows) so the table
+  // can switch between plain/group/pivot rendering modes.
+  const initialViewData = useMemo(() => ({
+    isPlain: true, isGroup: false, isPivot: false, data,
+  }), [data]);
+  const [viewData, setViewData] = useState(initialViewData);
 
   useEffect(() => {
     const handler = () => {
-      const viewData = (view as unknown as { data: { data: Record<string, unknown>[] } | null }).data;
-      if (viewData?.data) {
-        setDisplayData(viewData.data);
-      }
+      const vd = (view as unknown as { data: typeof initialViewData | null }).data;
+      if (vd) setViewData(vd);
     };
     view.on('workEnd', handler, { who: 'GridDemo' });
     return () => view.off('workEnd', 'GridDemo');
-  }, [view]);
+  }, [view, initialViewData]);
 
   return (
     <DataGrid
@@ -257,9 +301,10 @@ function GridDemo({
       controlFields={controlFields}
       aggregateFields={aggregateFields}
       aggregateFunctions={AGG_FUNCTIONS}
+      groupFunctionDefs={groupFnDefs}
     >
       <TableRenderer
-        viewData={{ isPlain: true, isGroup: false, isPivot: false, data: displayData }}
+        viewData={viewData}
         columns={columns}
         totalRows={data.length}
         features={{
@@ -309,18 +354,18 @@ function App() {
 
   // Control/aggregate fields derived from columns
   const simpleControlFields = useMemo(
-    () => SIMPLE_COLUMNS.map((c) => ({ field: c.field, displayName: c.header })),
+    () => SIMPLE_COLUMNS.map((c) => ({ field: c.field, displayName: c.header, type: c.typeInfo?.type })),
     [],
   );
   const wideControlFields = useMemo(
-    () => WIDE_COLUMNS.slice(0, 20).map((c) => ({ field: c.field, displayName: c.header })),
+    () => WIDE_COLUMNS.slice(0, 20).map((c) => ({ field: c.field, displayName: c.header, type: c.typeInfo?.type })),
     [],
   );
   const ledgerControlFields = useMemo(
     () => LEDGER_COLUMNS
       .filter((c) => !['memo', 'reference'].includes(c.field))
       .slice(0, 15)
-      .map((c) => ({ field: c.field, displayName: c.header })),
+      .map((c) => ({ field: c.field, displayName: c.header, type: c.typeInfo?.type })),
     [],
   );
 

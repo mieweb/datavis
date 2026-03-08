@@ -123,17 +123,17 @@ function createMockView(source = createMockSource()): MockView {
       view.getData();
     },
     setFilter() {},
-    setGroup() {},
-    setPivot() {},
-    setAggregate() {},
+    setGroup(spec: unknown) { view.fire('groupSet', spec); },
+    setPivot(spec: unknown) { view.fire('pivotSet', spec); },
+    setAggregate(spec: unknown) { view.fire('aggregateSet', spec); },
     clearSort() {
       view._sortSpec = null;
       view.getData();
     },
     clearFilter() {},
-    clearGroup() {},
-    clearPivot() {},
-    clearAggregate() {},
+    clearGroup() { view.fire('groupSet', null); },
+    clearPivot() { view.fire('pivotSet', null); },
+    clearAggregate() { view.fire('aggregateSet', null); },
     getSort() { return view._sortSpec; },
     getAggregate() { return null; },
     getRowCount() { return 3; },

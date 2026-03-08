@@ -189,6 +189,12 @@ export interface UseViewState {
   workInfo: WorkEndInfo | null;
   /** Source is fetching */
   fetching: boolean;
+  /** Current group spec (set externally or via setGroup) */
+  groupSpec: unknown | null;
+  /** Current pivot spec */
+  pivotSpec: unknown | null;
+  /** Current aggregate spec */
+  aggregateSpec: unknown | null;
 }
 
 export interface UseViewReturn extends UseViewState {
@@ -212,8 +218,18 @@ export interface UseViewReturn extends UseViewState {
   clearFilter: () => void;
   /** Clear group */
   clearGroup: () => void;
+  /** Clear pivot */
+  clearPivot: () => void;
+  /** Clear aggregate */
+  clearAggregate: () => void;
   /** Clear sort */
   clearSort: () => void;
+  /** Current group spec (updated when groupSet event fires) */
+  groupSpec: unknown | null;
+  /** Current pivot spec (updated when pivotSet event fires) */
+  pivotSpec: unknown | null;
+  /** Current aggregate spec (updated when aggregateSet event fires) */
+  aggregateSpec: unknown | null;
   /** Get row count */
   rowCount: number;
   /** Get total row count (before filter) */
@@ -240,6 +256,9 @@ export function useView(view: ViewInstance, autoFetch = true): UseViewReturn {
     typeInfo: null,
     workInfo: null,
     fetching: false,
+    groupSpec: null,
+    pivotSpec: null,
+    aggregateSpec: null,
   });
 
   useDataVisEvents(view, {
@@ -268,6 +287,16 @@ export function useView(view: ViewInstance, autoFetch = true): UseViewReturn {
       // Source has new data — view will re-process
       setState((s) => ({ ...s, loading: true }));
     },
+    // Config sync events — fired when prefs loads a perspective or external code calls set*
+    groupSet: (spec: unknown) => {
+      setState((s) => ({ ...s, groupSpec: spec ?? null }));
+    },
+    pivotSet: (spec: unknown) => {
+      setState((s) => ({ ...s, pivotSpec: spec ?? null }));
+    },
+    aggregateSet: (spec: unknown) => {
+      setState((s) => ({ ...s, aggregateSpec: spec ?? null }));
+    },
   });
 
   // Auto-fetch on mount
@@ -286,6 +315,8 @@ export function useView(view: ViewInstance, autoFetch = true): UseViewReturn {
   const setAggregate = useCallback((spec: unknown) => view.setAggregate(spec), [view]);
   const clearFilter = useCallback(() => view.clearFilter(), [view]);
   const clearGroup = useCallback(() => view.clearGroup(), [view]);
+  const clearPivot = useCallback(() => view.clearPivot(), [view]);
+  const clearAggregate = useCallback(() => view.clearAggregate(), [view]);
   const clearSort = useCallback(() => view.clearSort(), [view]);
 
   return {
@@ -300,6 +331,8 @@ export function useView(view: ViewInstance, autoFetch = true): UseViewReturn {
     setAggregate,
     clearFilter,
     clearGroup,
+    clearPivot,
+    clearAggregate,
     clearSort,
     rowCount: view.getRowCount?.() ?? 0,
     totalRowCount: view.getTotalRowCount?.() ?? 0,
