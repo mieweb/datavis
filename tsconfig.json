@@ -18,8 +18,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "paths": {
-      "@/*": ["./src/*"],
-      "@core/*": ["./wcdatavis/src/*"]
+      "@/*": ["./src/*"]
     },
     "baseUrl": "."
   },

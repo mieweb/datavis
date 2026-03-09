@@ -1,0 +1,219 @@
+Translation Label	English Text	
+// Generic dialog options		
+		
+DIALOG.OK	ОК	
+DIALOG.CANCEL	Отмена	
+		
+// Grid titlebar		
+		
+GRAPH.TITLEBAR.SHOW_HIDE	Показать/Скрыть график	
+GRAPH.TITLEBAR.SHOW_HIDE_CONTROLS	Показать/Скрыть элементы управления графиком	
+		
+GRID.TITLEBAR.CANCEL	Отмена	
+GRID.TITLEBAR.LOADING	Загрузка...	
+GRID.TITLEBAR.WORKING	Выполняется...	
+GRID.TITLEBAR.LOADED	Загружено	
+GRID.TITLEBAR.NOT_LOADED	Не загружено	
+GRID.TITLEBAR.RECORD_COUNT_SINGULAR	%d запись	
+GRID.TITLEBAR.RECORD_COUNT_PLURAL	%d записей	
+GRID.TITLEBAR.GROUP_COUNT_SINGULAR	%d группа	
+GRID.TITLEBAR.GROUP_COUNT_PLURAL	%d групп	
+GRID.TITLEBAR.SELECTED_COUNT_SINGULAR	%d запись выбрана	
+GRID.TITLEBAR.SELECTED_COUNT_PLURAL	%d записей выбрано	
+GRID.TITLEBAR.CLEAR_FILTER	очистить фильтр	
+GRID.TITLEBAR.DATA_LIMITED_WARNING	Для экономии времени были получены не все записи. В результате часть функциональности ограничена. Нажмите, чтобы получить все данные (это может занять некоторое время).	
+		
+GRID.TITLEBAR.GENERATE_CSV	Создать CSV	
+GRID.TITLEBAR.DOWNLOAD_CSV	Скачать CSV	
+GRID.TITLEBAR.REFRESH	Обновить	
+GRID.TITLEBAR.SHOW_HIDE	Показать/Скрыть таблицу	
+GRID.TITLEBAR.SHOW_HIDE_CONTROLS	Показать/Скрыть элементы управления таблицей	
+GRID.TITLEBAR.SHOW_DEBUG_INFO	Показать отладочную информацию таблицы	
+		
+// Grid toolbar		
+		
+GRID_TOOLBAR.PLAIN.SHOW_MORE_ON_SCROLL	Показать больше при прокрутке	
+GRID_TOOLBAR.PLAIN.SHOW_ALL_ROWS	Показать все строки	
+GRID_TOOLBAR.PLAIN.COLUMNS	Столбцы	
+GRID_TOOLBAR.PLAIN.TEMPLATES_EDITOR	Редактор шаблонов	
+		
+GRID_TOOLBAR.GROUP.MODE.SUMMARY	Сводка	
+GRID_TOOLBAR.GROUP.MODE.DETAIL	Детально	
+GRID_TOOLBAR.GROUP.TOTAL_ROW	Итоговая строка	
+GRID_TOOLBAR.GROUP.PIN_GROUPS	Закрепить группы	
+GRID_TOOLBAR.GROUP.EXPAND_ALL	Развернуть все группы	
+		
+GRID_TOOLBAR.PIVOT.TOTAL_ROW_COLUMN	Итоговая строка/столбец	
+GRID_TOOLBAR.PIVOT.HIDE_ZERO_VALUES	Скрыть нулевые значения	
+		
+GRID_TOOLBAR.PREFS.RESET.CONFIRM	Вы уверены, что хотите сбросить все настройки, удалить все перспективы и начать заново?	
+GRID_TOOLBAR.PREFS.NEW_PERSPECTIVE	Новая перспектива...	
+GRID_TOOLBAR.PREFS.NEW_PERSPECTIVE.PROMPT	Введите имя новой перспективы	
+GRID_TOOLBAR.PREFS.DELETE_PERSPECTIVE.CONFIRM	Вы уверены, что хотите удалить эту перспективу?	
+GRID_TOOLBAR.PREFS.RENAME_PERSPECTIVE.PROMPT	Переименовать перспективу «%s» во что?	
+		
+GRID_TOOLBAR.PREFS.BACKEND_DOES_NOT_SAVE	Система настроек не сконфигурирована для постоянного сохранения перспектив.	
+GRID_TOOLBAR.PREFS.SAVE.HELP	Нажмите, чтобы сохранить текущую конфигурацию. При следующем посещении этой таблицы будет автоматически использована ранее сохранённая конфигурация.	
+GRID_TOOLBAR.PREFS.SAVE_AS.HELP	Эту предопределённую перспективу нельзя сохранить под этим именем. Нажмите, чтобы сохранить под новым именем. После этого все изменения будут сохраняться под новым именем.	
+GRID_TOOLBAR.PREFS.RESET.TOOLTIP	Сбросить	
+GRID_TOOLBAR.PREFS.BACK.TOOLTIP	Назад	
+GRID_TOOLBAR.PREFS.FORWARD.TOOLTIP	Вперёд	
+GRID_TOOLBAR.PREFS.RENAME.TOOLTIP	Переименовать	
+GRID_TOOLBAR.PREFS.DELETE.TOOLTIP	Удалить	
+GRID_TOOLBAR.PREFS.INFO.TOOLTIP	Инфо	
+GRID_TOOLBAR.PREFS.SAVE.TOOLTIP	Сохранить	
+GRID_TOOLBAR.PREFS.SAVE_AS.TOOLTIP	Сохранить как...	
+		
+GRID_TOOLBAR.RENDERER.DISPLAY_OPTIONS	Параметры отображения	
+		
+GRID_TOOLBAR.MIRAGE.STORE_DISPLAYED_DATA	Сохранить отображаемые данные	
+		
+// Perspective window		
+		
+GRID.PERSPECTIVE_WIN.TITLE	Перспектива	
+GRID.PERSPECTIVE_WIN.TEMP_PERSPECTIVE_WARNING	Эта перспектива временная; конфигурация ниже не отражает текущее состояние связанных модулей настроек.	
+		
+// Column configuration		
+		
+GRID.COLCONFIG_WIN.TITLE	Столбцы	
+GRID.COLCONFIG_WIN.TBL.FIELD	Поле	
+GRID.COLCONFIG_WIN.TBL.DISPLAY	Отображение	
+GRID.COLCONFIG_WIN.TBL.OPTIONS	Параметры	
+GRID.COLCONFIG_WIN.REORDER_COLS	Нажмите и перетащите для изменения порядка столбцов	
+GRID.COLCONFIG_WIN.RENAME_COL	Переименовать столбец в таблице.	
+GRID.COLCONFIG_WIN.RENAME_COL.PROMPT	Переименовать поле «%s» во что?	
+GRID.COLCONFIG_WIN.PIN_COL	Закрепить столбец слева в таблице?	
+GRID.COLCONFIG_WIN.HIDE_COL	Скрыть столбец?	
+GRID.COLCONFIG_WIN.ALLOW_HTML	Разрешить отображение HTML?	
+GRID.COLCONFIG_WIN.ALLOW_FORMATTING	Разрешить встроенное форматирование DataVis?	
+GRID.COLCONFIG_WIN.MOVE_COL_TO_TOP	Переместить в начало списка столбцов	
+GRID.COLCONFIG_WIN.MOVE_COL_TO_BOTTOM	Переместить в конец списка столбцов	
+GRID.COLCONFIG_WIN.PINNED_COL_WARNING	Закреплённые столбцы всегда отображаются перед остальными в обычном (не сгруппированном) выводе, в относительном порядке, показанном выше.	
+GRID.COLCONFIG_WIN.RESET_COL_ORDER	Сбросить порядок столбцов	
+		
+// Grid controls		
+		
+GRID_CONTROL.FIELD	Поле	
+GRID_CONTROL.SELECT_FIELD	Выбрать поле	
+GRID_CONTROL.SELECT_AGGREGATE	Выбрать агрегат	
+GRID_CONTROL.FILTER.TITLE	Фильтры	
+GRID_CONTROL.GROUP.TITLE	Групповые поля	
+GRID_CONTROL.PIVOT.TITLE	Поля сводной таблицы	
+GRID_CONTROL.AGGREGATE.TITLE	Агрегат	
+GRID_CONTROL.FIELD.REMOVE	Удалить	
+GRID_CONTROL.FIELD.SHOW_FUNCTIONS	Показать доступные функции для этого поля	
+GRID_CONTROL.AGGREGATE.EDIT_OPTIONS	Изменить параметры	
+GRID_CONTROL.AGGREGATE.OPTIONS_DIALOG.TITLE	Параметры для %s	
+GRID_CONTROL.OPERATIONS.TITLE	Операции	
+		
+// Aggregate function names		
+		
+AGGREGATE.NAME.COUNT	Количество	
+AGGREGATE.NAME.COUNT_DISTINCT	Уникальных	
+AGGREGATE.NAME.VALUES	Значения	
+AGGREGATE.NAME.VALUES_WITH_COUNTS	Значения с количеством	
+AGGREGATE.NAME.DISTINCT_VALUES	Уникальные значения	
+AGGREGATE.NAME.SUM	Сумма	
+AGGREGATE.NAME.AVERAGE	Среднее	
+AGGREGATE.NAME.MIN	Минимум	
+AGGREGATE.NAME.MAX	Максимум	
+AGGREGATE.NAME.FIRST	Первый	
+AGGREGATE.NAME.LAST	Последний	
+AGGREGATE.NAME.NTH	N-й	
+AGGREGATE.NAME.SUM_OVER_SUM	Сумма/Сумма	
+AGGREGATE.NAME.COUNT_OVER_COUNT	Количество/Количество	
+		
+AGGREGATE.FIELD.NUMERATOR	Числитель	
+AGGREGATE.FIELD.DENOMINATOR	Знаменатель	
+		
+AGGREGATE.HEADER_DISPLAY	%s по %s	
+		
+// Grid Table Output		
+		
+GRID.TABLE.SORT_MENU.ASCENDING	%s, по возрастанию	
+GRID.TABLE.SORT_MENU.DESCENDING	%s, по убыванию	
+GRID.TABLE.SORT_MENU.RESET_SORT	Сбросить сортировку	
+		
+GRID.TABLE.DRAGGABLE_FIELD_HELP	Вы можете перетащить это поле в элементы управления таблицей выше для фильтрации, группировки или сводки.	
+GRID.TABLE.ADD_FILTER_HELP	Нажмите, чтобы добавить фильтр для «%s»	
+		
+// Group Functions		
+		
+GRID.GROUP_FUN.DIALOG.TITLE	Применить функцию к %s	
+GRID.GROUP_FUN.DIALOG.REPEATING	Повторяющийся	
+GRID.GROUP_FUN.DIALOG.DATE	Дата	
+GRID.GROUP_FUN.DIALOG.DATE_TIME	Дата и время	
+GRID.GROUP_FUN.DIALOG.TIME	Время	
+GRID.GROUP_FUN.DIALOG.OTHER	Другое	
+		
+GRID.GROUP_FUN.NONE	Нет	
+GRID.GROUP_FUN.REPEATING.QUARTER	Квартал	
+GRID.GROUP_FUN.REPEATING.MONTH	Месяц	
+GRID.GROUP_FUN.REPEATING.WEEK	Неделя (ISO)	
+GRID.GROUP_FUN.REPEATING.DAY_OF_WEEK	День недели	
+GRID.GROUP_FUN.DATE.YEAR	Год	
+GRID.GROUP_FUN.DATE.YEAR_AND_QUARTER	Год и квартал	
+GRID.GROUP_FUN.DATE.YEAR_AND_MONTH	Год и месяц	
+GRID.GROUP_FUN.DATE.YEAR_AND_WEEK	Год и неделя (ISO)	
+GRID.GROUP_FUN.DATE.FULL_DATE	Полная дата (без времени)	
+GRID.GROUP_FUN.DATE_TIME.SLICE.1HR	Дата и время: срезы по 1 часу	
+GRID.GROUP_FUN.DATE_TIME.SLICE.15MIN	Дата и время: срезы по 15 минут	
+GRID.GROUP_FUN.TIME.SLICE.1HR	Время: срезы по 1 часу	
+GRID.GROUP_FUN.TIME.SLICE.15MIN	Время: срезы по 15 минут	
+		
+GRID.TEMPLATE_EDITOR.TITLE	Редактор шаблонов	
+GRID.TEMPLATE_EDITOR.PLAIN	Обычный	
+GRID.TEMPLATE_EDITOR.GROUPED	Сгруппированный	
+GRID.TEMPLATE_EDITOR.PIVOTTED	Сводный	
+GRID.TEMPLATE_EDITOR.CONFIG.BEFORE	До	
+GRID.TEMPLATE_EDITOR.CONFIG.BEFORE_GROUP	До группы	
+GRID.TEMPLATE_EDITOR.CONFIG.ITEM	Элемент	
+GRID.TEMPLATE_EDITOR.CONFIG.AFTER_GROUP	После группы	
+GRID.TEMPLATE_EDITOR.CONFIG.AFTER	После	
+GRID.TEMPLATE_EDITOR.CONFIG.EMPTY	Пусто	
+		
+CALENDAR.DAY.MONDAY	Понедельник	
+CALENDAR.DAY.TUESDAY	Вторник	
+CALENDAR.DAY.WEDNESDAY	Среда	
+CALENDAR.DAY.THURSDAY	Четверг	
+CALENDAR.DAY.FRIDAY	Пятница	
+CALENDAR.DAY.SATURDAY	Суббота	
+CALENDAR.DAY.SUNDAY	Воскресенье	
+		
+CALENDAR.MONTH.JANUARY	Январь	
+CALENDAR.MONTH.FEBRUARY	Февраль	
+CALENDAR.MONTH.MARCH	Март	
+CALENDAR.MONTH.APRIL	Апрель	
+CALENDAR.MONTH.MAY	Май	
+CALENDAR.MONTH.JUNE	Июнь	
+CALENDAR.MONTH.JULY	Июль	
+CALENDAR.MONTH.AUGUST	Август	
+CALENDAR.MONTH.SEPTEMBER	Сентябрь	
+CALENDAR.MONTH.OCTOBER	Октябрь	
+CALENDAR.MONTH.NOVEMBER	Ноябрь	
+CALENDAR.MONTH.DECEMBER	Декабрь	
+		
+FILTER.DATE.OPERATOR.ON	в	
+FILTER.DATE.OPERATOR.BETWEEN	между	
+FILTER.DATE.OPERATOR.BEFORE	до	
+FILTER.DATE.OPERATOR.AFTER	после	
+FILTER.DATE.OPERATOR.EVERY	каждый	
+FILTER.DATE.OPERATOR.CURRENT	текущий	
+FILTER.DATE.OPERATOR.LAST	последний	
+FILTER.DATE.OPERATOR.AND	и	
+FILTER.STRING.OPERATOR.IN	в	
+FILTER.STRING.OPERATOR.NOT_IN	не в	
+FILTER.STRING.OPERATOR.BLANK	пусто	
+FILTER.STRING.OPERATOR.NOT_BLANK	не пусто	
+		
+CALENDAR.DATE	дата	
+CALENDAR.DAY	день	
+CALENDAR.WEEK	неделя	
+CALENDAR.MONTH	месяц	
+CALENDAR.QUARTER	квартал	
+CALENDAR.YEAR	год	
+		
+DATA.NO_DATA	Нет данных	
+DATA.NOTHING_TO_GRAPH	Нет данных для построения графика	
+		
+PREFS.MAIN_PERSPECTIVE	Основная перспектива	

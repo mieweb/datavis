@@ -1,6 +1,6 @@
 # WC DataVis — React
 
-A React + Tailwind CSS rewrite of the [wcdatavis](wcdatavis/) data visualization library. Replaces all legacy jQuery UI widgets with [`@mieweb/ui`](https://ui.mieweb.org) components while retaining the battle-tested JavaScript data-processing engine unchanged.
+A React + Tailwind CSS data visualization library built with [`@mieweb/ui`](https://ui.mieweb.org) components. Successor to the legacy jQuery-based [wcdatavis](https://github.com/mieweb/wcdatavis) library.
 
 [**Live Demo**](https://mieweb.github.io/datavis/) · [**Storybook**](https://mieweb.github.io/datavis/storybook/) · [**Rewrite Plan**](v0-rewrite-plan.md)
 
@@ -119,9 +119,8 @@ src/
 │   ├── table/            # Table renderers (plain, grouped, pivot)
 │   └── toolbars/         # Plain, Group, Pivot, Prefs toolbars
 ├── demo/                 # Demo data + filter engine
-├── i18n/                 # TransContext, useTranslation()
+├── i18n/                 # TransContext, useTranslation(), locale TSVs
 └── scripts/              # i18n lint checker
-wcdatavis/                # Legacy JS library (git submodule)
 ```
 
 ---
@@ -220,7 +219,7 @@ The adapter layer bridges the legacy `wcdatavis` data-processing objects into Re
 
 ## Internationalization (i18n)
 
-Translations are stored as tab-separated key/value pairs in TSV files. The English source of truth is `wcdatavis/en-US.tsv`.
+Translations are stored as tab-separated key/value pairs in TSV files. The English source of truth is `src/i18n/en-US.tsv`.
 
 **Supported locales:** en-US, es-MX, fr-FR, id-ID, nl-NL, pt-BR, ru-RU, th-TH, vi-VN, zh-Hans-CN
 
@@ -285,14 +284,6 @@ Interactive component catalog with stories for all major components:
 | TableRenderer | Plain, grouped, and pivot table modes |
 
 Start Storybook with `npm run storybook` and open http://localhost:6006.
-
----
-
-## Legacy Codebase
-
-The `wcdatavis/` directory is a git submodule containing the original jQuery-based library. The React rewrite uses its data-processing engine (Source, View, Aggregates, Types, Prefs) but replaces all UI components.
-
-See [wcdatavis/README.md](wcdatavis/README.md) for details on the legacy codebase.
 
 ---
 

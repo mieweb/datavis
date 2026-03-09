@@ -1,0 +1,219 @@
+Translation Label	English Text	
+// Generic dialog options		
+		
+DIALOG.OK	OK	
+DIALOG.CANCEL	Annuler	
+		
+// Grid titlebar		
+		
+GRAPH.TITLEBAR.SHOW_HIDE	Afficher/Masquer le graphique	
+GRAPH.TITLEBAR.SHOW_HIDE_CONTROLS	Afficher/Masquer les contrôles du graphique	
+		
+GRID.TITLEBAR.CANCEL	Annuler	
+GRID.TITLEBAR.LOADING	Chargement...	
+GRID.TITLEBAR.WORKING	En cours...	
+GRID.TITLEBAR.LOADED	Chargé	
+GRID.TITLEBAR.NOT_LOADED	Non chargé	
+GRID.TITLEBAR.RECORD_COUNT_SINGULAR	%d enregistrement	
+GRID.TITLEBAR.RECORD_COUNT_PLURAL	%d enregistrements	
+GRID.TITLEBAR.GROUP_COUNT_SINGULAR	%d groupe	
+GRID.TITLEBAR.GROUP_COUNT_PLURAL	%d groupes	
+GRID.TITLEBAR.SELECTED_COUNT_SINGULAR	%d enregistrement sélectionné	
+GRID.TITLEBAR.SELECTED_COUNT_PLURAL	%d enregistrements sélectionnés	
+GRID.TITLEBAR.CLEAR_FILTER	annuler le filtre	
+GRID.TITLEBAR.DATA_LIMITED_WARNING	Pour gagner du temps, tous les enregistrements n'ont pas été récupérés. Par conséquent, certaines fonctionnalités sont réduites. Cliquez pour récupérer toutes les données (cela peut prendre du temps).	
+		
+GRID.TITLEBAR.GENERATE_CSV	Générer CSV	
+GRID.TITLEBAR.DOWNLOAD_CSV	Télécharger CSV	
+GRID.TITLEBAR.REFRESH	Actualiser	
+GRID.TITLEBAR.SHOW_HIDE	Afficher/Masquer la grille	
+GRID.TITLEBAR.SHOW_HIDE_CONTROLS	Afficher/Masquer les contrôles de la grille	
+GRID.TITLEBAR.SHOW_DEBUG_INFO	Afficher les informations de débogage de la grille	
+		
+// Grid toolbar		
+		
+GRID_TOOLBAR.PLAIN.SHOW_MORE_ON_SCROLL	Afficher plus lors du défilement	
+GRID_TOOLBAR.PLAIN.SHOW_ALL_ROWS	Afficher toutes les lignes	
+GRID_TOOLBAR.PLAIN.COLUMNS	Colonnes	
+GRID_TOOLBAR.PLAIN.TEMPLATES_EDITOR	Éditeur de modèles	
+		
+GRID_TOOLBAR.GROUP.MODE.SUMMARY	Résumé	
+GRID_TOOLBAR.GROUP.MODE.DETAIL	Détail	
+GRID_TOOLBAR.GROUP.TOTAL_ROW	Ligne totale	
+GRID_TOOLBAR.GROUP.PIN_GROUPS	Épingler les groupes	
+GRID_TOOLBAR.GROUP.EXPAND_ALL	Développer tous les groupes	
+		
+GRID_TOOLBAR.PIVOT.TOTAL_ROW_COLUMN	Ligne/Colonne totale	
+GRID_TOOLBAR.PIVOT.HIDE_ZERO_VALUES	Masquer les valeurs nulles	
+		
+GRID_TOOLBAR.PREFS.RESET.CONFIRM	Êtes-vous sûr de vouloir réinitialiser toute la configuration, supprimer toutes les perspectives et recommencer ?	
+GRID_TOOLBAR.PREFS.NEW_PERSPECTIVE	Nouvelle perspective...	
+GRID_TOOLBAR.PREFS.NEW_PERSPECTIVE.PROMPT	Entrez le nom de la nouvelle perspective	
+GRID_TOOLBAR.PREFS.DELETE_PERSPECTIVE.CONFIRM	Êtes-vous sûr de vouloir supprimer cette perspective ?	
+GRID_TOOLBAR.PREFS.RENAME_PERSPECTIVE.PROMPT	Renommer la perspective "%s" en quoi ?	
+		
+GRID_TOOLBAR.PREFS.BACKEND_DOES_NOT_SAVE	Le système de préférences n'est pas configuré pour enregistrer les perspectives de façon permanente.	
+GRID_TOOLBAR.PREFS.SAVE.HELP	Cliquez pour enregistrer la configuration actuelle. La prochaine fois que cette grille sera visitée, la configuration précédemment enregistrée sera utilisée automatiquement.	
+GRID_TOOLBAR.PREFS.SAVE_AS.HELP	Cette perspective prédéfinie ne peut pas être enregistrée sous ce nom. Cliquez pour enregistrer sous un nouveau nom. Après cela, toute modification sera enregistrée sous le nouveau nom.	
+GRID_TOOLBAR.PREFS.RESET.TOOLTIP	Réinitialiser	
+GRID_TOOLBAR.PREFS.BACK.TOOLTIP	Retour	
+GRID_TOOLBAR.PREFS.FORWARD.TOOLTIP	Avancer	
+GRID_TOOLBAR.PREFS.RENAME.TOOLTIP	Renommer	
+GRID_TOOLBAR.PREFS.DELETE.TOOLTIP	Supprimer	
+GRID_TOOLBAR.PREFS.INFO.TOOLTIP	Info	
+GRID_TOOLBAR.PREFS.SAVE.TOOLTIP	Enregistrer	
+GRID_TOOLBAR.PREFS.SAVE_AS.TOOLTIP	Enregistrer sous...	
+		
+GRID_TOOLBAR.RENDERER.DISPLAY_OPTIONS	Options d'affichage	
+		
+GRID_TOOLBAR.MIRAGE.STORE_DISPLAYED_DATA	Stocker les données affichées	
+		
+// Perspective window		
+		
+GRID.PERSPECTIVE_WIN.TITLE	Perspective	
+GRID.PERSPECTIVE_WIN.TEMP_PERSPECTIVE_WARNING	Cette perspective est temporaire ; la configuration ci-dessous ne reflète pas l'état actuel des modules de préférences liés.	
+		
+// Column configuration		
+		
+GRID.COLCONFIG_WIN.TITLE	Colonnes	
+GRID.COLCONFIG_WIN.TBL.FIELD	Champ	
+GRID.COLCONFIG_WIN.TBL.DISPLAY	Affichage	
+GRID.COLCONFIG_WIN.TBL.OPTIONS	Options	
+GRID.COLCONFIG_WIN.REORDER_COLS	Cliquez et faites glisser pour réorganiser les colonnes	
+GRID.COLCONFIG_WIN.RENAME_COL	Renommer la colonne dans le tableau.	
+GRID.COLCONFIG_WIN.RENAME_COL.PROMPT	Renommer le champ "%s" en quoi ?	
+GRID.COLCONFIG_WIN.PIN_COL	Épingler la colonne à gauche du tableau ?	
+GRID.COLCONFIG_WIN.HIDE_COL	Masquer la colonne ?	
+GRID.COLCONFIG_WIN.ALLOW_HTML	Autoriser le rendu HTML ?	
+GRID.COLCONFIG_WIN.ALLOW_FORMATTING	Autoriser le formatage DataVis intégré ?	
+GRID.COLCONFIG_WIN.MOVE_COL_TO_TOP	Placer en haut de la liste des colonnes	
+GRID.COLCONFIG_WIN.MOVE_COL_TO_BOTTOM	Placer en bas de la liste des colonnes	
+GRID.COLCONFIG_WIN.PINNED_COL_WARNING	Les colonnes épinglées apparaissent toujours avant les autres dans la sortie simple (non groupée), dans l'ordre relatif indiqué ci-dessus.	
+GRID.COLCONFIG_WIN.RESET_COL_ORDER	Réinitialiser l'ordre des colonnes	
+		
+// Grid controls		
+		
+GRID_CONTROL.FIELD	Champ	
+GRID_CONTROL.SELECT_FIELD	Sélectionner un champ	
+GRID_CONTROL.SELECT_AGGREGATE	Sélectionner un agrégat	
+GRID_CONTROL.FILTER.TITLE	Filtres	
+GRID_CONTROL.GROUP.TITLE	Champs de regroupement	
+GRID_CONTROL.PIVOT.TITLE	Champs de pivot	
+GRID_CONTROL.AGGREGATE.TITLE	Agrégat	
+GRID_CONTROL.FIELD.REMOVE	Supprimer	
+GRID_CONTROL.FIELD.SHOW_FUNCTIONS	Afficher les fonctions disponibles pour ce champ	
+GRID_CONTROL.AGGREGATE.EDIT_OPTIONS	Modifier les options	
+GRID_CONTROL.AGGREGATE.OPTIONS_DIALOG.TITLE	Options pour %s	
+GRID_CONTROL.OPERATIONS.TITLE	Opérations	
+		
+// Aggregate function names		
+		
+AGGREGATE.NAME.COUNT	Compte	
+AGGREGATE.NAME.COUNT_DISTINCT	Compte distinct	
+AGGREGATE.NAME.VALUES	Valeurs	
+AGGREGATE.NAME.VALUES_WITH_COUNTS	Valeurs avec comptes	
+AGGREGATE.NAME.DISTINCT_VALUES	Valeurs distinctes	
+AGGREGATE.NAME.SUM	Somme	
+AGGREGATE.NAME.AVERAGE	Moyenne	
+AGGREGATE.NAME.MIN	Min	
+AGGREGATE.NAME.MAX	Max	
+AGGREGATE.NAME.FIRST	Premier	
+AGGREGATE.NAME.LAST	Dernier	
+AGGREGATE.NAME.NTH	Nième	
+AGGREGATE.NAME.SUM_OVER_SUM	Somme/Somme	
+AGGREGATE.NAME.COUNT_OVER_COUNT	Compte/Compte	
+		
+AGGREGATE.FIELD.NUMERATOR	Num	
+AGGREGATE.FIELD.DENOMINATOR	Dénom	
+		
+AGGREGATE.HEADER_DISPLAY	%s de %s	
+		
+// Grid Table Output		
+		
+GRID.TABLE.SORT_MENU.ASCENDING	%s, croissant	
+GRID.TABLE.SORT_MENU.DESCENDING	%s, décroissant	
+GRID.TABLE.SORT_MENU.RESET_SORT	Réinitialiser le tri	
+		
+GRID.TABLE.DRAGGABLE_FIELD_HELP	Vous pouvez faire glisser ce champ dans les contrôles de la grille ci-dessus pour filtrer, regrouper ou pivoter.	
+GRID.TABLE.ADD_FILTER_HELP	Cliquez pour ajouter un filtre pour "%s"	
+		
+// Group Functions		
+		
+GRID.GROUP_FUN.DIALOG.TITLE	Appliquer la fonction à %s	
+GRID.GROUP_FUN.DIALOG.REPEATING	Répétition	
+GRID.GROUP_FUN.DIALOG.DATE	Date	
+GRID.GROUP_FUN.DIALOG.DATE_TIME	Date et heure	
+GRID.GROUP_FUN.DIALOG.TIME	Heure	
+GRID.GROUP_FUN.DIALOG.OTHER	Autre	
+		
+GRID.GROUP_FUN.NONE	Aucun	
+GRID.GROUP_FUN.REPEATING.QUARTER	Trimestre	
+GRID.GROUP_FUN.REPEATING.MONTH	Mois	
+GRID.GROUP_FUN.REPEATING.WEEK	Semaine (ISO)	
+GRID.GROUP_FUN.REPEATING.DAY_OF_WEEK	Jour de la semaine	
+GRID.GROUP_FUN.DATE.YEAR	Année	
+GRID.GROUP_FUN.DATE.YEAR_AND_QUARTER	Année et trimestre	
+GRID.GROUP_FUN.DATE.YEAR_AND_MONTH	Année et mois	
+GRID.GROUP_FUN.DATE.YEAR_AND_WEEK	Année et semaine (ISO)	
+GRID.GROUP_FUN.DATE.FULL_DATE	Date complète (sans heure)	
+GRID.GROUP_FUN.DATE_TIME.SLICE.1HR	Date et heure : tranches de 1 h	
+GRID.GROUP_FUN.DATE_TIME.SLICE.15MIN	Date et heure : tranches de 15 min	
+GRID.GROUP_FUN.TIME.SLICE.1HR	Heure : tranches de 1 h	
+GRID.GROUP_FUN.TIME.SLICE.15MIN	Heure : tranches de 15 min	
+		
+GRID.TEMPLATE_EDITOR.TITLE	Éditeur de modèles	
+GRID.TEMPLATE_EDITOR.PLAIN	Simple	
+GRID.TEMPLATE_EDITOR.GROUPED	Groupé	
+GRID.TEMPLATE_EDITOR.PIVOTTED	Pivoté	
+GRID.TEMPLATE_EDITOR.CONFIG.BEFORE	Avant	
+GRID.TEMPLATE_EDITOR.CONFIG.BEFORE_GROUP	Avant le groupe	
+GRID.TEMPLATE_EDITOR.CONFIG.ITEM	Élément	
+GRID.TEMPLATE_EDITOR.CONFIG.AFTER_GROUP	Après le groupe	
+GRID.TEMPLATE_EDITOR.CONFIG.AFTER	Après	
+GRID.TEMPLATE_EDITOR.CONFIG.EMPTY	Vide	
+		
+CALENDAR.DAY.MONDAY	Lundi	
+CALENDAR.DAY.TUESDAY	Mardi	
+CALENDAR.DAY.WEDNESDAY	Mercredi	
+CALENDAR.DAY.THURSDAY	Jeudi	
+CALENDAR.DAY.FRIDAY	Vendredi	
+CALENDAR.DAY.SATURDAY	Samedi	
+CALENDAR.DAY.SUNDAY	Dimanche	
+		
+CALENDAR.MONTH.JANUARY	Janvier	
+CALENDAR.MONTH.FEBRUARY	Février	
+CALENDAR.MONTH.MARCH	Mars	
+CALENDAR.MONTH.APRIL	Avril	
+CALENDAR.MONTH.MAY	Mai	
+CALENDAR.MONTH.JUNE	Juin	
+CALENDAR.MONTH.JULY	Juillet	
+CALENDAR.MONTH.AUGUST	Août	
+CALENDAR.MONTH.SEPTEMBER	Septembre	
+CALENDAR.MONTH.OCTOBER	Octobre	
+CALENDAR.MONTH.NOVEMBER	Novembre	
+CALENDAR.MONTH.DECEMBER	Décembre	
+		
+FILTER.DATE.OPERATOR.ON	le	
+FILTER.DATE.OPERATOR.BETWEEN	entre	
+FILTER.DATE.OPERATOR.BEFORE	avant	
+FILTER.DATE.OPERATOR.AFTER	après	
+FILTER.DATE.OPERATOR.EVERY	chaque	
+FILTER.DATE.OPERATOR.CURRENT	actuel	
+FILTER.DATE.OPERATOR.LAST	dernier	
+FILTER.DATE.OPERATOR.AND	et	
+FILTER.STRING.OPERATOR.IN	dans	
+FILTER.STRING.OPERATOR.NOT_IN	pas dans	
+FILTER.STRING.OPERATOR.BLANK	vide	
+FILTER.STRING.OPERATOR.NOT_BLANK	non vide	
+		
+CALENDAR.DATE	date	
+CALENDAR.DAY	jour	
+CALENDAR.WEEK	semaine	
+CALENDAR.MONTH	mois	
+CALENDAR.QUARTER	trimestre	
+CALENDAR.YEAR	année	
+		
+DATA.NO_DATA	Aucune donnée	
+DATA.NOTHING_TO_GRAPH	Rien à afficher	
+		
+PREFS.MAIN_PERSPECTIVE	Perspective Principale	

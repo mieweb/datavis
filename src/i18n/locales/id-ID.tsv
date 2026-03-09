@@ -1,0 +1,219 @@
+Translation Label	English Text	
+// Generic dialog options		
+		
+DIALOG.OK	OK	
+DIALOG.CANCEL	Batal	
+		
+// Grid titlebar		
+		
+GRAPH.TITLEBAR.SHOW_HIDE	Tampilkan/Sembunyikan Grafik	
+GRAPH.TITLEBAR.SHOW_HIDE_CONTROLS	Tampilkan/Sembunyikan Kontrol Grafik	
+		
+GRID.TITLEBAR.CANCEL	Batal	
+GRID.TITLEBAR.LOADING	Memuat...	
+GRID.TITLEBAR.WORKING	Sedang bekerja...	
+GRID.TITLEBAR.LOADED	Terisi	
+GRID.TITLEBAR.NOT_LOADED	Tidak Terisi	
+GRID.TITLEBAR.RECORD_COUNT_SINGULAR	%d catatan	
+GRID.TITLEBAR.RECORD_COUNT_PLURAL	%d catatan	
+GRID.TITLEBAR.GROUP_COUNT_SINGULAR	%d grup	
+GRID.TITLEBAR.GROUP_COUNT_PLURAL	%d grup	
+GRID.TITLEBAR.SELECTED_COUNT_SINGULAR	%d catatan dipilih	
+GRID.TITLEBAR.SELECTED_COUNT_PLURAL	%d catatan dipilih	
+GRID.TITLEBAR.CLEAR_FILTER	hapus filter	
+GRID.TITLEBAR.DATA_LIMITED_WARNING	Untuk menghemat waktu, tidak semua catatan diambil. Akibatnya, beberapa fungsi berkurang. Klik untuk mengambil semua data (ini mungkin memerlukan waktu).	
+		
+GRID.TITLEBAR.GENERATE_CSV	Buat CSV	
+GRID.TITLEBAR.DOWNLOAD_CSV	Unduh CSV	
+GRID.TITLEBAR.REFRESH	Muat Ulang	
+GRID.TITLEBAR.SHOW_HIDE	Tampilkan/Sembunyikan Grid	
+GRID.TITLEBAR.SHOW_HIDE_CONTROLS	Tampilkan/Sembunyikan Kontrol Grid	
+GRID.TITLEBAR.SHOW_DEBUG_INFO	Tampilkan Info Debug Grid	
+		
+// Grid toolbar		
+		
+GRID_TOOLBAR.PLAIN.SHOW_MORE_ON_SCROLL	Tampilkan Lebih Banyak saat Menggulir	
+GRID_TOOLBAR.PLAIN.SHOW_ALL_ROWS	Tampilkan Semua Baris	
+GRID_TOOLBAR.PLAIN.COLUMNS	Kolom	
+GRID_TOOLBAR.PLAIN.TEMPLATES_EDITOR	Editor Template	
+		
+GRID_TOOLBAR.GROUP.MODE.SUMMARY	Ringkasan	
+GRID_TOOLBAR.GROUP.MODE.DETAIL	Rinci	
+GRID_TOOLBAR.GROUP.TOTAL_ROW	Baris Total	
+GRID_TOOLBAR.GROUP.PIN_GROUPS	Sematkan Grup	
+GRID_TOOLBAR.GROUP.EXPAND_ALL	Perluas Semua Grup	
+		
+GRID_TOOLBAR.PIVOT.TOTAL_ROW_COLUMN	Baris/Kolom Total	
+GRID_TOOLBAR.PIVOT.HIDE_ZERO_VALUES	Sembunyikan Nilai Nol	
+		
+GRID_TOOLBAR.PREFS.RESET.CONFIRM	Apakah Anda yakin ingin mengatur ulang semua konfigurasi, menghapus semua perspektif, dan memulai ulang?	
+GRID_TOOLBAR.PREFS.NEW_PERSPECTIVE	Perspektif Baru...	
+GRID_TOOLBAR.PREFS.NEW_PERSPECTIVE.PROMPT	Masukkan nama perspektif baru	
+GRID_TOOLBAR.PREFS.DELETE_PERSPECTIVE.CONFIRM	Apakah Anda yakin ingin menghapus perspektif ini?	
+GRID_TOOLBAR.PREFS.RENAME_PERSPECTIVE.PROMPT	Ganti nama perspektif "%s" menjadi apa?	
+		
+GRID_TOOLBAR.PREFS.BACKEND_DOES_NOT_SAVE	Sistem preferensi tidak dikonfigurasi untuk menyimpan perspektif secara permanen.	
+GRID_TOOLBAR.PREFS.SAVE.HELP	Klik untuk menyimpan konfigurasi saat ini. Saat grid ini dikunjungi lagi, konfigurasi yang telah disimpan sebelumnya akan digunakan secara otomatis.	
+GRID_TOOLBAR.PREFS.SAVE_AS.HELP	Perspektif yang telah ditentukan ini tidak dapat disimpan dengan nama ini. Klik untuk menyimpan dengan nama baru. Setelah itu, perubahan apa pun akan disimpan dengan nama baru.	
+GRID_TOOLBAR.PREFS.RESET.TOOLTIP	Atur Ulang	
+GRID_TOOLBAR.PREFS.BACK.TOOLTIP	Kembali	
+GRID_TOOLBAR.PREFS.FORWARD.TOOLTIP	Maju	
+GRID_TOOLBAR.PREFS.RENAME.TOOLTIP	Ganti Nama	
+GRID_TOOLBAR.PREFS.DELETE.TOOLTIP	Hapus	
+GRID_TOOLBAR.PREFS.INFO.TOOLTIP	Info	
+GRID_TOOLBAR.PREFS.SAVE.TOOLTIP	Simpan	
+GRID_TOOLBAR.PREFS.SAVE_AS.TOOLTIP	Simpan Sebagai...	
+		
+GRID_TOOLBAR.RENDERER.DISPLAY_OPTIONS	Opsi Tampilan	
+		
+GRID_TOOLBAR.MIRAGE.STORE_DISPLAYED_DATA	Simpan Data yang Ditampilkan	
+		
+// Perspective window		
+		
+GRID.PERSPECTIVE_WIN.TITLE	Perspektif	
+GRID.PERSPECTIVE_WIN.TEMP_PERSPECTIVE_WARNING	Perspektif ini bersifat sementara; konfigurasi di bawah ini tidak mencerminkan status saat ini dari modul preferensi yang terikat.	
+		
+// Column configuration		
+		
+GRID.COLCONFIG_WIN.TITLE	Kolom	
+GRID.COLCONFIG_WIN.TBL.FIELD	Bidang	
+GRID.COLCONFIG_WIN.TBL.DISPLAY	Tampilan	
+GRID.COLCONFIG_WIN.TBL.OPTIONS	Opsi	
+GRID.COLCONFIG_WIN.REORDER_COLS	Klik dan seret untuk mengurutkan ulang kolom	
+GRID.COLCONFIG_WIN.RENAME_COL	Ganti nama kolom di tabel.	
+GRID.COLCONFIG_WIN.RENAME_COL.PROMPT	Ganti nama bidang "%s" menjadi apa?	
+GRID.COLCONFIG_WIN.PIN_COL	Sematkan kolom ke sisi kiri tabel?	
+GRID.COLCONFIG_WIN.HIDE_COL	Sembunyikan kolom?	
+GRID.COLCONFIG_WIN.ALLOW_HTML	Izinkan HTML dirender?	
+GRID.COLCONFIG_WIN.ALLOW_FORMATTING	Izinkan pemformatan DataVis tertanam?	
+GRID.COLCONFIG_WIN.MOVE_COL_TO_TOP	Pindahkan ke atas daftar kolom	
+GRID.COLCONFIG_WIN.MOVE_COL_TO_BOTTOM	Pindahkan ke bawah daftar kolom	
+GRID.COLCONFIG_WIN.PINNED_COL_WARNING	Kolom yang disematkan selalu muncul sebelum kolom lain dalam output biasa (tanpa grup), sesuai urutan relatif di atas.	
+GRID.COLCONFIG_WIN.RESET_COL_ORDER	Atur Ulang Urutan Kolom	
+		
+// Grid controls		
+		
+GRID_CONTROL.FIELD	Bidang	
+GRID_CONTROL.SELECT_FIELD	Pilih Bidang	
+GRID_CONTROL.SELECT_AGGREGATE	Pilih Agregat	
+GRID_CONTROL.FILTER.TITLE	Filter	
+GRID_CONTROL.GROUP.TITLE	Grup Bidang	
+GRID_CONTROL.PIVOT.TITLE	Pivot Bidang	
+GRID_CONTROL.AGGREGATE.TITLE	Agregat	
+GRID_CONTROL.FIELD.REMOVE	Hapus	
+GRID_CONTROL.FIELD.SHOW_FUNCTIONS	Tampilkan fungsi yang tersedia untuk bidang ini	
+GRID_CONTROL.AGGREGATE.EDIT_OPTIONS	Edit opsi	
+GRID_CONTROL.AGGREGATE.OPTIONS_DIALOG.TITLE	Opsi untuk %s	
+GRID_CONTROL.OPERATIONS.TITLE	Operasi	
+		
+// Aggregate function names		
+		
+AGGREGATE.NAME.COUNT	Hitung	
+AGGREGATE.NAME.COUNT_DISTINCT	Hitung Unik	
+AGGREGATE.NAME.VALUES	Nilai	
+AGGREGATE.NAME.VALUES_WITH_COUNTS	Nilai dgn Hitungan	
+AGGREGATE.NAME.DISTINCT_VALUES	Nilai Unik	
+AGGREGATE.NAME.SUM	Jumlah	
+AGGREGATE.NAME.AVERAGE	Rata-rata	
+AGGREGATE.NAME.MIN	Min	
+AGGREGATE.NAME.MAX	Maks	
+AGGREGATE.NAME.FIRST	Pertama	
+AGGREGATE.NAME.LAST	Terakhir	
+AGGREGATE.NAME.NTH	Ke-n	
+AGGREGATE.NAME.SUM_OVER_SUM	Jumlah/Jumlah	
+AGGREGATE.NAME.COUNT_OVER_COUNT	Hitung/Hitung	
+		
+AGGREGATE.FIELD.NUMERATOR	Pembilang	
+AGGREGATE.FIELD.DENOMINATOR	Penyebut	
+		
+AGGREGATE.HEADER_DISPLAY	%s dari %s	
+		
+// Grid Table Output		
+		
+GRID.TABLE.SORT_MENU.ASCENDING	%s, Naik	
+GRID.TABLE.SORT_MENU.DESCENDING	%s, Turun	
+GRID.TABLE.SORT_MENU.RESET_SORT	Atur Ulang Urutan	
+		
+GRID.TABLE.DRAGGABLE_FIELD_HELP	Anda dapat menyeret & melepaskan bidang ini ke kontrol grid di atas untuk memfilter, mengelompokkan, atau pivot.	
+GRID.TABLE.ADD_FILTER_HELP	Klik untuk menambah filter untuk "%s"	
+		
+// Group Functions		
+		
+GRID.GROUP_FUN.DIALOG.TITLE	Terapkan Fungsi ke %s	
+GRID.GROUP_FUN.DIALOG.REPEATING	Berulang	
+GRID.GROUP_FUN.DIALOG.DATE	Tanggal	
+GRID.GROUP_FUN.DIALOG.DATE_TIME	Tanggal & Waktu	
+GRID.GROUP_FUN.DIALOG.TIME	Waktu	
+GRID.GROUP_FUN.DIALOG.OTHER	Lainnya	
+		
+GRID.GROUP_FUN.NONE	Tidak Ada	
+GRID.GROUP_FUN.REPEATING.QUARTER	Triwulan	
+GRID.GROUP_FUN.REPEATING.MONTH	Bulan	
+GRID.GROUP_FUN.REPEATING.WEEK	Minggu (ISO)	
+GRID.GROUP_FUN.REPEATING.DAY_OF_WEEK	Hari dalam Minggu	
+GRID.GROUP_FUN.DATE.YEAR	Tahun	
+GRID.GROUP_FUN.DATE.YEAR_AND_QUARTER	Tahun & Triwulan	
+GRID.GROUP_FUN.DATE.YEAR_AND_MONTH	Tahun & Bulan	
+GRID.GROUP_FUN.DATE.YEAR_AND_WEEK	Tahun & Minggu (ISO)	
+GRID.GROUP_FUN.DATE.FULL_DATE	Tanggal Lengkap (Tanpa Waktu)	
+GRID.GROUP_FUN.DATE_TIME.SLICE.1HR	Tanggal & Waktu: potongan 1 jam	
+GRID.GROUP_FUN.DATE_TIME.SLICE.15MIN	Tanggal & Waktu: potongan 15 menit	
+GRID.GROUP_FUN.TIME.SLICE.1HR	Waktu: potongan 1 jam	
+GRID.GROUP_FUN.TIME.SLICE.15MIN	Waktu: potongan 15 menit	
+		
+GRID.TEMPLATE_EDITOR.TITLE	Editor Template	
+GRID.TEMPLATE_EDITOR.PLAIN	Biasa	
+GRID.TEMPLATE_EDITOR.GROUPED	Berkelompok	
+GRID.TEMPLATE_EDITOR.PIVOTTED	Pivot	
+GRID.TEMPLATE_EDITOR.CONFIG.BEFORE	Sebelum	
+GRID.TEMPLATE_EDITOR.CONFIG.BEFORE_GROUP	Sebelum Grup	
+GRID.TEMPLATE_EDITOR.CONFIG.ITEM	Item	
+GRID.TEMPLATE_EDITOR.CONFIG.AFTER_GROUP	Setelah Grup	
+GRID.TEMPLATE_EDITOR.CONFIG.AFTER	Setelah	
+GRID.TEMPLATE_EDITOR.CONFIG.EMPTY	Kosong	
+		
+CALENDAR.DAY.MONDAY	Senin	
+CALENDAR.DAY.TUESDAY	Selasa	
+CALENDAR.DAY.WEDNESDAY	Rabu	
+CALENDAR.DAY.THURSDAY	Kamis	
+CALENDAR.DAY.FRIDAY	Jumat	
+CALENDAR.DAY.SATURDAY	Sabtu	
+CALENDAR.DAY.SUNDAY	Minggu	
+		
+CALENDAR.MONTH.JANUARY	Januari	
+CALENDAR.MONTH.FEBRUARY	Februari	
+CALENDAR.MONTH.MARCH	Maret	
+CALENDAR.MONTH.APRIL	April	
+CALENDAR.MONTH.MAY	Mei	
+CALENDAR.MONTH.JUNE	Juni	
+CALENDAR.MONTH.JULY	Juli	
+CALENDAR.MONTH.AUGUST	Agustus	
+CALENDAR.MONTH.SEPTEMBER	September	
+CALENDAR.MONTH.OCTOBER	Oktober	
+CALENDAR.MONTH.NOVEMBER	November	
+CALENDAR.MONTH.DECEMBER	Desember	
+		
+FILTER.DATE.OPERATOR.ON	pada	
+FILTER.DATE.OPERATOR.BETWEEN	antara	
+FILTER.DATE.OPERATOR.BEFORE	sebelum	
+FILTER.DATE.OPERATOR.AFTER	setelah	
+FILTER.DATE.OPERATOR.EVERY	setiap	
+FILTER.DATE.OPERATOR.CURRENT	saat ini	
+FILTER.DATE.OPERATOR.LAST	terakhir	
+FILTER.DATE.OPERATOR.AND	dan	
+FILTER.STRING.OPERATOR.IN	dalam	
+FILTER.STRING.OPERATOR.NOT_IN	tidak dalam	
+FILTER.STRING.OPERATOR.BLANK	kosong	
+FILTER.STRING.OPERATOR.NOT_BLANK	tidak kosong	
+		
+CALENDAR.DATE	tanggal	
+CALENDAR.DAY	hari	
+CALENDAR.WEEK	minggu	
+CALENDAR.MONTH	bulan	
+CALENDAR.QUARTER	triwulan	
+CALENDAR.YEAR	tahun	
+		
+DATA.NO_DATA	Tidak Ada Data	
+DATA.NOTHING_TO_GRAPH	Tidak Ada yang Dapat Digrafikkan	
+		
+PREFS.MAIN_PERSPECTIVE	Perspektif Utama	

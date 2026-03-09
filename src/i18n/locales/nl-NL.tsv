@@ -1,0 +1,219 @@
+Translation Label	English Text
+// Generic dialog options	
+	
+DIALOG.OK	OK
+DIALOG.CANCEL	Annuleren
+	
+// Grid titlebar	
+	
+GRAPH.TITLEBAR.SHOW_HIDE	Grafiek tonen/verbergen
+GRAPH.TITLEBAR.SHOW_HIDE_CONTROLS	Grafiekbediening tonen/verbergen
+	
+GRID.TITLEBAR.CANCEL	Annuleren
+GRID.TITLEBAR.LOADING	Laden...
+GRID.TITLEBAR.WORKING	Bezig...
+GRID.TITLEBAR.LOADED	Geladen
+GRID.TITLEBAR.NOT_LOADED	Niet geladen
+GRID.TITLEBAR.RECORD_COUNT_SINGULAR	%d record
+GRID.TITLEBAR.RECORD_COUNT_PLURAL	%d records
+GRID.TITLEBAR.GROUP_COUNT_SINGULAR	%d groep
+GRID.TITLEBAR.GROUP_COUNT_PLURAL	%d groepen
+GRID.TITLEBAR.SELECTED_COUNT_SINGULAR	%d record geselecteerd
+GRID.TITLEBAR.SELECTED_COUNT_PLURAL	%d records geselecteerd
+GRID.TITLEBAR.CLEAR_FILTER	filter wissen
+GRID.TITLEBAR.DATA_LIMITED_WARNING	Om tijd te besparen zijn niet alle records opgehaald. Hierdoor is sommige functionaliteit beperkt. Klik om alle gegevens op te halen (dit kan enige tijd duren).
+	
+GRID.TITLEBAR.GENERATE_CSV	CSV genereren
+GRID.TITLEBAR.DOWNLOAD_CSV	CSV downloaden
+GRID.TITLEBAR.REFRESH	Vernieuwen
+GRID.TITLEBAR.SHOW_HIDE	Raster tonen/verbergen
+GRID.TITLEBAR.SHOW_HIDE_CONTROLS	Rasterbediening tonen/verbergen
+GRID.TITLEBAR.SHOW_DEBUG_INFO	Raster debug-informatie tonen
+	
+// Grid toolbar	
+	
+GRID_TOOLBAR.PLAIN.SHOW_MORE_ON_SCROLL	Meer tonen bij scrollen
+GRID_TOOLBAR.PLAIN.SHOW_ALL_ROWS	Alle rijen tonen
+GRID_TOOLBAR.PLAIN.COLUMNS	Kolommen
+GRID_TOOLBAR.PLAIN.TEMPLATES_EDITOR	Sjabloonbewerker
+	
+GRID_TOOLBAR.GROUP.MODE.SUMMARY	Samenvatting
+GRID_TOOLBAR.GROUP.MODE.DETAIL	Detail
+GRID_TOOLBAR.GROUP.TOTAL_ROW	Totaalrij
+GRID_TOOLBAR.GROUP.PIN_GROUPS	Groepen vastzetten
+GRID_TOOLBAR.GROUP.EXPAND_ALL	Alle groepen uitvouwen
+	
+GRID_TOOLBAR.PIVOT.TOTAL_ROW_COLUMN	Totaalrij/-kolom
+GRID_TOOLBAR.PIVOT.HIDE_ZERO_VALUES	Nulwaarden verbergen
+	
+GRID_TOOLBAR.PREFS.RESET.CONFIRM	Weet u zeker dat u alle configuratie wilt resetten, alle perspectieven wilt verwijderen en opnieuw wilt beginnen?
+GRID_TOOLBAR.PREFS.NEW_PERSPECTIVE	Nieuw perspectief...
+GRID_TOOLBAR.PREFS.NEW_PERSPECTIVE.PROMPT	Voer een nieuwe perspectiefnaam in
+GRID_TOOLBAR.PREFS.DELETE_PERSPECTIVE.CONFIRM	Weet u zeker dat u dit perspectief wilt verwijderen?
+GRID_TOOLBAR.PREFS.RENAME_PERSPECTIVE.PROMPT	Perspectief "%s" hernoemen naar?
+	
+GRID_TOOLBAR.PREFS.BACKEND_DOES_NOT_SAVE	Het voorkeurensysteem is niet geconfigureerd om perspectieven permanent op te slaan.
+GRID_TOOLBAR.PREFS.SAVE.HELP	Klik om de huidige configuratie op te slaan. De volgende keer dat dit raster wordt bezocht, wordt automatisch de eerder opgeslagen configuratie gebruikt.
+GRID_TOOLBAR.PREFS.SAVE_AS.HELP	Dit vooraf gedefinieerde perspectief kan niet met deze naam worden opgeslagen. Klik om op te slaan met een nieuwe naam. Daarna worden wijzigingen onder de nieuwe naam opgeslagen.
+GRID_TOOLBAR.PREFS.RESET.TOOLTIP	Resetten
+GRID_TOOLBAR.PREFS.BACK.TOOLTIP	Terug
+GRID_TOOLBAR.PREFS.FORWARD.TOOLTIP	Vooruit
+GRID_TOOLBAR.PREFS.RENAME.TOOLTIP	Hernoemen
+GRID_TOOLBAR.PREFS.DELETE.TOOLTIP	Verwijderen
+GRID_TOOLBAR.PREFS.INFO.TOOLTIP	Informatie
+GRID_TOOLBAR.PREFS.SAVE.TOOLTIP	Opslaan
+GRID_TOOLBAR.PREFS.SAVE_AS.TOOLTIP	Opslaan als...
+	
+GRID_TOOLBAR.RENDERER.DISPLAY_OPTIONS	Weergaveopties
+	
+GRID_TOOLBAR.MIRAGE.STORE_DISPLAYED_DATA	Weergegeven gegevens opslaan
+	
+// Perspective window	
+	
+GRID.PERSPECTIVE_WIN.TITLE	Perspectief
+GRID.PERSPECTIVE_WIN.TEMP_PERSPECTIVE_WARNING	Dit perspectief is tijdelijk; de onderstaande configuratie weerspiegelt niet de huidige status van gekoppelde voorkeurmodules.
+	
+// Column configuration	
+	
+GRID.COLCONFIG_WIN.TITLE	Kolommen
+GRID.COLCONFIG_WIN.TBL.FIELD	Veld
+GRID.COLCONFIG_WIN.TBL.DISPLAY	Weergave
+GRID.COLCONFIG_WIN.TBL.OPTIONS	Opties
+GRID.COLCONFIG_WIN.REORDER_COLS	Klik en sleep om kolommen te herschikken
+GRID.COLCONFIG_WIN.RENAME_COL	Kolom in tabel hernoemen.
+GRID.COLCONFIG_WIN.RENAME_COL.PROMPT	Veld "%s" hernoemen naar?
+GRID.COLCONFIG_WIN.PIN_COL	Kolom aan de linkerkant van de tabel vastzetten?
+GRID.COLCONFIG_WIN.HIDE_COL	Kolom verbergen?
+GRID.COLCONFIG_WIN.ALLOW_HTML	HTML-weergave toestaan?
+GRID.COLCONFIG_WIN.ALLOW_FORMATTING	Ingebedde DataVis-opmaak toestaan?
+GRID.COLCONFIG_WIN.MOVE_COL_TO_TOP	Naar bovenaan kolomlijst verplaatsen
+GRID.COLCONFIG_WIN.MOVE_COL_TO_BOTTOM	Naar onderaan kolomlijst verplaatsen
+GRID.COLCONFIG_WIN.PINNED_COL_WARNING	Vastgezette kolommen verschijnen altijd vóór andere in platte (niet gegroepeerde) uitvoer, in de hierboven getoonde volgorde.
+GRID.COLCONFIG_WIN.RESET_COL_ORDER	Kolomvolgorde resetten
+	
+// Grid controls	
+	
+GRID_CONTROL.FIELD	Veld
+GRID_CONTROL.SELECT_FIELD	Veld selecteren
+GRID_CONTROL.SELECT_AGGREGATE	Aggregatie selecteren
+GRID_CONTROL.FILTER.TITLE	Filters
+GRID_CONTROL.GROUP.TITLE	Groepeer velden
+GRID_CONTROL.PIVOT.TITLE	Pivot-velden
+GRID_CONTROL.AGGREGATE.TITLE	Aggregatie
+GRID_CONTROL.FIELD.REMOVE	Verwijderen
+GRID_CONTROL.FIELD.SHOW_FUNCTIONS	Toon beschikbare functies voor dit veld
+GRID_CONTROL.AGGREGATE.EDIT_OPTIONS	Opties bewerken
+GRID_CONTROL.AGGREGATE.OPTIONS_DIALOG.TITLE	Opties voor %s
+GRID_CONTROL.OPERATIONS.TITLE	Bewerkingen
+	
+// Aggregate function names	
+	
+AGGREGATE.NAME.COUNT	Aantal
+AGGREGATE.NAME.COUNT_DISTINCT	Unieke telling
+AGGREGATE.NAME.VALUES	Waarden
+AGGREGATE.NAME.VALUES_WITH_COUNTS	Waarden met aantallen
+AGGREGATE.NAME.DISTINCT_VALUES	Unieke waarden
+AGGREGATE.NAME.SUM	Som
+AGGREGATE.NAME.AVERAGE	Gemiddelde
+AGGREGATE.NAME.MIN	Min
+AGGREGATE.NAME.MAX	Max
+AGGREGATE.NAME.FIRST	Eerste
+AGGREGATE.NAME.LAST	Laatste
+AGGREGATE.NAME.NTH	N-de
+AGGREGATE.NAME.SUM_OVER_SUM	Som/Som
+AGGREGATE.NAME.COUNT_OVER_COUNT	Aantal/Aantal
+	
+AGGREGATE.FIELD.NUMERATOR	Teller
+AGGREGATE.FIELD.DENOMINATOR	Noemer
+	
+AGGREGATE.HEADER_DISPLAY	%s van %s
+	
+// Grid Table Output	
+	
+GRID.TABLE.SORT_MENU.ASCENDING	%s, oplopend
+GRID.TABLE.SORT_MENU.DESCENDING	%s, aflopend
+GRID.TABLE.SORT_MENU.RESET_SORT	Sortering resetten
+	
+GRID.TABLE.DRAGGABLE_FIELD_HELP	U kunt dit veld slepen en neerzetten in de bovenstaande rasterbediening om te filteren, groeperen of pivoteren.
+GRID.TABLE.ADD_FILTER_HELP	Klik om een filter toe te voegen voor "%s"
+	
+// Group Functions	
+	
+GRID.GROUP_FUN.DIALOG.TITLE	Functie toepassen op %s
+GRID.GROUP_FUN.DIALOG.REPEATING	Herhalend
+GRID.GROUP_FUN.DIALOG.DATE	Datum
+GRID.GROUP_FUN.DIALOG.DATE_TIME	Datum & tijd
+GRID.GROUP_FUN.DIALOG.TIME	Tijd
+GRID.GROUP_FUN.DIALOG.OTHER	Overig
+	
+GRID.GROUP_FUN.NONE	Geen
+GRID.GROUP_FUN.REPEATING.QUARTER	Kwartaal
+GRID.GROUP_FUN.REPEATING.MONTH	Maand
+GRID.GROUP_FUN.REPEATING.WEEK	Week (ISO)
+GRID.GROUP_FUN.REPEATING.DAY_OF_WEEK	Dag van de week
+GRID.GROUP_FUN.DATE.YEAR	Jaar
+GRID.GROUP_FUN.DATE.YEAR_AND_QUARTER	Jaar & kwartaal
+GRID.GROUP_FUN.DATE.YEAR_AND_MONTH	Jaar & maand
+GRID.GROUP_FUN.DATE.YEAR_AND_WEEK	Jaar & week (ISO)
+GRID.GROUP_FUN.DATE.FULL_DATE	Volledige datum (geen tijd)
+GRID.GROUP_FUN.DATE_TIME.SLICE.1HR	Datum & tijd: 1 uur intervallen
+GRID.GROUP_FUN.DATE_TIME.SLICE.15MIN	Datum & tijd: 15 min intervallen
+GRID.GROUP_FUN.TIME.SLICE.1HR	Tijd: 1 uur intervallen
+GRID.GROUP_FUN.TIME.SLICE.15MIN	Tijd: 15 min intervallen
+	
+GRID.TEMPLATE_EDITOR.TITLE	Sjabloonbewerker
+GRID.TEMPLATE_EDITOR.PLAIN	Plat
+GRID.TEMPLATE_EDITOR.GROUPED	Gegroepeerd
+GRID.TEMPLATE_EDITOR.PIVOTTED	Gepivot
+GRID.TEMPLATE_EDITOR.CONFIG.BEFORE	Voor
+GRID.TEMPLATE_EDITOR.CONFIG.BEFORE_GROUP	Voor groep
+GRID.TEMPLATE_EDITOR.CONFIG.ITEM	Item
+GRID.TEMPLATE_EDITOR.CONFIG.AFTER_GROUP	Na groep
+GRID.TEMPLATE_EDITOR.CONFIG.AFTER	Na
+GRID.TEMPLATE_EDITOR.CONFIG.EMPTY	Leeg
+	
+CALENDAR.DAY.MONDAY	Maandag
+CALENDAR.DAY.TUESDAY	Dinsdag
+CALENDAR.DAY.WEDNESDAY	Woensdag
+CALENDAR.DAY.THURSDAY	Donderdag
+CALENDAR.DAY.FRIDAY	Vrijdag
+CALENDAR.DAY.SATURDAY	Zaterdag
+CALENDAR.DAY.SUNDAY	Zondag
+	
+CALENDAR.MONTH.JANUARY	Januari
+CALENDAR.MONTH.FEBRUARY	Februari
+CALENDAR.MONTH.MARCH	Maart
+CALENDAR.MONTH.APRIL	April
+CALENDAR.MONTH.MAY	Mei
+CALENDAR.MONTH.JUNE	Juni
+CALENDAR.MONTH.JULY	Juli
+CALENDAR.MONTH.AUGUST	Augustus
+CALENDAR.MONTH.SEPTEMBER	September
+CALENDAR.MONTH.OCTOBER	Oktober
+CALENDAR.MONTH.NOVEMBER	November
+CALENDAR.MONTH.DECEMBER	December
+	
+FILTER.DATE.OPERATOR.ON	op
+FILTER.DATE.OPERATOR.BETWEEN	tussen
+FILTER.DATE.OPERATOR.BEFORE	voor
+FILTER.DATE.OPERATOR.AFTER	na
+FILTER.DATE.OPERATOR.EVERY	iedere
+FILTER.DATE.OPERATOR.CURRENT	huidig
+FILTER.DATE.OPERATOR.LAST	laatste
+FILTER.DATE.OPERATOR.AND	en
+FILTER.STRING.OPERATOR.IN	in
+FILTER.STRING.OPERATOR.NOT_IN	niet in
+FILTER.STRING.OPERATOR.BLANK	leeg
+FILTER.STRING.OPERATOR.NOT_BLANK	niet leeg
+	
+CALENDAR.DATE	datum
+CALENDAR.DAY	dag
+CALENDAR.WEEK	week
+CALENDAR.MONTH	maand
+CALENDAR.QUARTER	kwartaal
+CALENDAR.YEAR	jaar
+	
+DATA.NO_DATA	Geen gegevens
+DATA.NOTHING_TO_GRAPH	Niets om te grafieken
+	
+PREFS.MAIN_PERSPECTIVE	Hoofdperspectief

@@ -4,11 +4,10 @@ import path from 'node:path';
 import ts from 'typescript';
 
 const ROOT = process.cwd();
-const SOURCE_LOCALE = path.join(ROOT, 'wcdatavis', 'en-US.tsv');
+const SOURCE_LOCALE = path.join(ROOT, 'src', 'i18n', 'en-US.tsv');
 const UPDATE_MODE = process.argv.includes('--update');
 const SEARCH_DIRS = [
   path.join(ROOT, 'src'),
-  path.join(ROOT, 'wcdatavis', 'src'),
 ];
 const VALID_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx', '.mjs', '.cjs']);
 const KEY_PATTERN = /^[A-Z0-9_.-]+$/;
@@ -142,7 +141,7 @@ function main() {
   const missing = Array.from(usedKeys).filter((key) => !definedKeys.has(key)).sort();
 
   if (missing.length === 0) {
-    console.log(`✅ i18n key check passed (${usedKeys.size} keys used, all present in wcdatavis/en-US.tsv)`);
+    console.log(`✅ i18n key check passed (${usedKeys.size} keys used, all present in src/i18n/en-US.tsv)`);
     return;
   }
 
@@ -155,11 +154,11 @@ function main() {
       }
     }
     appendMissingKeys(SOURCE_LOCALE, missing, fallbackMap);
-    console.log(`🛠️ Added ${missing.length} missing key(s) to wcdatavis/en-US.tsv`);
+    console.log(`🛠️ Added ${missing.length} missing key(s) to src/i18n/en-US.tsv`);
     return;
   }
 
-  console.error(`❌ Missing ${missing.length} translation key(s) in wcdatavis/en-US.tsv:`);
+  console.error(`❌ Missing ${missing.length} translation key(s) in src/i18n/en-US.tsv:`);
 
   for (const key of missing) {
     const match = usedEntries.find((entry) => entry.key === key);

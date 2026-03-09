@@ -25,7 +25,7 @@ import {
 } from './demo/data';
 import { applyFilter } from './demo/apply-filter';
 import type { FilterSpec } from './components/filters/types';
-import enUsTsv from '../wcdatavis/en-US.tsv?raw';
+import enUsTsv from './i18n/en-US.tsv?raw';
 
 // ───────────────────────────────────────────────────────────
 // Mock adapter factories
@@ -248,7 +248,7 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): Mock
 }
 
 // ───────────────────────────────────────────────────────────
-// Shared i18n labels — parsed from wcdatavis/en-US.tsv (single source of truth)
+// Shared i18n labels — parsed from src/i18n/en-US.tsv (single source of truth)
 // ───────────────────────────────────────────────────────────
 
 function parseTsv(raw: string): Record<string, string> {
