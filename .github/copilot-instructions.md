@@ -41,6 +41,11 @@
 - Let the user interact with the browser after navigation or testing
 - Only use `browser_close` when the user specifically requests it
 
+### 🔥 Dev Server Management
+- **Never restart Vite** (or similar HMR dev servers) after code changes — HMR picks them up automatically
+- Only restart when config files change (`vite.config.ts`, `package.json`, `.env`, etc.)
+- If the dev server isn't running, start it once; don't kill-and-restart on every edit
+
 ## HTML & CSS Guidelines
 - **Semantic Naming**: Every `<div>` and other structural element must use a meaningful, semantic class name that clearly indicates its purpose or role within the layout.
 - **CSS Simplicity**: Styles should avoid global resets or overrides that affect unrelated components or default browser behavior. Keep changes scoped and minimal.
