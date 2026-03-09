@@ -172,11 +172,41 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): Mock
             }
           }
 
+          // Compute overall total aggregates (plain or grouped)
+          let totalAggregates: Record<string, unknown> | undefined;
+          if (view._aggSpec && view._aggSpec.length > 0) {
+            const aggSpecs: AggSpec[] = view._aggSpec;
+            totalAggregates = {};
+            for (const agg of aggSpecs) {
+              const field: string | undefined = agg.fields[0];
+              const label = field ? `${agg.fn}(${field})` : agg.fn;
+              if (agg.fn === 'count') {
+                totalAggregates[label] = result.length;
+              } else if (field) {
+                if (agg.fn === 'counta') {
+                  totalAggregates[label] = result.filter((r) => r[field] != null && r[field] !== '').length;
+                } else if (agg.fn === 'countu') {
+                  totalAggregates[label] = new Set(result.map((r) => r[field]).filter((v) => v != null && v !== '')).size;
+                } else if (agg.fn === 'list') {
+                  const uniq = [...new Set(result.map((r) => r[field]).filter((v) => v != null && v !== '').map(String))];
+                  totalAggregates[label] = uniq.join(', ');
+                } else {
+                  const nums = result.map((r) => Number(r[field])).filter((n) => !isNaN(n));
+                  if (agg.fn === 'sum') totalAggregates[label] = nums.reduce((a, b) => a + b, 0);
+                  else if (agg.fn === 'avg') totalAggregates[label] = nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
+                  else if (agg.fn === 'min') totalAggregates[label] = nums.length ? Math.min(...nums) : null;
+                  else if (agg.fn === 'max') totalAggregates[label] = nums.length ? Math.max(...nums) : null;
+                }
+              }
+            }
+          }
+
           view.data = {
             isPlain: !isGroup, isGroup, isPivot: false,
             data: result,
             ...(isGroup ? { groupFields } : {}),
             ...(groupMetadata ? { groupMetadata } : {}),
+            ...(totalAggregates ? { totalAggregates } : {}),
           };
           view.fire('workEnd', {
             isPlain: !isGroup, isGroup, isPivot: false,

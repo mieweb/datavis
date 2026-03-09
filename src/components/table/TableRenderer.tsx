@@ -263,6 +263,8 @@ export function TableRenderer({
           limit={limit}
           formatCell={formatCell}
           trans={t}
+          aggregates={viewData.totalAggregates as Record<string, unknown> | undefined}
+          aggFnLabels={aggFnLabels}
           onSort={effectiveOnSort}
           onRowClick={onRowClick}
           onRowDoubleClick={onRowDoubleClick}

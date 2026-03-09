@@ -205,6 +205,10 @@ export interface BaseTableProps {
   formatCell?: CellFormatter;
   /** i18n function */
   trans?: TransFn;
+  /** Overall aggregate totals — rendered as a sticky footer row */
+  aggregates?: Record<string, unknown>;
+  /** Map of aggregate function internal names to display labels */
+  aggFnLabels?: Record<string, string>;
 
   // ── Callbacks ──
   /** Sort requested on a column */

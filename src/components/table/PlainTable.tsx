@@ -219,6 +219,83 @@ function SortableHeaderCell({
 }
 
 // ───────────────────────────────────────────────────────────
+// Aggregate Footer (plain-mode totals)
+// ───────────────────────────────────────────────────────────
+
+/** Parse aggregate keys like "sum(salary)" → { fn, field } */
+function parseAggKey(key: string): { fn: string; field: string | null } {
+  const m = key.match(/^(\w+)\((\w+)\)$/);
+  if (m) return { fn: m[1], field: m[2] };
+  return { fn: key, field: null };
+}
+
+interface AggregateFooterProps {
+  aggregates: Record<string, unknown>;
+  aggFnLabels?: Record<string, string>;
+  visibleColumns: TableColumn[];
+  t: (key: string, ...args: unknown[]) => string;
+}
+
+function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, t: _t }: AggregateFooterProps) {
+  // Group aggregate entries by function name so each fn gets its own row
+  const byFn = new Map<string, { field: string | null; value: unknown }[]>();
+  for (const [key, value] of Object.entries(aggregates)) {
+    const { fn, field } = parseAggKey(key);
+    if (!byFn.has(fn)) byFn.set(fn, []);
+    byFn.get(fn)!.push({ field, value });
+  }
+
+  return (
+    <tfoot className="wcdv-agg-footer sticky bottom-0 bg-gray-100 border-t-2 border-gray-300 font-semibold text-sm">
+      {[...byFn.entries()].map(([fn, entries]) => {
+        const label = aggFnLabels?.[fn] ?? fn.charAt(0).toUpperCase() + fn.slice(1);
+        // Build a field→value map for quick lookup
+        const fieldMap = new Map(
+          entries.filter((e) => e.field != null).map((e) => [e.field!, e.value]),
+        );
+
+        return (
+          <tr key={fn} className="border-t border-gray-200">
+            {visibleColumns.map((col, idx) => {
+              const val = fieldMap.get(col.field);
+              if (val !== undefined) {
+                const formatted = typeof val === 'number'
+                  ? val.toLocaleString(undefined, { maximumFractionDigits: 2 })
+                  : String(val ?? '');
+                return (
+                  <td
+                    key={col.field}
+                    className="px-3 py-1.5 text-right border-r border-gray-200"
+                    title={`${label}: ${formatted}`}
+                  >
+                    <span className="text-gray-500 text-xs mr-1">{label}</span>
+                    {formatted}
+                  </td>
+                );
+              }
+              // First column of the row — show the function label if no value
+              if (idx === 0) {
+                return (
+                  <td
+                    key={col.field}
+                    className="px-3 py-1.5 border-r border-gray-200 text-gray-500 text-xs uppercase tracking-wider"
+                  >
+                    {label}
+                  </td>
+                );
+              }
+              return (
+                <td key={col.field} className="px-3 py-1.5 border-r border-gray-200" />
+              );
+            })}
+          </tr>
+        );
+      })}
+    </tfoot>
+  );
+}
+
+// ───────────────────────────────────────────────────────────
 // PlainTable
 // ───────────────────────────────────────────────────────────
 
@@ -231,6 +308,8 @@ export function PlainTable({
   limit,
   formatCell,
   trans: transProp,
+  aggregates,
+  aggFnLabels,
   onSort,
   onRowClick,
   onRowDoubleClick,
@@ -548,6 +627,16 @@ export function PlainTable({
                 })
               )}
             </tbody>
+
+            {/* ── Aggregate footer ── */}
+            {aggregates && Object.keys(aggregates).length > 0 && (
+              <AggregateFooter
+                aggregates={aggregates}
+                aggFnLabels={aggFnLabels}
+                visibleColumns={visibleColumns}
+                t={t}
+              />
+            )}
           </table>
         </DndContext>
       </div>
