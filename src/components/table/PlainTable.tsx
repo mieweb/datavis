@@ -482,6 +482,7 @@ export function PlainTable({
         return formatCell(value, row.data, column);
       }
       if (value === null || value === undefined) return '';
+      if (typeof value === 'number') return value.toLocaleString();
       return String(value);
     },
     [formatCell],

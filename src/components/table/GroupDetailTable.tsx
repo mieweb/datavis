@@ -576,7 +576,9 @@ function GroupSection({
                 >
                   {formatCell
                     ? formatCell(row.data[col.field], row.data, col as any)
-                    : String(row.data[col.field] ?? '')}
+                    : typeof row.data[col.field] === 'number'
+                      ? (row.data[col.field] as number).toLocaleString()
+                      : String(row.data[col.field] ?? '')}
                 </td>
               ))}
             </tr>
