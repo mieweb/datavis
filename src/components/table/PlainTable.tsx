@@ -214,6 +214,7 @@ function SortableHeaderCell({
       {resizable && (
         <div
           className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-400 active:bg-blue-500"
+          onPointerDown={(e) => e.stopPropagation()}
           onMouseDown={(e) =>
             onResizeStart?.(column.field, column.width ?? 100, e)
           }
