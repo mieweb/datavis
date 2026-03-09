@@ -146,11 +146,20 @@ function createMockView(data: Record<string, unknown>[], rowCount: number): Mock
                   if (agg.fn === 'count') {
                     aggregates[label] = rows.length;
                   } else if (field) {
-                    const nums = rows.map((r) => Number(r[field])).filter((n) => !isNaN(n));
-                    if (agg.fn === 'sum') aggregates[label] = nums.reduce((a, b) => a + b, 0);
-                    else if (agg.fn === 'avg') aggregates[label] = nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
-                    else if (agg.fn === 'min') aggregates[label] = nums.length ? Math.min(...nums) : null;
-                    else if (agg.fn === 'max') aggregates[label] = nums.length ? Math.max(...nums) : null;
+                    if (agg.fn === 'counta') {
+                      aggregates[label] = rows.filter((r) => r[field] != null && r[field] !== '').length;
+                    } else if (agg.fn === 'countu') {
+                      aggregates[label] = new Set(rows.map((r) => r[field]).filter((v) => v != null && v !== '')).size;
+                    } else if (agg.fn === 'list') {
+                      const uniq = [...new Set(rows.map((r) => r[field]).filter((v) => v != null && v !== '').map(String))];
+                      aggregates[label] = uniq.join(', ');
+                    } else {
+                      const nums = rows.map((r) => Number(r[field])).filter((n) => !isNaN(n));
+                      if (agg.fn === 'sum') aggregates[label] = nums.reduce((a, b) => a + b, 0);
+                      else if (agg.fn === 'avg') aggregates[label] = nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
+                      else if (agg.fn === 'min') aggregates[label] = nums.length ? Math.min(...nums) : null;
+                      else if (agg.fn === 'max') aggregates[label] = nums.length ? Math.max(...nums) : null;
+                    }
                   }
                 }
                 groupMetadata[key] = {
@@ -270,8 +279,11 @@ const AGG_FUNCTIONS: AggregateFunction[] = [
   { name: 'sum', label: 'Sum', fieldCount: 1 },
   { name: 'avg', label: 'Average', fieldCount: 1 },
   { name: 'count', label: 'Count', fieldCount: 0 },
+  { name: 'counta', label: 'Count Values', fieldCount: 1 },
+  { name: 'countu', label: 'Count Unique', fieldCount: 1 },
   { name: 'min', label: 'Min', fieldCount: 1 },
   { name: 'max', label: 'Max', fieldCount: 1 },
+  { name: 'list', label: 'Unique Values', fieldCount: 1 },
 ];
 
 // ───────────────────────────────────────────────────────────
@@ -354,6 +366,7 @@ function GridDemo({
         viewData={viewData}
         columns={columns}
         totalRows={data.length}
+        aggFnLabels={Object.fromEntries(AGG_FUNCTIONS.map((f) => [f.name, f.label]))}
         features={{
           columnResize: true,
           columnReorder: true,
@@ -418,8 +431,12 @@ function App() {
 
   const simpleAggFields = useMemo(
     () => [
+      { field: 'name', displayName: 'Name' },
+      { field: 'department', displayName: 'Department' },
       { field: 'salary', displayName: 'Salary' },
       { field: 'projects', displayName: 'Projects' },
+      { field: 'active', displayName: 'Active' },
+      { field: 'manager', displayName: 'Manager' },
     ],
     [],
   );

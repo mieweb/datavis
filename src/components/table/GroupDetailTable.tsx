@@ -98,6 +98,8 @@ export interface GroupDetailTableProps extends BaseTableProps {
   pinRowvals?: boolean;
   /** Total-row aggregate values */
   totalAggregates?: Record<string, unknown>;
+  /** Map of aggregate function internal names to display labels (e.g. { list: 'Unique Values' }) */
+  aggFnLabels?: Record<string, string>;
   /** Callback when a group is expanded/collapsed */
   onGroupToggle?: (groupKey: string, expanded: boolean) => void;
 }
@@ -121,6 +123,7 @@ export function GroupDetailTable({
   showTotalRow = false,
   initialExpanded = true,
   totalAggregates,
+  aggFnLabels,
   onSort,
   onRowClick,
   onRowDoubleClick,
@@ -320,7 +323,7 @@ export function GroupDetailTable({
                       key={`${col.field}-${fn}`}
                       className="border-b border-r border-gray-200 bg-gray-100 px-2 py-1 text-center text-[10px] font-bold uppercase tracking-widest text-gray-500"
                     >
-                      {fn}
+                      {aggFnLabels?.[fn] ?? fn}
                     </th>
                   ));
                 })}

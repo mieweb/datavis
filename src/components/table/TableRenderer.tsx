@@ -60,6 +60,8 @@ export interface TableRendererProps {
   showTotalCol?: boolean;
   /** Whether to start groups expanded */
   groupsExpanded?: boolean;
+  /** Map of aggregate function internal names to display labels */
+  aggFnLabels?: Record<string, string>;
   /** Custom className */
   className?: string;
 
@@ -103,6 +105,7 @@ export function TableRenderer({
   showTotalRow = false,
   showTotalCol = true,
   groupsExpanded = true,
+  aggFnLabels,
   className = '',
   onSort,
   onRowClick,
@@ -302,6 +305,7 @@ export function TableRenderer({
             formatCell={formatCell}
             showTotalRow={showTotalRow}
             initialExpanded={groupsExpanded}
+            aggFnLabels={aggFnLabels}
             trans={t}
             onSort={effectiveOnSort}
             onRowClick={onRowClick}
