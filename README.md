@@ -2,6 +2,8 @@
 
 A React + Tailwind CSS rewrite of the [wcdatavis](wcdatavis/) data visualization library. Replaces all legacy jQuery UI widgets with [`@mieweb/ui`](https://ui.mieweb.org) components while retaining the battle-tested JavaScript data-processing engine unchanged.
 
+[**Live Demo**](https://mieweb.github.io/datavis/) · [**Storybook**](https://mieweb.github.io/datavis/storybook/) · [**Rewrite Plan**](v0-rewrite-plan.md)
+
 **wcdatavis** is a tool for exploring, manipulating, and visualizing tabular data. It imports data over HTTP (XML, JSON, CSV) or from local JavaScript, auto-parses dates/numbers/currency, and supports interactive filtering, grouping, pivoting, aggregation, perspectives, CSV export, and graphing.
 
 ```mermaid
