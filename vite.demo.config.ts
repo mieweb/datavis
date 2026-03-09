@@ -14,7 +14,7 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [tailwindcss(), react()],
-  base: '/datavis/',
+  base: '/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
