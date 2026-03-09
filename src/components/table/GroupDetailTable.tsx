@@ -10,11 +10,13 @@ import { useState, useCallback, useMemo, type ReactNode } from 'react';
 
 import type {
   BaseTableProps,
+  TableColumn,
   TableRow,
   GroupMeta,
   SortDirection,
 } from './types';
-import { useTranslation } from '../../i18n';
+import { useTranslation, useLocale } from '../../i18n';
+import { formatCellValue, formatAggregateNumber } from './format-cell';
 
 /**
  * Parse aggregate keys like "sum(salary)" into a map of field → [{fn, value}].
@@ -46,6 +48,8 @@ interface ColumnLayout {
   width?: number;
   minWidth?: number;
   className?: string;
+  /** Column type info for formatting */
+  typeInfo?: TableColumn['typeInfo'];
   /** Aggregate function names assigned to this column (e.g. ["sum","avg"]) */
   aggFns: string[];
   /** Total number of physical sub-columns (max(1, aggFns.length)) */
@@ -132,6 +136,7 @@ export function GroupDetailTable({
   className = '',
 }: GroupDetailTableProps) {
   const t = useTranslation(transProp);
+  const locale = useLocale();
   // Track expanded state per group
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
     if (initialExpanded) return new Set(groupOrder);
@@ -185,6 +190,7 @@ export function GroupDetailTable({
             width: col.width,
             minWidth: col.minWidth,
             className: col.className,
+            typeInfo: col.typeInfo,
             aggFns: fns,
             span: Math.max(1, fns.length),
           };
@@ -208,10 +214,7 @@ export function GroupDetailTable({
   const formatAggValue = useCallback(
     (fn: string, value: unknown): ReactNode => {
       if (value == null) return '';
-      const num = Number(value);
-      const display = !isNaN(num) && typeof value !== 'boolean'
-        ? num.toLocaleString(undefined, { maximumFractionDigits: 2 })
-        : String(value);
+      const display = formatAggregateNumber(value, locale);
       return (
         <span className="wcdv-agg-value">
           <span className="text-gray-400 uppercase">{fn}</span>{' '}
@@ -219,7 +222,7 @@ export function GroupDetailTable({
         </span>
       );
     },
-    [],
+    [locale],
   );
 
   const handleSort = useCallback(
@@ -447,6 +450,7 @@ function GroupSection({
   onRowClick,
   onRowDoubleClick,
 }: GroupSectionProps) {
+  const locale = useLocale();
   const aggByField = useMemo(
     () => buildAggByField(meta.aggregates),
     [meta.aggregates],
@@ -576,9 +580,7 @@ function GroupSection({
                 >
                   {formatCell
                     ? formatCell(row.data[col.field], row.data, col as any)
-                    : typeof row.data[col.field] === 'number'
-                      ? (row.data[col.field] as number).toLocaleString()
-                      : String(row.data[col.field] ?? '')}
+                    : formatCellValue(row.data[col.field], col.typeInfo, locale)}
                 </td>
               ))}
             </tr>

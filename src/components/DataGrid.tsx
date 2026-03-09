@@ -15,7 +15,7 @@ import {
   filterGroupFunctionsForType,
   needsGroupFunction,
 } from '../adapters/group-adapter';
-import { TransProvider, useTranslation, type TransFn } from '../i18n';
+import { TransProvider, useTranslation, type TransFn, LocaleProvider } from '../i18n';
 import { TitleBar } from './TitleBar';
 import { GridToolbar } from './GridToolbar';
 import { ControlPanel } from './controls/ControlPanel';
@@ -87,6 +87,8 @@ export interface DataGridProps {
   children?: React.ReactNode;
   /** i18n function — defaults to identity. Also available via TransProvider / useTranslation(). */
   trans?: TransFn;
+  /** BCP-47 locale for number/date formatting (e.g. 'en-US'). Defaults to browser locale. */
+  locale?: string;
   /** Enable debug button */
   debug?: boolean;
   /** Column filter configurations for the filter bar */
@@ -135,6 +137,7 @@ export function DataGrid({
   className = '',
   children,
   trans: transProp,
+  locale,
   debug = false,
   filterColumns = [],
   allColumns = [],
@@ -607,6 +610,7 @@ export function DataGrid({
 
   return (
     <TransProvider value={t}>
+    <LocaleProvider value={locale}>
     <div
       className={`wcdv-grid flex flex-col border border-gray-200 rounded-lg bg-white shadow-sm ${className}`}
       style={height ? { height } : undefined}
@@ -792,6 +796,7 @@ export function DataGrid({
         />
       )}
     </div>
+    </LocaleProvider>
     </TransProvider>
   );
 }

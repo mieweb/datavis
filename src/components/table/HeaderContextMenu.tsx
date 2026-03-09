@@ -3,9 +3,11 @@
  *
  * Replaces the legacy jquery-contextmenu with a pure React dropdown
  * positioned at the cursor via a portal.
+ *
+ * Supports nested submenus (one level) and checked items.
  */
 
-import { useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ContextMenuItem } from './types';
 import { useTranslation, type TransFn } from '../../i18n';
 
@@ -31,6 +33,10 @@ export function HeaderContextMenu({
 }: HeaderContextMenuProps) {
   const t = useTranslation(transProp);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [openSub, setOpenSub] = useState<string | null>(null);
+
+  // Reset submenu when menu opens/closes
+  useEffect(() => { if (!open) setOpenSub(null); }, [open]);
 
   // Close on click outside or Escape
   useEffect(() => {
@@ -86,6 +92,66 @@ export function HeaderContextMenu({
           );
         }
 
+        // ── Item with submenu ──
+        if (item.children && item.children.length > 0) {
+          const subOpen = openSub === item.label;
+          return (
+            <div
+              key={item.label}
+              className="relative"
+              onMouseEnter={() => setOpenSub(item.label)}
+              onMouseLeave={() => setOpenSub(null)}
+            >
+              <button
+                className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+                role="menuitem"
+                aria-haspopup="menu"
+                aria-expanded={subOpen}
+                onClick={() => setOpenSub(subOpen ? null : item.label)}
+              >
+                {item.icon && <span className="w-4 text-center">{item.icon}</span>}
+                <span className="flex-1 text-left">{item.label}</span>
+                <span className="text-xs text-gray-400">▸</span>
+              </button>
+              {subOpen && (
+                <div
+                  className="absolute left-full top-0 z-50 min-w-[180px] rounded-md border border-gray-200 bg-white py-1 shadow-lg"
+                  role="menu"
+                  aria-label={item.label}
+                >
+                  {item.children.map((child) => {
+                    if (child.separator) {
+                      return <div key={`sub-sep-${child.label}`} className="my-1 h-px bg-gray-200" role="separator" />;
+                    }
+                    return (
+                      <button
+                        key={child.label}
+                        className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                        role="menuitemradio"
+                        aria-checked={child.checked ?? false}
+                        disabled={child.disabled}
+                        onClick={() => {
+                          child.onClick?.();
+                          onClose();
+                        }}
+                      >
+                        <span className="w-4 text-center text-xs">
+                          {child.checked ? '✓' : ''}
+                        </span>
+                        <span className="flex-1 text-left">{child.label}</span>
+                        {child.shortcut && (
+                          <span className="text-xs text-gray-400 ml-2">{child.shortcut}</span>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        }
+
+        // ── Plain item ──
         return (
           <button
             key={item.label}

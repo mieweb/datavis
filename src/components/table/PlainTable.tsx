@@ -45,7 +45,8 @@ import { useColumnReorder } from './useColumnReorder';
 import { useKeyboardNav } from './useKeyboardNav';
 import { HeaderContextMenu } from './HeaderContextMenu';
 import { useFilterContext } from '../filters/FilterContext';
-import { useTranslation } from '../../i18n';
+import { useTranslation, useLocale } from '../../i18n';
+import { formatCellValue, formatAggregateNumber, DATE_FORMAT_PRESETS, type DateFormatPreset } from './format-cell';
 
 // ───────────────────────────────────────────────────────────
 // Sort icon
@@ -234,9 +235,10 @@ interface AggregateFooterProps {
   aggFnLabels?: Record<string, string>;
   visibleColumns: TableColumn[];
   t: (key: string, ...args: unknown[]) => string;
+  locale?: string;
 }
 
-function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, t: _t }: AggregateFooterProps) {
+function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, t: _t, locale }: AggregateFooterProps) {
   // Group aggregate entries by function name so each fn gets its own row
   const byFn = new Map<string, { field: string | null; value: unknown }[]>();
   for (const [key, value] of Object.entries(aggregates)) {
@@ -259,9 +261,7 @@ function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, t: _t }: Agg
             {visibleColumns.map((col, idx) => {
               const val = fieldMap.get(col.field);
               if (val !== undefined) {
-                const formatted = typeof val === 'number'
-                  ? val.toLocaleString(undefined, { maximumFractionDigits: 2 })
-                  : String(val ?? '');
+                const formatted = formatAggregateNumber(val, locale);
                 return (
                   <td
                     key={col.field}
@@ -322,6 +322,7 @@ export function PlainTable({
   className = '',
 }: BaseTableProps) {
   const t = useTranslation(transProp);
+  const locale = useLocale();
   // ── Filter context (provided by DataGrid) ─────
   const filterCtx = useFilterContext();
 
@@ -341,6 +342,13 @@ export function PlainTable({
     position: { x: number; y: number };
     field: string;
   }>({ open: false, position: { x: 0, y: 0 }, field: '' });
+
+  // ── Per-column date format overrides ──────────
+  const [dateFormats, setDateFormats] = useState<Record<string, DateFormatPreset>>({});
+
+  const setDateFormat = useCallback((field: string, preset: DateFormatPreset) => {
+    setDateFormats((prev) => ({ ...prev, [field]: preset }));
+  }, []);
 
   const tableRef = useRef<HTMLDivElement>(null);
 
@@ -445,7 +453,8 @@ export function PlainTable({
   const contextMenuItems = useMemo<ContextMenuItem[]>(() => {
     const col = columns.find((c) => c.field === contextMenu.field);
     if (!col) return [];
-    return [
+
+    const items: ContextMenuItem[] = [
       {
         label: t('TABLE.SORT_ASC') || 'Sort Ascending',
         icon: '↑',
@@ -469,7 +478,27 @@ export function PlainTable({
         },
       },
     ];
-  }, [contextMenu.field, columns, t, onSort]);
+
+    // Date / datetime columns get a "Date Format" submenu
+    const colType = col.typeInfo?.type;
+    if (colType === 'date' || colType === 'datetime') {
+      const current = dateFormats[col.field] ?? 'short';
+      items.push(
+        { separator: true, label: '' },
+        {
+          label: t('TABLE.DATE_FORMAT') || 'Date Format',
+          icon: '📅',
+          children: DATE_FORMAT_PRESETS.map((p) => ({
+            label: `${p.label}  ${p.example}`,
+            checked: current === p.key,
+            onClick: () => setDateFormat(col.field, p.key),
+          })),
+        },
+      );
+    }
+
+    return items;
+  }, [contextMenu.field, columns, t, onSort, dateFormats, setDateFormat]);
 
   // ── Limit / Show More ─────────────────────────
   const isLimited = limit && totalRows && rows.length < totalRows;
@@ -481,20 +510,18 @@ export function PlainTable({
       if (formatCell) {
         return formatCell(value, row.data, column);
       }
-      if (value === null || value === undefined) return '';
-      if (typeof value === 'number') return value.toLocaleString();
-      return String(value);
+      return formatCellValue(value, column.typeInfo, locale, dateFormats[column.field]);
     },
-    [formatCell],
+    [formatCell, locale, dateFormats],
   );
 
   // ── Cell alignment ────────────────────────────
   const getCellAlign = useCallback((col: TableColumn): string => {
     if (col.align) return `text-${col.align}`;
-    // Auto right-align numeric types
+    // Auto right-align numeric and date types
     if (
       col.typeInfo?.type &&
-      ['number', 'currency', 'integer', 'float', 'percent'].includes(
+      ['number', 'currency', 'integer', 'float', 'percent', 'date', 'datetime'].includes(
         col.typeInfo.type,
       )
     ) {
@@ -636,6 +663,7 @@ export function PlainTable({
                 aggFnLabels={aggFnLabels}
                 visibleColumns={visibleColumns}
                 t={t}
+                locale={locale}
               />
             )}
           </table>

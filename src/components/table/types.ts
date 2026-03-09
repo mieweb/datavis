@@ -110,6 +110,10 @@ export interface ContextMenuItem {
   disabled?: boolean;
   /** Whether this is a separator */
   separator?: boolean;
+  /** Whether this item is currently "checked" / active */
+  checked?: boolean;
+  /** Nested submenu items */
+  children?: ContextMenuItem[];
   /** Action callback */
   onClick?: () => void;
 }

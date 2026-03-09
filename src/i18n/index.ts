@@ -9,3 +9,9 @@ export {
   type TransFn,
   type TransProviderProps,
 } from './TransContext';
+
+export {
+  LocaleProvider,
+  useLocale,
+  type LocaleProviderProps,
+} from './LocaleContext';
