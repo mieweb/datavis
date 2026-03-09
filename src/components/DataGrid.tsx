@@ -25,6 +25,7 @@ import { type ColumnFilterConfig, type FilterSpec } from './filters/types';
 import { FilterContext, columnToFilterConfig, type FilterContextValue } from './filters/FilterContext';
 import type { TableColumn, SortSpec, SortDirection } from './table/types';
 import { SortContext, type SortContextValue } from './table/SortContext';
+import { ColumnConfigContext, type ColumnConfigContextValue } from './table/ColumnConfigContext';
 import { OperationsPalette, type Operation } from './OperationsPalette';
 import { DetailSlider } from './DetailSlider';
 import { LoadingOverlay } from './LoadingOverlay';
@@ -144,7 +145,7 @@ export function DataGrid({
   controlFields = [],
   aggregateFields = [],
   aggregateFunctions = [],
-  columnConfigs = [],
+  columnConfigs: columnConfigsProp = [],
   onColumnConfigSave,
   templates = {},
   onTemplateSave,
@@ -246,6 +247,42 @@ export function DataGrid({
 
   // ── Sort state ─────────────────────────────────
   const [sort, setSort] = useState<SortSpec | null>(null);
+
+  // ── Column config state (auto-derived from allColumns when prop is empty) ──
+  const [hiddenFields, setHiddenFields] = useState<Set<string>>(new Set());
+
+  // Derive effective column configs: explicit prop wins, else build from allColumns
+  const columnConfigs = useMemo<ColumnConfig[]>(() => {
+    const base = columnConfigsProp.length > 0
+      ? columnConfigsProp
+      : allColumns.map((c) => ({
+          field: c.field,
+          displayText: c.header ?? c.field,
+          isPinned: c.pinned ?? false,
+          isHidden: c.visible === false,
+          allowHtml: c.allowHtml ?? false,
+          allowFormatting: true,
+          canHide: true,
+        }));
+    // Apply runtime hidden overrides
+    return base.map((c) => ({
+      ...c,
+      isHidden: hiddenFields.has(c.field) ? true : c.isHidden,
+    }));
+  }, [columnConfigsProp, allColumns, hiddenFields]);
+
+  const setColumnHidden = useCallback((field: string, hidden: boolean) => {
+    setHiddenFields((prev) => {
+      const next = new Set(prev);
+      if (hidden) next.add(field); else next.delete(field);
+      return next;
+    });
+  }, []);
+
+  const columnConfigContextValue = useMemo<ColumnConfigContextValue>(
+    () => ({ hiddenFields, setColumnHidden }),
+    [hiddenFields, setColumnHidden],
+  );
 
   // ── Dialog state ───────────────────────────────
   const [colConfigOpen, setColConfigOpen] = useState(false);
@@ -473,6 +510,9 @@ export function DataGrid({
 
   const handleColumnConfigSave = useCallback(
     (cols: ColumnConfig[], clearCache: string[]) => {
+      // Sync hiddenFields from dialog result
+      setHiddenFields(new Set(cols.filter((c) => c.isHidden).map((c) => c.field)));
+
       // Push column config to the legacy view for rendering compatibility
       try {
         const serialized = {
@@ -707,7 +747,9 @@ export function DataGrid({
           >
             <SortContext.Provider value={sortContextValue}>
             <FilterContext.Provider value={filterContextValue}>
+            <ColumnConfigContext.Provider value={columnConfigContextValue}>
               {children}
+            </ColumnConfigContext.Provider>
             </FilterContext.Provider>
             </SortContext.Provider>
           </div>

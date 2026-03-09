@@ -45,6 +45,7 @@ import { useColumnReorder } from './useColumnReorder';
 import { useKeyboardNav } from './useKeyboardNav';
 import { HeaderContextMenu } from './HeaderContextMenu';
 import { useFilterContext } from '../filters/FilterContext';
+import { useColumnConfig } from './ColumnConfigContext';
 import { useTranslation, useLocale } from '../../i18n';
 import { formatCellValue, formatAggregateNumber, DATE_FORMAT_PRESETS, type DateFormatPreset } from './format-cell';
 
@@ -325,6 +326,8 @@ export function PlainTable({
   const locale = useLocale();
   // ── Filter context (provided by DataGrid) ─────
   const filterCtx = useFilterContext();
+  // ── Column config context (provided by DataGrid) ─
+  const colConfigCtx = useColumnConfig();
 
   // ── Column state ───────────────────────────────
   const [columns, setColumns] = useState<TableColumn[]>(initialColumns);
@@ -354,8 +357,8 @@ export function PlainTable({
 
   // ── Visible columns ───────────────────────────
   const visibleColumns = useMemo(
-    () => columns.filter((c) => c.visible !== false),
-    [columns],
+    () => columns.filter((c) => c.visible !== false && !colConfigCtx.hiddenFields.has(c.field)),
+    [columns, colConfigCtx.hiddenFields],
   );
 
   // ── Column resize ─────────────────────────────
@@ -470,6 +473,8 @@ export function PlainTable({
         label: t('TABLE.HIDE_COLUMN') || 'Hide Column',
         icon: '👁',
         onClick: () => {
+          // Notify DataGrid via context so column config dialog stays in sync
+          colConfigCtx.setColumnHidden(col.field, true);
           setColumns((prev) =>
             prev.map((c) =>
               c.field === col.field ? { ...c, visible: false } : c,
@@ -498,7 +503,7 @@ export function PlainTable({
     }
 
     return items;
-  }, [contextMenu.field, columns, t, onSort, dateFormats, setDateFormat]);
+  }, [contextMenu.field, columns, t, onSort, dateFormats, setDateFormat, colConfigCtx]);
 
   // ── Limit / Show More ─────────────────────────
   const isLimited = limit && totalRows && rows.length < totalRows;
