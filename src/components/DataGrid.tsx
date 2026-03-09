@@ -250,26 +250,29 @@ export function DataGrid({
 
   // ── Column config state (auto-derived from allColumns when prop is empty) ──
   const [hiddenFields, setHiddenFields] = useState<Set<string>>(new Set());
+  /** Persisted column configs after user saves via the dialog (preserves reorder, renames, etc.) */
+  const [savedColumnConfigs, setSavedColumnConfigs] = useState<ColumnConfig[] | null>(null);
 
-  // Derive effective column configs: explicit prop wins, else build from allColumns
+  // Derive effective column configs: saved state > explicit prop > auto-derived from allColumns
   const columnConfigs = useMemo<ColumnConfig[]>(() => {
-    const base = columnConfigsProp.length > 0
-      ? columnConfigsProp
-      : allColumns.map((c) => ({
-          field: c.field,
-          displayText: c.header ?? c.field,
-          isPinned: c.pinned ?? false,
-          isHidden: c.visible === false,
-          allowHtml: c.allowHtml ?? false,
-          allowFormatting: true,
-          canHide: true,
-        }));
+    const base = savedColumnConfigs
+      ?? (columnConfigsProp.length > 0
+        ? columnConfigsProp
+        : allColumns.map((c) => ({
+            field: c.field,
+            displayText: c.header ?? c.field,
+            isPinned: c.pinned ?? false,
+            isHidden: c.visible === false,
+            allowHtml: c.allowHtml ?? false,
+            allowFormatting: true,
+            canHide: true,
+          })));
     // Apply runtime hidden overrides
     return base.map((c) => ({
       ...c,
       isHidden: hiddenFields.has(c.field) ? true : c.isHidden,
     }));
-  }, [columnConfigsProp, allColumns, hiddenFields]);
+  }, [savedColumnConfigs, columnConfigsProp, allColumns, hiddenFields]);
 
   const setColumnHidden = useCallback((field: string, hidden: boolean) => {
     setHiddenFields((prev) => {
@@ -279,9 +282,29 @@ export function DataGrid({
     });
   }, []);
 
+  /** Ordered list of visible field names derived from column configs */
+  const columnOrder = useMemo(
+    () => columnConfigs.filter((c) => !c.isHidden).map((c) => c.field),
+    [columnConfigs],
+  );
+
+  /** Update column order (e.g. from table drag-reorder) — reorders savedColumnConfigs to match */
+  const setColumnOrder = useCallback((fields: string[]) => {
+    // Build a priority map from the new order
+    const orderIndex = new Map(fields.map((f, i) => [f, i]));
+    setSavedColumnConfigs((prev) => {
+      const base = prev ?? columnConfigs;
+      // Separate visible (ordered) from hidden (appended at end)
+      const visible = base.filter((c) => orderIndex.has(c.field));
+      const rest = base.filter((c) => !orderIndex.has(c.field));
+      visible.sort((a, b) => (orderIndex.get(a.field) ?? 0) - (orderIndex.get(b.field) ?? 0));
+      return [...visible, ...rest];
+    });
+  }, [columnConfigs]);
+
   const columnConfigContextValue = useMemo<ColumnConfigContextValue>(
-    () => ({ hiddenFields, setColumnHidden }),
-    [hiddenFields, setColumnHidden],
+    () => ({ hiddenFields, setColumnHidden, columnOrder, setColumnOrder }),
+    [hiddenFields, setColumnHidden, columnOrder, setColumnOrder],
   );
 
   // ── Dialog state ───────────────────────────────
@@ -510,6 +533,8 @@ export function DataGrid({
 
   const handleColumnConfigSave = useCallback(
     (cols: ColumnConfig[], clearCache: string[]) => {
+      // Persist the full column config state (order, renames, flags)
+      setSavedColumnConfigs(cols.map((c) => ({ ...c })));
       // Sync hiddenFields from dialog result
       setHiddenFields(new Set(cols.filter((c) => c.isHidden).map((c) => c.field)));
 

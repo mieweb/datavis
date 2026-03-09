@@ -355,11 +355,20 @@ export function PlainTable({
 
   const tableRef = useRef<HTMLDivElement>(null);
 
-  // ── Visible columns ───────────────────────────
-  const visibleColumns = useMemo(
-    () => columns.filter((c) => c.visible !== false && !colConfigCtx.hiddenFields.has(c.field)),
-    [columns, colConfigCtx.hiddenFields],
-  );
+  // ── Visible columns (filtered + ordered by column config) ──
+  const visibleColumns = useMemo(() => {
+    const visible = columns.filter((c) => c.visible !== false && !colConfigCtx.hiddenFields.has(c.field));
+    // If a column order is provided via config context, sort to match it
+    if (colConfigCtx.columnOrder.length > 0) {
+      const orderIndex = new Map(colConfigCtx.columnOrder.map((f, i) => [f, i]));
+      visible.sort((a, b) => {
+        const ai = orderIndex.get(a.field) ?? Infinity;
+        const bi = orderIndex.get(b.field) ?? Infinity;
+        return ai - bi;
+      });
+    }
+    return visible;
+  }, [columns, colConfigCtx.hiddenFields, colConfigCtx.columnOrder]);
 
   // ── Column resize ─────────────────────────────
   const { handleResizeMouseDown } = useColumnResize(
@@ -379,20 +388,15 @@ export function PlainTable({
     visibleColumns,
     useCallback(
       (fromIndex: number, toIndex: number) => {
-        setColumns((prev) => {
-          // Only reorder visible columns; preserve hidden column positions
-          const visible = prev.filter((c) => c.visible !== false);
-          const hidden = prev.filter((c) => c.visible === false);
-
-          const reordered = [...visible];
-          const [moved] = reordered.splice(fromIndex, 1);
-          reordered.splice(toIndex, 0, moved);
-
-          return [...reordered, ...hidden];
-        });
+        // Compute the new field order after the drag
+        const fields = visibleColumns.map((c) => c.field);
+        const [moved] = fields.splice(fromIndex, 1);
+        fields.splice(toIndex, 0, moved);
+        // Update the context so visibleColumns memo respects the new order
+        colConfigCtx.setColumnOrder(fields);
         onColumnReorder?.(fromIndex, toIndex);
       },
-      [onColumnReorder],
+      [visibleColumns, colConfigCtx, onColumnReorder],
     ),
   );
 

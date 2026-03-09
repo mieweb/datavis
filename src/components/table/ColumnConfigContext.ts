@@ -12,11 +12,17 @@ export interface ColumnConfigContextValue {
   hiddenFields: Set<string>;
   /** Toggle a column's hidden state (called by context-menu Hide and by the dialog) */
   setColumnHidden: (field: string, hidden: boolean) => void;
+  /** Ordered list of visible field names (from column config dialog). Empty = use default order. */
+  columnOrder: string[];
+  /** Update column order (called by table drag-reorder and dialog save) */
+  setColumnOrder: (fields: string[]) => void;
 }
 
 const defaultValue: ColumnConfigContextValue = {
   hiddenFields: new Set(),
   setColumnHidden: () => {},
+  columnOrder: [],
+  setColumnOrder: () => {},
 };
 
 export const ColumnConfigContext = createContext<ColumnConfigContextValue>(defaultValue);
