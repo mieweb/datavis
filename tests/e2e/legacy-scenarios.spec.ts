@@ -32,6 +32,29 @@ test.describe('Legacy Scenario Ports', () => {
     await expect(page.getByTestId('chart-bar-Engineering')).toHaveAttribute('title', 'Engineering: 3');
   });
 
+  test('large dataset: shows 100 rows initially, loads 100 more on scroll, and shows all rows from the toolbar', async ({ page }) => {
+    await page.goto('/?e2e=large');
+
+    const footer = page.locator('.wcdv-plain-table .wcdv-table-footer');
+    const scrollContainer = page.getByTestId('plain-table-scroll');
+
+    await expect(footer).toContainText('Showing 100 of 5000 rows');
+    await expect(page.locator('.wcdv-plain-table tbody tr')).toHaveCount(100);
+
+    await scrollContainer.evaluate((element) => {
+      element.scrollTop = element.scrollHeight;
+      element.dispatchEvent(new Event('scroll'));
+    });
+
+    await expect(footer).toContainText('Showing 200 of 5000 rows');
+    await expect(page.locator('.wcdv-plain-table tbody tr')).toHaveCount(200);
+
+    await page.getByRole('button', { name: 'Show All Rows' }).click();
+
+    await expect(footer).toContainText('Showing 5000 rows');
+    await expect(page.getByRole('button', { name: 'Show More' })).toBeHidden();
+  });
+
   test('no-auto-save.js: unsaved changes are marked and do not persist across reload without save', async ({ page }) => {
     await page.goto('/?e2e=no-auto-save');
 

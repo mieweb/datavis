@@ -4,7 +4,7 @@
  * Controls: Auto-show-more, Show All, Columns, Templates, Row Mode, Auto Resize.
  */
 
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { Button } from '@mieweb/ui/components/Button';
 import { Switch } from '@mieweb/ui/components/Switch';
 import { Radio, RadioGroup } from '@mieweb/ui/components/Radio';
@@ -14,10 +14,12 @@ import { useTranslation, type TransFn } from '../../i18n';
 import type { GridTableDef } from '../DataGrid';
 
 export interface PlainToolbarProps {
+  autoShowMore: boolean;
   tableDef?: GridTableDef;
   rowMode: 'wrapped' | 'clipped';
   trans?: TransFn;
   onRowModeChange: (mode: 'wrapped' | 'clipped') => void;
+  onAutoShowMoreChange?: (checked: boolean) => void;
   onShowAllRows?: () => void;
   onOpenColumnConfig?: () => void;
   onOpenTemplateEditor?: () => void;
@@ -25,28 +27,27 @@ export interface PlainToolbarProps {
 }
 
 export function PlainToolbar({
+  autoShowMore,
   tableDef,
   rowMode,
   trans: transProp,
   onRowModeChange,
+  onAutoShowMoreChange,
   onShowAllRows,
   onOpenColumnConfig,
   onOpenTemplateEditor,
   onAutoResizeColumns,
 }: PlainToolbarProps) {
   const t = useTranslation(transProp);
-  const [autoShowMore, setAutoShowMore] = useState(
-    tableDef?.limit?.autoShowMore ?? true,
-  );
 
   const handleAutoShowMoreChange = useCallback(
     (checked: boolean) => {
-      setAutoShowMore(checked);
       if (tableDef?.limit) {
         tableDef.limit.autoShowMore = checked;
       }
+      onAutoShowMoreChange?.(checked);
     },
-    [tableDef],
+    [onAutoShowMoreChange, tableDef],
   );
 
   const handleShowAllRows = useCallback(() => {

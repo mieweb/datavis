@@ -5,9 +5,17 @@
  * loading overlay, and content area.
  */
 
-import { useState, useCallback, useMemo } from 'react';
+import {
+  Children,
+  cloneElement,
+  isValidElement,
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+} from 'react';
 
-import { useView, useSource, type ViewInstance } from '../adapters/use-data';
+import { useView, useSource, type ViewData, type ViewInstance } from '../adapters/use-data';
 import { type PrefsInstance } from '../adapters/use-prefs';
 import {
   buildGroupSpec,
@@ -36,6 +44,38 @@ import { GridTableOptionsDialog, type DisplayFormatConfig } from './dialogs/Grid
 import { GroupFunctionDialog } from './dialogs/GroupFunctionDialog';
 import type { GroupFunction as GroupFunctionDef } from './dialogs/GroupFunctionDialog';
 import { PerspectiveManagerDialog, type PerspectiveInfo } from './dialogs/PerspectiveManagerDialog';
+import type { TableRendererProps } from './table/TableRenderer';
+
+const DEFAULT_ROW_BATCH_SIZE = 100;
+
+function limitPlainViewData(viewData: ViewData | null, visibleRowCount: number): ViewData | null {
+  if (!viewData?.isPlain || !Array.isArray(viewData.data)) {
+    return viewData;
+  }
+
+  const limitedData = viewData.data.slice(0, visibleRowCount);
+  if (limitedData.length === viewData.data.length) {
+    return viewData;
+  }
+
+  const limitedRowIds = new Set(
+    limitedData
+      .map((row) => (row as Record<string, unknown>)?._rowId)
+      .filter((rowId): rowId is string => typeof rowId === 'string'),
+  );
+
+  const limitedDataByRowId = viewData.dataByRowId
+    ? Object.fromEntries(
+        Object.entries(viewData.dataByRowId).filter(([rowId]) => limitedRowIds.has(rowId)),
+      )
+    : undefined;
+
+  return {
+    ...viewData,
+    data: limitedData,
+    ...(limitedDataByRowId ? { dataByRowId: limitedDataByRowId } : {}),
+  };
+}
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -239,6 +279,11 @@ export function DataGrid({
   const [rowMode, setRowMode] = useState<'wrapped' | 'clipped'>(
     tableDef?.rowMode ?? 'wrapped',
   );
+  const rowBatchSize = tableDef?.limit?.limit ?? DEFAULT_ROW_BATCH_SIZE;
+  const [autoShowMore, setAutoShowMore] = useState(
+    tableDef?.limit?.autoShowMore ?? true,
+  );
+  const [visibleRowCount, setVisibleRowCount] = useState(rowBatchSize);
 
   // ── Control panel state ────────────────────────
   const [groupFields, setGroupFields] = useState<ControlFieldItem[]>([]);
@@ -377,6 +422,52 @@ export function DataGrid({
   const handleRowModeChange = useCallback((mode: 'wrapped' | 'clipped') => {
     setRowMode(mode);
   }, []);
+
+  const handleAutoShowMoreChange = useCallback((checked: boolean) => {
+    setAutoShowMore(checked);
+  }, []);
+
+  const handleShowMoreRows = useCallback(() => {
+    const totalVisibleRows = Array.isArray(viewState.data?.data) ? viewState.data.data.length : 0;
+    setVisibleRowCount((current) => Math.min(current + rowBatchSize, totalVisibleRows));
+  }, [rowBatchSize, viewState.data]);
+
+  const handleShowAllRows = useCallback(() => {
+    const totalVisibleRows = Array.isArray(viewState.data?.data) ? viewState.data.data.length : 0;
+    setVisibleRowCount(totalVisibleRows);
+  }, [viewState.data]);
+
+  useEffect(() => {
+    setAutoShowMore(tableDef?.limit?.autoShowMore ?? true);
+  }, [tableDef?.limit?.autoShowMore]);
+
+  useEffect(() => {
+    setVisibleRowCount(rowBatchSize);
+  }, [rowBatchSize, viewState.data]);
+
+  const limitedViewData = useMemo(
+    () => limitPlainViewData(viewState.data, visibleRowCount),
+    [viewState.data, visibleRowCount],
+  );
+
+  const renderedChildren = useMemo(
+    () => Children.map(children, (child) => {
+      if (!isValidElement(child) || typeof child.type === 'string') {
+        return child;
+      }
+
+      return cloneElement(child as React.ReactElement<TableRendererProps>, {
+        viewData: limitedViewData,
+        limit: { limit: rowBatchSize, autoShowMore },
+        loadedRows: limitedViewData?.isPlain && Array.isArray(limitedViewData.data)
+          ? limitedViewData.data.length
+          : undefined,
+        onShowMore: handleShowMoreRows,
+        onShowAll: handleShowAllRows,
+      });
+    }),
+    [children, limitedViewData, rowBatchSize, autoShowMore, handleShowMoreRows, handleShowAllRows],
+  );
 
   // openSlider is available for table renderers and other child components
   // that need to show row detail. It's passed via context or callbacks.
@@ -718,12 +809,15 @@ export function DataGrid({
           {/* Toolbar (hidden with controls) */}
           {controlsVisible && showToolbar && (
             <GridToolbar
+              autoShowMore={autoShowMore}
               dataMode={dataMode}
               tableDef={tableDef}
               rowMode={rowMode}
               view={view}
+              onAutoShowMoreChange={handleAutoShowMoreChange}
               onRowModeChange={handleRowModeChange}
               onRedraw={() => view.getData()}
+              onShowAllRows={handleShowAllRows}
               onOpenColumnConfig={openColumnConfig}
               onOpenTemplateEditor={openTemplateEditor}
               onOpenTableOptions={openTableOpts}
@@ -773,7 +867,7 @@ export function DataGrid({
             <SortContext.Provider value={sortContextValue}>
             <FilterContext.Provider value={filterContextValue}>
             <ColumnConfigContext.Provider value={columnConfigContextValue}>
-              {children}
+              {renderedChildren}
             </ColumnConfigContext.Provider>
             </FilterContext.Provider>
             </SortContext.Provider>

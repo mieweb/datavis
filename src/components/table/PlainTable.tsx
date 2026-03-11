@@ -17,7 +17,7 @@
  * - Wrapped vs clipped row mode
  */
 
-import { useState, useCallback, useMemo, useRef } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -354,6 +354,8 @@ export function PlainTable({
   }, []);
 
   const tableRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const pendingAutoShowRef = useRef(false);
 
   // ── Visible columns (filtered + ordered by column config) ──
   const visibleColumns = useMemo(() => {
@@ -518,6 +520,25 @@ export function PlainTable({
   // ── Limit / Show More ─────────────────────────
   const isLimited = limit && totalRows && rows.length < totalRows;
 
+  useEffect(() => {
+    pendingAutoShowRef.current = false;
+  }, [rows.length]);
+
+  const handleScroll = useCallback(() => {
+    if (!isLimited || limit?.autoShowMore === false || !onShowMore || pendingAutoShowRef.current) {
+      return;
+    }
+
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const remainingScroll = container.scrollHeight - container.scrollTop - container.clientHeight;
+    if (remainingScroll > 24) return;
+
+    pendingAutoShowRef.current = true;
+    onShowMore();
+  }, [isLimited, limit?.autoShowMore, onShowMore]);
+
   // ── Cell rendering ────────────────────────────
   const renderCell = useCallback(
     (row: TableRow, column: TableColumn): React.ReactNode => {
@@ -554,7 +575,12 @@ export function PlainTable({
       role="grid"
       aria-rowcount={totalRows ?? rows.length}
     >
-      <div className="flex-1 overflow-auto min-h-0">
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-auto min-h-0"
+        data-testid="plain-table-scroll"
+        onScroll={handleScroll}
+      >
         <DndContext
           sensors={sensors}
           collisionDetection={closestCenter}
