@@ -41,19 +41,12 @@ export {
 } from './type-adapter';
 
 export {
-  applyGroupFunction,
-  compareViewValues,
-  sortRows,
-  computeAggregateValue,
-  computeAggregateMap,
-  buildGroupMetadata,
-  buildPivotData,
-  type AggregateSpec,
-  type ViewSortSpec,
-  type GroupMetadataEntry,
-  type GroupTransformResult,
-  type PivotTransformResult,
-} from './view-transforms';
+  buildLocalSourceTypeInfo,
+  buildAggregateFunctions,
+  toLegacyAggregateSpec,
+  type AggregateSpecMap,
+  type AggregateSpecItem,
+} from './wcdatavis-interop';
 
 export {
   adaptGroupFunctionRegistry,

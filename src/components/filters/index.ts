@@ -3,7 +3,6 @@
  */
 
 export { FilterBar, type FilterBarProps, type FilterFieldOption } from './FilterBar';
-export { applyFilter, matchesFieldFilter, type FilterableRow } from './apply-filter';
 export { StringFilter, type StringFilterProps } from './StringFilter';
 export { NumberFilter, type NumberFilterProps } from './NumberFilter';
 export { DateFilter, type DateFilterProps } from './DateFilter';

@@ -124,18 +124,9 @@ export function TableRenderer({
   const effectiveSort = sort !== undefined ? sort : sortCtx?.sort ?? null;
   const effectiveOnSort = onSort ?? sortCtx?.onSort;
 
-  // No data yet
-  if (!viewData) {
-    return (
-      <div className="flex items-center justify-center h-full text-sm text-gray-400 py-12">
-        {t('TABLE.WAITING') || 'Waiting for data…'}
-      </div>
-    );
-  }
-
   // ── Build rows from view data ─────────────────
   const plainRows = useMemo<TableRow[]>(() => {
-    if (!viewData.isPlain || !Array.isArray(viewData.data)) return [];
+    if (!viewData?.isPlain || !Array.isArray(viewData.data)) return [];
     return viewData.data.map((row, idx) => ({
       rowNum: idx,
       rowId: (row as Record<string, unknown>)?._rowId as string | undefined,
@@ -145,7 +136,7 @@ export function TableRenderer({
 
   // ── Group data extraction ─────────────────────
   const groupData = useMemo(() => {
-    if (!viewData.isGroup) return null;
+    if (!viewData?.isGroup) return null;
 
     const groupFields = viewData.groupFields ?? [];
     const data = viewData.data as Record<string, unknown>[];
@@ -212,7 +203,7 @@ export function TableRenderer({
 
   // ── Pivot data extraction ─────────────────────
   const pivotData = useMemo<PivotData | null>(() => {
-    if (!viewData.isPivot) return null;
+    if (!viewData?.isPivot) return null;
 
     const rowVals = (viewData.rowVals ?? []) as Record<string, unknown>[];
     const colVals = (viewData.colVals ?? []) as unknown[];
@@ -239,6 +230,15 @@ export function TableRenderer({
       grandTotal: (viewData.grandTotal ?? {}) as Record<string, unknown>,
     };
   }, [viewData]);
+
+  // No data yet
+  if (!viewData) {
+    return (
+      <div className="flex items-center justify-center h-full text-sm text-gray-400 py-12">
+        {t('TABLE.WAITING') || 'Waiting for data…'}
+      </div>
+    );
+  }
 
   // Show progress bar during incremental loading
   const showProgress = loading && loadedRows != null && totalRows != null;

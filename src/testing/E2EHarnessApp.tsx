@@ -6,6 +6,7 @@ import { TableRenderer } from '../components/table/TableRenderer';
 import type { SelectionState, TableColumn } from '../components/table/types';
 import type { ColumnFilterConfig, FilterSpec } from '../components/filters/types';
 import { buildGroupSpec, getBuiltinGroupFunctions } from '../adapters/group-adapter';
+import { normalizeComputedViewData, toLegacyAggregateSpec } from '../adapters/wcdatavis-interop';
 import {
   SIMPLE_DATA,
   SIMPLE_COLUMNS,
@@ -260,7 +261,7 @@ function HarnessGrid({
   scenario: HarnessScenario;
   registerApi?: boolean;
 }) {
-  const view = useMemo(() => createMockView(config.data, config.data.length), [config.data]);
+  const view = useMemo(() => createMockView(config.data, config.columns), [config.columns, config.data]);
   const [viewData, setViewData] = useState(() => ({ isPlain: true, isGroup: false, isPivot: false, data: config.data }));
   const [busy, setBusy] = useState(false);
   const [revision, setRevision] = useState(0);
@@ -290,7 +291,11 @@ function HarnessGrid({
       setBusy(true);
     };
     const handleWorkEnd = () => {
-      const currentViewData = (view as MockView & { data: typeof viewData | null }).data;
+      const currentViewData = normalizeComputedViewData(
+        (view as MockView & { data: unknown }).data,
+        (view as { typeInfo?: unknown }).typeInfo,
+        view.getAggregate?.() ?? null,
+      );
       if (currentViewData) setViewData(currentViewData);
       setBusy(false);
       setRevision((value) => value + 1);
@@ -353,7 +358,7 @@ function HarnessGrid({
           else view.setPivot(buildGroupSpec(fields));
         },
         clearGroup: () => view.clearGroup(),
-        setAggregate: (spec) => view.setAggregate(spec),
+        setAggregate: (spec) => view.setAggregate(toLegacyAggregateSpec(spec)),
         refresh: () => view.refresh(),
       },
     };

@@ -25,7 +25,7 @@ export interface PivotToolbarProps {
 
 export function PivotToolbar({
   tableDef,
-  view,
+  view: _view,
   trans: transProp,
   onRedraw,
   onOpenColumnConfig,
@@ -49,13 +49,8 @@ export function PivotToolbar({
       if (tableDef?.whenPivot) {
         tableDef.whenPivot.showTotalCol = checked;
       }
-      // Toggle agg.group, agg.pivot, agg.all
-      const agg = view.getAggregate() as Record<string, unknown> | null;
-      if (agg) {
-        view.setAggregate({ ...agg, group: checked, pivot: checked, all: checked });
-      }
     },
-    [tableDef, view],
+    [tableDef],
   );
 
   const handlePinGroups = useCallback(

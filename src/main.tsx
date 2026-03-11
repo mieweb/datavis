@@ -14,6 +14,7 @@ import { TableRenderer } from './components/table/TableRenderer';
 import type { TableColumn } from './components/table/types';
 import type { ColumnFilterConfig } from './components/filters/types';
 import { getBuiltinGroupFunctions } from './adapters/group-adapter';
+import { normalizeComputedViewData } from './adapters/wcdatavis-interop';
 import { E2EHarnessApp, isE2EMode } from './testing/E2EHarnessApp';
 import { createMockView, DEMO_AGG_FUNCTIONS, demoTrans } from './demo/mock-grid';
 
@@ -62,7 +63,7 @@ function GridDemo({
   controlFields: { field: string; displayName: string; type?: string }[];
   aggregateFields: { field: string; displayName: string }[];
 }) {
-  const view = useMemo(() => createMockView(data, data.length), [data]);
+  const view = useMemo(() => createMockView(data, columns), [columns, data]);
   const groupFnDefs = useMemo(() => getBuiltinGroupFunctions(demoTrans), []);
 
   // Track the filtered data from the mock view's workEnd cycle.
@@ -76,10 +77,15 @@ function GridDemo({
 
   useEffect(() => {
     const handler = () => {
-      const vd = (view as unknown as { data: typeof initialViewData | null }).data;
+      const vd = normalizeComputedViewData(
+        (view as { data: unknown }).data,
+        (view as { typeInfo?: unknown }).typeInfo,
+        view.getAggregate?.() ?? null,
+      );
       if (vd) setViewData(vd);
     };
     view.on('workEnd', handler, { who: 'GridDemo' });
+    view.getData();
     return () => view.off('workEnd', 'GridDemo');
   }, [view, initialViewData]);
 

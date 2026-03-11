@@ -26,7 +26,7 @@ export interface GroupToolbarProps {
 
 export function GroupToolbar({
   tableDef,
-  view,
+  view: _view,
   trans: transProp,
   onRedraw,
   onOpenColumnConfig,
@@ -65,13 +65,8 @@ export function GroupToolbar({
       if (tableDef?.whenGroup) {
         tableDef.whenGroup.showTotalRow = checked;
       }
-      // Toggle agg.all
-      const agg = view.getAggregate() as Record<string, unknown> | null;
-      if (agg) {
-        view.setAggregate({ ...agg, all: checked });
-      }
     },
-    [tableDef, view],
+    [tableDef],
   );
 
   const handleExpandAll = useCallback(

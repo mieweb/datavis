@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useDataVisEvents, type EventEmitter } from './event-bridge';
+import { normalizeComputedViewData, type NormalizedViewData } from './wcdatavis-interop';
 
 // ───────────────────────────────────────────────────────────
 // Types (mirrors wcdatavis Source API shapes)
@@ -42,7 +43,7 @@ export interface SourceInstance extends EventEmitter {
 /** ComputedView instance (from wcdatavis core) */
 export interface ViewInstance extends EventEmitter {
   source: SourceInstance;
-  data: ViewData | null;
+  data: unknown;
   typeInfo: unknown;
 
   getData(cont?: (ok: boolean, data: unknown) => void, reason?: string): void;
@@ -79,24 +80,7 @@ export interface ViewInstance extends EventEmitter {
 }
 
 /** View data shape — matches View~Data from wcdatavis */
-export interface ViewData {
-  isPlain: boolean;
-  isGroup: boolean;
-  isPivot: boolean;
-  data: unknown[];
-  dataByRowId?: Record<string, unknown>;
-  rowVals?: unknown[];
-  colVals?: unknown[];
-  groupFields?: string[];
-  pivotFields?: string[];
-  groupMetadata?: unknown;
-  agg?: unknown;
-  totalCol?: Record<string, unknown>[];
-  totalRow?: Record<string, unknown>[];
-  grandTotal?: Record<string, unknown>;
-  /** Overall aggregate totals (e.g. sum/avg across all rows) — used by PlainTable footer */
-  totalAggregates?: Record<string, unknown>;
-}
+export type ViewData = NormalizedViewData;
 
 /** WorkEnd info from ComputedView */
 export interface WorkEndInfo {
@@ -276,12 +260,13 @@ export function useView(view: ViewInstance, autoFetch = true): UseViewReturn {
     workBegin: () => {
       setState((s) => ({ ...s, loading: true }));
     },
-    workEnd: (info: unknown) => {
+    workEnd: (...args: unknown[]) => {
+      const info = args.find((arg) => arg && typeof arg === 'object' && ('isPlain' in (arg as Record<string, unknown>) || 'numRows' in (arg as Record<string, unknown>)));
       setState((s) => ({
         ...s,
         loading: false,
         ready: true,
-        data: view.data,
+        data: normalizeComputedViewData(view.data, view.typeInfo, view.getAggregate?.() ?? null),
         workInfo: info as WorkEndInfo,
       }));
     },
@@ -324,6 +309,21 @@ export function useView(view: ViewInstance, autoFetch = true): UseViewReturn {
   const clearAggregate = useCallback(() => view.clearAggregate(), [view]);
   const clearSort = useCallback(() => view.clearSort(), [view]);
 
+  let rowCount = 0;
+  let totalRowCount = 0;
+
+  try {
+    rowCount = view.getRowCount?.() ?? 0;
+  } catch {
+    rowCount = 0;
+  }
+
+  try {
+    totalRowCount = view.getTotalRowCount?.() ?? 0;
+  } catch {
+    totalRowCount = 0;
+  }
+
   return {
     ...state,
     view,
@@ -339,7 +339,7 @@ export function useView(view: ViewInstance, autoFetch = true): UseViewReturn {
     clearPivot,
     clearAggregate,
     clearSort,
-    rowCount: view.getRowCount?.() ?? 0,
-    totalRowCount: view.getTotalRowCount?.() ?? 0,
+    rowCount,
+    totalRowCount,
   };
 }

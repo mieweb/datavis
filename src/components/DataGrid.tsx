@@ -23,6 +23,7 @@ import {
   filterGroupFunctionsForType,
   needsGroupFunction,
 } from '../adapters/group-adapter';
+import { toLegacyAggregateSpec } from '../adapters/wcdatavis-interop';
 import { TransProvider, useTranslation, type TransFn, LocaleProvider } from '../i18n';
 import { TitleBar } from './TitleBar';
 import { GridToolbar } from './GridToolbar';
@@ -590,7 +591,7 @@ export function DataGrid({
             fn: e.functionName,
             fields: e.fields,
           }));
-        viewState.setAggregate(spec);
+        viewState.setAggregate(toLegacyAggregateSpec(spec));
       }
     },
     [viewState],
