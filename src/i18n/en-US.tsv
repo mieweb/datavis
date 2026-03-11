@@ -367,6 +367,7 @@ TABLE.ADD_FILTER	Add filter
 TABLE.ADD_FILTER_FOR	Add filter for %s
 TABLE.COLUMNS	Columns
 TABLE.COLUMN_OPTIONS	Column options
+TABLE.DATE_FORMAT	Date Format
 TABLE.FILTER_ACTIVE	Filter active
 TABLE.FILTER_ACTIVE_ON	Filter active on %s
 TABLE.GROUPS	groups
@@ -384,6 +385,7 @@ TABLE.SORTED_DESC	%s sorted descending
 TABLE.SORT_ASC	Sort Ascending
 TABLE.SORT_BY	Sort by %s
 TABLE.SORT_DESC	Sort Descending
+TABLE.TOGGLE_ALL_GROUPS	Toggle all groups
 TABLE.TOTAL	Total
 TABLE.WAITING	Waiting…
 TABLE_OPTS.CELL_PLACEHOLDER	Cell placeholder

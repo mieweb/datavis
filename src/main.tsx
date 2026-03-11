@@ -12,309 +12,16 @@ import './index.css';
 import { DataGrid } from './components/DataGrid';
 import { TableRenderer } from './components/table/TableRenderer';
 import type { TableColumn } from './components/table/types';
-import type { ViewInstance } from './adapters/use-data';
-import type { SourceInstance } from './adapters/use-data';
 import type { ColumnFilterConfig } from './components/filters/types';
-import type { AggregateFunction } from './components/controls/AggregateSection';
 import { getBuiltinGroupFunctions } from './adapters/group-adapter';
+import { E2EHarnessApp, isE2EMode } from './testing/E2EHarnessApp';
+import { createMockView, DEMO_AGG_FUNCTIONS, demoTrans } from './demo/mock-grid';
 
 import {
   SIMPLE_DATA, SIMPLE_COLUMNS, SIMPLE_FILTERS,
   generateWideData, WIDE_COLUMNS, WIDE_FILTERS,
   generateLedgerData, LEDGER_COLUMNS, LEDGER_FILTERS,
 } from './demo/data';
-import { applyFilter } from './demo/apply-filter';
-import type { FilterSpec } from './components/filters/types';
-import enUsTsv from './i18n/en-US.tsv?raw';
-
-// ───────────────────────────────────────────────────────────
-// Mock adapter factories
-// ───────────────────────────────────────────────────────────
-
-function createMockSource(): SourceInstance {
-  const listeners: Record<string, Array<{ cb: (...args: unknown[]) => void; who: unknown }>> = {};
-  return {
-    on(event: string, cb: (...args: unknown[]) => void, opts?: { who?: unknown }) {
-      if (!listeners[event]) listeners[event] = [];
-      listeners[event].push({ cb, who: opts?.who });
-    },
-    off(event: string, who: unknown) {
-      if (!listeners[event]) return;
-      listeners[event] = listeners[event].filter((l) => l.who !== who);
-    },
-    fire(event: string, ...args: unknown[]) {
-      (listeners[event] ?? []).forEach((l) => l.cb(...args));
-    },
-    getData(cont: (ok: boolean, data: unknown) => void) { setTimeout(() => cont(true, []), 100); },
-    getTypeInfo(cont: (ok: boolean, ti: unknown) => void) { cont(true, {}); },
-    getUniqueVals(cont: (ok: boolean, vals: unknown) => void) { cont(true, {}); },
-    getDisplayName(cont: (ok: boolean, name: string) => void) { cont(true, 'Demo Source'); },
-    clearCachedData() {},
-    refresh() {},
-    cancel() {},
-    isCancellable() { return false; },
-    swapRows() {},
-    setToolbar() {},
-  };
-}
-
-interface GroupSpec {
-  fieldNames: { field: string; fun?: string }[];
-}
-
-interface AggSpec {
-  fn: string;
-  fields: string[];
-}
-
-interface MockView extends ViewInstance {
-  _filterSpec: FilterSpec | null;
-  filterSpec: FilterSpec | null;
-  _sortSpec: { vertical?: { field: string; dir: string } } | null;
-  _groupSpec: GroupSpec | null;
-  _aggSpec: AggSpec[] | null;
-}
-
-function createMockView(data: Record<string, unknown>[], rowCount: number): MockView {
-  const source = createMockSource();
-  const listeners: Record<string, Array<{ cb: (...args: unknown[]) => void; who: unknown }>> = {};
-  const view = {
-    source,
-    data: null as unknown,
-    typeInfo: null,
-    filterSpec: null as FilterSpec | null,
-    _filterSpec: null as FilterSpec | null,
-    _sortSpec: null as { vertical?: { field: string; dir: string } } | null,
-    _groupSpec: null as GroupSpec | null,
-    _aggSpec: null as AggSpec[] | null,
-    on(event: string, cb: (...args: unknown[]) => void, opts?: { who?: unknown }) {
-      if (!listeners[event]) listeners[event] = [];
-      listeners[event].push({ cb, who: opts?.who });
-    },
-    off(event: string, who: unknown) {
-      if (!listeners[event]) return;
-      listeners[event] = listeners[event].filter((l) => l.who !== who);
-    },
-    fire(event: string, ...args: unknown[]) {
-      (listeners[event] ?? []).forEach((l) => l.cb(...args));
-    },
-    getData(cont?: (ok: boolean, d: unknown) => void) {
-      setTimeout(() => {
-        view.fire('workBegin');
-        setTimeout(() => {
-          const result = view._filterSpec
-            ? applyFilter(data, view._filterSpec)
-            : [...data];
-
-          // Apply sort
-          if (view._sortSpec?.vertical) {
-            const { field, dir } = view._sortSpec.vertical;
-            const direction = dir === 'DESC' ? -1 : 1;
-            result.sort((a, b) => {
-              const va = a[field];
-              const vb = b[field];
-              if (va == null && vb == null) return 0;
-              if (va == null) return direction;
-              if (vb == null) return -direction;
-              if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * direction;
-              if (typeof va === 'boolean' && typeof vb === 'boolean') return ((va ? 1 : 0) - (vb ? 1 : 0)) * direction;
-              return String(va).localeCompare(String(vb)) * direction;
-            });
-          }
-
-          // Determine group mode
-          const groupFields = (view._groupSpec?.fieldNames ?? []).map((f) => f.field);
-          const isGroup = groupFields.length > 0;
-
-          // Compute per-group aggregates when both grouping and aggregates are active
-          let groupMetadata: Record<string, unknown> | undefined;
-          if (isGroup) {
-            const buckets = new Map<string, Record<string, unknown>[]>();
-            for (const row of result) {
-              const key = groupFields.map((f) => String(row[f] ?? '')).join('|||');
-              if (!buckets.has(key)) buckets.set(key, []);
-              buckets.get(key)!.push(row);
-            }
-            if (view._aggSpec && view._aggSpec.length > 0) {
-              const aggSpecs: AggSpec[] = view._aggSpec;
-              groupMetadata = {};
-              for (const [key, rows] of buckets) {
-                const aggregates: Record<string, unknown> = {};
-                for (const agg of aggSpecs) {
-                  const field: string | undefined = agg.fields[0];
-                  const label = field ? `${agg.fn}(${field})` : agg.fn;
-                  if (agg.fn === 'count') {
-                    aggregates[label] = rows.length;
-                  } else if (field) {
-                    if (agg.fn === 'counta') {
-                      aggregates[label] = rows.filter((r) => r[field] != null && r[field] !== '').length;
-                    } else if (agg.fn === 'countu') {
-                      aggregates[label] = new Set(rows.map((r) => r[field]).filter((v) => v != null && v !== '')).size;
-                    } else if (agg.fn === 'list') {
-                      const uniq = [...new Set(rows.map((r) => r[field]).filter((v) => v != null && v !== '').map(String))];
-                      aggregates[label] = uniq.join(', ');
-                    } else {
-                      const nums = rows.map((r) => Number(r[field])).filter((n) => !isNaN(n));
-                      if (agg.fn === 'sum') aggregates[label] = nums.reduce((a, b) => a + b, 0);
-                      else if (agg.fn === 'avg') aggregates[label] = nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
-                      else if (agg.fn === 'min') aggregates[label] = nums.length ? Math.min(...nums) : null;
-                      else if (agg.fn === 'max') aggregates[label] = nums.length ? Math.max(...nums) : null;
-                    }
-                  }
-                }
-                groupMetadata[key] = {
-                  groupValues: Object.fromEntries(groupFields.map((f) => [f, rows[0]?.[f]])),
-                  count: rows.length,
-                  level: 0,
-                  aggregates,
-                };
-              }
-            }
-          }
-
-          // Compute overall total aggregates (plain or grouped)
-          let totalAggregates: Record<string, unknown> | undefined;
-          if (view._aggSpec && view._aggSpec.length > 0) {
-            const aggSpecs: AggSpec[] = view._aggSpec;
-            totalAggregates = {};
-            for (const agg of aggSpecs) {
-              const field: string | undefined = agg.fields[0];
-              const label = field ? `${agg.fn}(${field})` : agg.fn;
-              if (agg.fn === 'count') {
-                totalAggregates[label] = result.length;
-              } else if (field) {
-                if (agg.fn === 'counta') {
-                  totalAggregates[label] = result.filter((r) => r[field] != null && r[field] !== '').length;
-                } else if (agg.fn === 'countu') {
-                  totalAggregates[label] = new Set(result.map((r) => r[field]).filter((v) => v != null && v !== '')).size;
-                } else if (agg.fn === 'list') {
-                  const uniq = [...new Set(result.map((r) => r[field]).filter((v) => v != null && v !== '').map(String))];
-                  totalAggregates[label] = uniq.join(', ');
-                } else {
-                  const nums = result.map((r) => Number(r[field])).filter((n) => !isNaN(n));
-                  if (agg.fn === 'sum') totalAggregates[label] = nums.reduce((a, b) => a + b, 0);
-                  else if (agg.fn === 'avg') totalAggregates[label] = nums.length ? nums.reduce((a, b) => a + b, 0) / nums.length : 0;
-                  else if (agg.fn === 'min') totalAggregates[label] = nums.length ? Math.min(...nums) : null;
-                  else if (agg.fn === 'max') totalAggregates[label] = nums.length ? Math.max(...nums) : null;
-                }
-              }
-            }
-          }
-
-          view.data = {
-            isPlain: !isGroup, isGroup, isPivot: false,
-            data: result,
-            ...(isGroup ? { groupFields } : {}),
-            ...(groupMetadata ? { groupMetadata } : {}),
-            ...(totalAggregates ? { totalAggregates } : {}),
-          };
-          view.fire('workEnd', {
-            isPlain: !isGroup, isGroup, isPivot: false,
-            numRows: result.length, totalRows: rowCount,
-            numGroups: isGroup ? new Set(result.map((r) => groupFields.map((f) => r[f]).join('|||'))).size : 0,
-          });
-          cont?.(true, view.data);
-        }, data.length > 1000 ? 600 : 300);
-      }, 100);
-    },
-    getTypeInfo(cont?: (ok: boolean, ti: unknown) => void) { cont?.(true, {}); },
-    setSort(spec: unknown) {
-      view._sortSpec = spec as { vertical?: { field: string; dir: string } } | null;
-      view.getData();
-    },
-    setFilter(spec: unknown) {
-      view._filterSpec = spec as FilterSpec;
-      view.filterSpec = spec as FilterSpec;
-      view.getData();
-    },
-    setGroup(spec: unknown) {
-      view._groupSpec = spec as GroupSpec | null;
-      view.fire('groupSet', spec);
-      view.getData();
-    },
-    setPivot(spec: unknown) {
-      view.fire('pivotSet', spec);
-      view.getData();
-    },
-    setAggregate(spec: unknown) {
-      view._aggSpec = spec as AggSpec[] | null;
-      view.fire('aggregateSet', spec);
-      view.getData();
-    },
-    clearSort() {
-      view._sortSpec = null;
-      view.getData();
-    },
-    clearFilter() {
-      view._filterSpec = null;
-      view.filterSpec = null;
-      view.getData();
-    },
-    clearGroup() {
-      view._groupSpec = null;
-      view.fire('groupSet', null);
-      view.getData();
-    },
-    clearPivot() {
-      view.fire('pivotSet', null);
-      view.getData();
-    },
-    clearAggregate() {
-      view._aggSpec = null;
-      view.fire('aggregateSet', null);
-      view.getData();
-    },
-    getSort() { return view._sortSpec; }, getAggregate() { return null; },
-    getRowCount() {
-      const d = view.data as { data?: unknown[] } | null;
-      return d?.data?.length ?? rowCount;
-    },
-    getTotalRowCount() { return rowCount; },
-    clearCache() {}, refresh() { view.getData(); }, reset() {},
-    setColConfig() {}, setPrefs() {}, unlimit() {},
-    getUniqueVals(cont: (ok: boolean, vals: unknown) => void) { cont(true, {}); },
-  } as unknown as MockView;
-  return view;
-}
-
-// ───────────────────────────────────────────────────────────
-// Shared i18n labels — parsed from src/i18n/en-US.tsv (single source of truth)
-// ───────────────────────────────────────────────────────────
-
-function parseTsv(raw: string): Record<string, string> {
-  const labels: Record<string, string> = {};
-  for (const line of raw.split(/\r?\n/)) {
-    if (!line.trim() || line.startsWith('//') || line.startsWith('Translation Label')) continue;
-    const [key, value] = line.split('\t');
-    if (key && /^[A-Z0-9_.-]+$/.test(key.trim())) {
-      labels[key.trim()] = value?.trim() ?? key.trim();
-    }
-  }
-  return labels;
-}
-
-const LABELS = parseTsv(enUsTsv);
-
-const trans = (key: string, ...args: unknown[]): string => {
-  const raw = LABELS[key];
-  if (!raw) return '';
-  let text = raw;
-  for (const arg of args) {
-    text = text.replace('%s', String(arg ?? ''));
-  }
-  return text;
-};
-
-const AGG_FUNCTIONS: AggregateFunction[] = [
-  { name: 'sum', label: 'Sum', fieldCount: 1 },
-  { name: 'avg', label: 'Average', fieldCount: 1 },
-  { name: 'count', label: 'Count', fieldCount: 0 },
-  { name: 'counta', label: 'Count Values', fieldCount: 1 },
-  { name: 'countu', label: 'Count Unique', fieldCount: 1 },
-  { name: 'min', label: 'Min', fieldCount: 1 },
-  { name: 'max', label: 'Max', fieldCount: 1 },
-  { name: 'list', label: 'Unique Values', fieldCount: 1 },
-];
 
 // ───────────────────────────────────────────────────────────
 // Tab definitions
@@ -356,7 +63,7 @@ function GridDemo({
   aggregateFields: { field: string; displayName: string }[];
 }) {
   const view = useMemo(() => createMockView(data, data.length), [data]);
-  const groupFnDefs = useMemo(() => getBuiltinGroupFunctions(trans), []);
+  const groupFnDefs = useMemo(() => getBuiltinGroupFunctions(demoTrans), []);
 
   // Track the filtered data from the mock view's workEnd cycle.
   // When filters are applied, the view re-runs getData() with filtered results.
@@ -384,19 +91,19 @@ function GridDemo({
       showToolbar={true}
       showControls={true}
       debug={true}
-      trans={trans}
+      trans={demoTrans}
       filterColumns={filters}
       allColumns={columns}
       controlFields={controlFields}
       aggregateFields={aggregateFields}
-      aggregateFunctions={AGG_FUNCTIONS}
+      aggregateFunctions={DEMO_AGG_FUNCTIONS}
       groupFunctionDefs={groupFnDefs}
     >
       <TableRenderer
         viewData={viewData}
         columns={columns}
         totalRows={data.length}
-        aggFnLabels={Object.fromEntries(AGG_FUNCTIONS.map((f) => [f.name, f.label]))}
+        aggFnLabels={Object.fromEntries(DEMO_AGG_FUNCTIONS.map((f) => [f.name, f.label]))}
         features={{
           columnResize: true,
           columnReorder: true,
@@ -405,7 +112,7 @@ function GridDemo({
           keyboardNav: true,
           headerContextMenu: true,
         }}
-        trans={trans}
+        trans={demoTrans}
         onRowClick={(row) => console.log('Row clicked:', row.data)}
       />
     </DataGrid>
@@ -583,5 +290,7 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById('root')!).render(<App />);
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  isE2EMode() ? <E2EHarnessApp /> : <App />,
+);
 

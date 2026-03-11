@@ -46,9 +46,7 @@ export function useKeyboardNav(
             nextRow = rows[0]?.rowNum ?? null;
           } else {
             const idx = rows.findIndex((r) => r.rowNum === activeRow);
-            if (idx < rows.length - 1) {
-              nextRow = rows[idx + 1].rowNum;
-            }
+            nextRow = idx < rows.length - 1 ? rows[idx + 1].rowNum : rows[0]?.rowNum ?? null;
           }
           break;
 
@@ -59,9 +57,7 @@ export function useKeyboardNav(
             nextRow = rows[rows.length - 1]?.rowNum ?? null;
           } else {
             const idx = rows.findIndex((r) => r.rowNum === activeRow);
-            if (idx > 0) {
-              nextRow = rows[idx - 1].rowNum;
-            }
+            nextRow = idx > 0 ? rows[idx - 1].rowNum : rows[rows.length - 1]?.rowNum ?? null;
           }
           break;
 

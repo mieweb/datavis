@@ -289,6 +289,7 @@ export function TableRenderer({
             features={features}
             totalRows={totalRows}
             showTotalRow={showTotalRow}
+            totalAggregates={viewData.totalAggregates as Record<string, unknown> | undefined}
             trans={t}
             onSort={effectiveOnSort}
           />

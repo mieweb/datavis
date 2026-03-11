@@ -49,6 +49,8 @@ export function GroupSummaryTable({
   className = '',
 }: GroupSummaryTableProps) {
   const t = useTranslation(transProp);
+  const firstGroup = groupOrder.length > 0 ? groups[groupOrder[0]] : undefined;
+
   // Build column list: group fields first, then aggregate columns
   const summaryColumns = useMemo(() => {
     const groupCols = groupFields.map((field) => {
@@ -62,12 +64,17 @@ export function GroupSummaryTable({
       } as TableColumn;
     });
 
-    const aggCols = aggregateColumns ?? columns.filter(
-      (c) => !groupFields.includes(c.field) && c.visible !== false,
-    );
+    const aggCols = aggregateColumns
+      ?? (firstGroup?.aggregates
+        ? Object.keys(firstGroup.aggregates).map((key) => ({
+            field: key,
+            header: key,
+            sortable: true,
+          } as TableColumn))
+        : columns.filter((c) => !groupFields.includes(c.field) && c.visible !== false));
 
     return [...groupCols, ...aggCols];
-  }, [columns, groupFields, aggregateColumns]);
+  }, [columns, groupFields, aggregateColumns, firstGroup]);
 
   const handleSort = (field: string) => {
     const nextDir: SortDirection =
