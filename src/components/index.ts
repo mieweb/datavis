@@ -124,3 +124,4 @@ export type {
   FilterWidget,
   ColumnFilterConfig,
 } from './filters/types';
+export { applyFilter, matchesFieldFilter, type FilterableRow } from './filters/apply-filter';

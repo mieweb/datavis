@@ -139,3 +139,5 @@ dist-demo
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 .playwright-mcp/
+
+test-results/

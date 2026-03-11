@@ -41,6 +41,19 @@ export {
 } from './type-adapter';
 
 export {
+  applyGroupFunction,
+  compareViewValues,
+  sortRows,
+  computeAggregateValue,
+  computeAggregateMap,
+  buildGroupMetadata,
+  type AggregateSpec,
+  type ViewSortSpec,
+  type GroupMetadataEntry,
+  type GroupTransformResult,
+} from './view-transforms';
+
+export {
   adaptGroupFunctionRegistry,
   getBuiltinGroupFunctions,
   filterGroupFunctionsForType,

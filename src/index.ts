@@ -16,6 +16,12 @@ export {
   usePrefs,
   formatCellValue,
   compareValues,
+  applyGroupFunction,
+  compareViewValues,
+  sortRows,
+  computeAggregateValue,
+  computeAggregateMap,
+  buildGroupMetadata,
   type EventEmitter,
   type SourceInstance,
   type ViewInstance,
@@ -30,6 +36,10 @@ export {
   type TypeDef,
   type TypeRegistry,
   type FieldTypeInfo,
+  type AggregateSpec,
+  type ViewSortSpec,
+  type GroupMetadataEntry,
+  type GroupTransformResult,
 } from './adapters';
 
 // Components

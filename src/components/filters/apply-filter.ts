@@ -1,35 +1,24 @@
-/**
- * Client-side filter engine for the demo app.
- *
- * Evaluates a FilterSpec (from the FilterBar) against an array of data rows,
- * returning only the rows that match ALL field conditions (AND logic).
- *
- * Supports the operator set defined in src/components/filters/types.ts:
- *   $contains, $notcontains, $eq, $ne, $gt, $gte, $lt, $lte,
- *   $in, $nin, $exists, $notexists, $bet
- */
+import type { FilterSpec, FieldFilterSpec, FilterOperator } from './types';
 
-import type { FilterSpec, FieldFilterSpec, FilterOperator } from '../components/filters/types';
+export type FilterableRow = Record<string, unknown>;
 
-type Row = Record<string, unknown>;
+function toComparable(value: unknown): string | number | null {
+  if (value == null || value === '') return null;
+  if (typeof value === 'number' || typeof value === 'boolean') return Number(value);
+  if (value instanceof Date) return value.getTime();
 
-function toComparable(v: unknown): string | number | null {
-  if (v == null || v === '') return null;
-  if (typeof v === 'number' || typeof v === 'boolean') return Number(v);
-  if (v instanceof Date) return v.getTime();
+  const stringValue = String(value).trim();
+  if (!stringValue) return null;
 
-  const s = String(v).trim();
-  if (!s) return null;
-
-  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
-    const d = new Date(s);
-    if (!Number.isNaN(d.getTime())) return d.getTime();
+  if (/^\d{4}-\d{2}-\d{2}/.test(stringValue)) {
+    const date = new Date(stringValue);
+    if (!Number.isNaN(date.getTime())) return date.getTime();
   }
 
-  const numeric = Number(s.replaceAll(',', ''));
-  if (!Number.isNaN(numeric)) return numeric;
+  const numericValue = Number(stringValue.replaceAll(',', ''));
+  if (!Number.isNaN(numericValue)) return numericValue;
 
-  return s.toLowerCase();
+  return stringValue.toLowerCase();
 }
 
 function getNow(): Date {
@@ -67,6 +56,7 @@ function matchesCurrentPeriod(date: Date, period: unknown): boolean {
   if (periodName === 'year') {
     return date.getFullYear() === now.getFullYear();
   }
+
   return true;
 }
 
@@ -96,11 +86,13 @@ function matchesLastPeriod(date: Date, period: unknown): boolean {
   if (periodName === 'year') {
     return date.getFullYear() === now.getFullYear() - 1;
   }
+
   return true;
 }
 
 function matchesEvery(date: Date, value: unknown): boolean {
   if (!value || typeof value !== 'object') return true;
+
   const spec = value as { unit?: unknown; value?: unknown };
   const unit = String(spec.unit ?? '');
   const target = String(spec.value ?? '');
@@ -111,107 +103,94 @@ function matchesEvery(date: Date, value: unknown): boolean {
   if (unit === 'month') {
     return String(date.getUTCMonth()) === target;
   }
+
   return true;
 }
 
 function compareComparable(left: unknown, right: unknown): number {
-  const a = toComparable(left);
-  const b = toComparable(right);
-  if (a == null && b == null) return 0;
-  if (a == null) return -1;
-  if (b == null) return 1;
-  if (typeof a === 'number' && typeof b === 'number') return a - b;
-  return String(a).localeCompare(String(b));
+  const leftValue = toComparable(left);
+  const rightValue = toComparable(right);
+
+  if (leftValue == null && rightValue == null) return 0;
+  if (leftValue == null) return -1;
+  if (rightValue == null) return 1;
+  if (typeof leftValue === 'number' && typeof rightValue === 'number') return leftValue - rightValue;
+
+  return String(leftValue).localeCompare(String(rightValue));
 }
 
-/** Returns true if `row` passes the single-field filter. */
-function matchesField(row: Row, field: string, fieldSpec: FieldFilterSpec): boolean {
+export function matchesFieldFilter(row: FilterableRow, field: string, fieldSpec: FieldFilterSpec): boolean {
   const raw = row[field];
 
-  for (const [op, val] of Object.entries(fieldSpec) as [FilterOperator, unknown][]) {
+  for (const [op, value] of Object.entries(fieldSpec) as [FilterOperator, unknown][]) {
     switch (op) {
-      // ── Existence ──────────────────────────────
       case '$exists':
         if (raw == null || raw === '') return false;
         break;
       case '$notexists':
         if (raw != null && raw !== '') return false;
         break;
-
-      // ── Equality ───────────────────────────────
       case '$eq':
-        if (compareComparable(raw, val) !== 0) return false;
+        if (compareComparable(raw, value) !== 0) return false;
         break;
       case '$ne':
-        if (compareComparable(raw, val) === 0) return false;
+        if (compareComparable(raw, value) === 0) return false;
         break;
-
-      // ── Comparison ─────────────────────────────
       case '$gt':
-        if (compareComparable(raw, val) <= 0) return false;
+        if (compareComparable(raw, value) <= 0) return false;
         break;
       case '$gte':
-        if (compareComparable(raw, val) < 0) return false;
+        if (compareComparable(raw, value) < 0) return false;
         break;
       case '$lt':
-        if (compareComparable(raw, val) >= 0) return false;
+        if (compareComparable(raw, value) >= 0) return false;
         break;
       case '$lte':
-        if (compareComparable(raw, val) > 0) return false;
+        if (compareComparable(raw, value) > 0) return false;
         break;
-
-      // ── String contains ────────────────────────
       case '$contains': {
         const haystack = String(raw ?? '').toLowerCase();
-        const needle = String(val ?? '').toLowerCase();
+        const needle = String(value ?? '').toLowerCase();
         if (needle && !haystack.includes(needle)) return false;
         break;
       }
       case '$notcontains': {
         const haystack = String(raw ?? '').toLowerCase();
-        const needle = String(val ?? '').toLowerCase();
+        const needle = String(value ?? '').toLowerCase();
         if (needle && haystack.includes(needle)) return false;
         break;
       }
-
-      // ── Set membership ─────────────────────────
       case '$in': {
-        const set = Array.isArray(val) ? val : [val];
-        if (set.length > 0 && !set.some((v) => compareComparable(raw, v) === 0)) return false;
+        const set = Array.isArray(value) ? value : [value];
+        if (set.length > 0 && !set.some((entry) => compareComparable(raw, entry) === 0)) return false;
         break;
       }
       case '$nin': {
-        const set = Array.isArray(val) ? val : [val];
-        if (set.some((v) => compareComparable(raw, v) === 0)) return false;
+        const set = Array.isArray(value) ? value : [value];
+        if (set.some((entry) => compareComparable(raw, entry) === 0)) return false;
         break;
       }
-
-      // ── Between (date / number range) ──────────
       case '$bet': {
-        if (Array.isArray(val) && val.length === 2) {
-          if (compareComparable(raw, val[0]) < 0 || compareComparable(raw, val[1]) > 0) return false;
+        if (Array.isArray(value) && value.length === 2) {
+          if (compareComparable(raw, value[0]) < 0 || compareComparable(raw, value[1]) > 0) return false;
         }
         break;
       }
-
       case '$this': {
         const date = new Date(String(raw ?? ''));
-        if (Number.isNaN(date.getTime()) || !matchesCurrentPeriod(date, val)) return false;
+        if (Number.isNaN(date.getTime()) || !matchesCurrentPeriod(date, value)) return false;
         break;
       }
-
       case '$last': {
         const date = new Date(String(raw ?? ''));
-        if (Number.isNaN(date.getTime()) || !matchesLastPeriod(date, val)) return false;
+        if (Number.isNaN(date.getTime()) || !matchesLastPeriod(date, value)) return false;
         break;
       }
-
       case '$every': {
         const date = new Date(String(raw ?? ''));
-        if (Number.isNaN(date.getTime()) || !matchesEvery(date, val)) return false;
+        if (Number.isNaN(date.getTime()) || !matchesEvery(date, value)) return false;
         break;
       }
-
       default:
         break;
     }
@@ -220,15 +199,9 @@ function matchesField(row: Row, field: string, fieldSpec: FieldFilterSpec): bool
   return true;
 }
 
-/** Apply a complete FilterSpec to an array of rows — returns matching rows. */
-export function applyFilter(rows: Row[], spec: FilterSpec): Row[] {
+export function applyFilter<Row extends FilterableRow>(rows: Row[], spec: FilterSpec): Row[] {
   const fields = Object.keys(spec);
   if (fields.length === 0) return rows;
 
-  return rows.filter((row) =>
-    fields.every((field) => matchesField(row, field, spec[field])),
-  );
+  return rows.filter((row) => fields.every((field) => matchesFieldFilter(row, field, spec[field])));
 }
-
-// ── Helpers ──────────────────────────────────────────────
-
