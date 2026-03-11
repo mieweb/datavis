@@ -27,6 +27,12 @@ import { useSortContext } from './SortContext';
 import type { ViewData } from '../../adapters/use-data';
 import { useTranslation, type TransFn } from '../../i18n';
 
+function serializeGroupKey(groupFields: string[], row: Record<string, unknown>): string {
+  return groupFields
+    .map((field) => `${field}:${String(row[field] ?? '')}`)
+    .join('|||');
+}
+
 // ───────────────────────────────────────────────────────────
 // Props
 // ───────────────────────────────────────────────────────────
@@ -164,18 +170,14 @@ export function TableRenderer({
 
       // Bucket data rows into groups (metadata only has headers)
       for (const [idx, row] of data.entries()) {
-        const key = groupFields
-          .map((f) => String(row[f] ?? ''))
-          .join('|||');
+        const key = serializeGroupKey(groupFields, row);
         if (!groupedRows[key]) groupedRows[key] = [];
         groupedRows[key].push({ rowNum: idx, data: row });
       }
     } else if (data.length > 0) {
       // No metadata — derive groups entirely from data
       for (const [idx, row] of data.entries()) {
-        const key = groupFields
-          .map((f) => String(row[f] ?? ''))
-          .join('|||');
+        const key = serializeGroupKey(groupFields, row);
 
         if (!groups[key]) {
           groups[key] = {

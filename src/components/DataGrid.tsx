@@ -197,6 +197,14 @@ export function DataGrid({
 }: DataGridProps) {
   // ── i18n via context (with optional prop override) ─
   const t = useTranslation(transProp);
+  const [internalTableDef] = useState<GridTableDef>(() => ({
+    rowMode: 'wrapped',
+    limit: { autoShowMore: true, limit: DEFAULT_ROW_BATCH_SIZE },
+    groupMode: 'detail',
+    whenGroup: { showTotalRow: true, showExpandedGroups: true, pinRowvals: false },
+    whenPivot: { showTotalCol: true, hideBottomValueAggResults: false },
+  }));
+  const effectiveTableDef = tableDef ?? internalTableDef;
 
   // ── Adapter hooks ──────────────────────────────
   const viewState = useView(view);
@@ -278,11 +286,11 @@ export function DataGrid({
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [sliderContent, _setSliderContent] = useState<React.ReactNode>(null);
   const [rowMode, setRowMode] = useState<'wrapped' | 'clipped'>(
-    tableDef?.rowMode ?? 'wrapped',
+    effectiveTableDef.rowMode ?? 'wrapped',
   );
-  const rowBatchSize = tableDef?.limit?.limit ?? DEFAULT_ROW_BATCH_SIZE;
+  const rowBatchSize = effectiveTableDef.limit?.limit ?? DEFAULT_ROW_BATCH_SIZE;
   const [autoShowMore, setAutoShowMore] = useState(
-    tableDef?.limit?.autoShowMore ?? true,
+    effectiveTableDef.limit?.autoShowMore ?? true,
   );
   const [visibleRowCount, setVisibleRowCount] = useState(rowBatchSize);
 
@@ -366,6 +374,7 @@ export function DataGrid({
   /** Whether we're editing a group vs pivot function */
   const [groupFnTarget, setGroupFnTarget] = useState<'group' | 'pivot'>('group');
   const [perspectiveOpen, setPerspectiveOpen] = useState(false);
+  const [tableDefVersion, setTableDefVersion] = useState(0);
 
   /** Per-field group function map: field → function name */
   const [groupFunMap, setGroupFunMap] = useState<Record<string, string>>({});
@@ -416,6 +425,11 @@ export function DataGrid({
     viewState.refresh();
   }, [viewState]);
 
+  const handleToolbarRedraw = useCallback(() => {
+    setTableDefVersion((current) => current + 1);
+    view.getData();
+  }, [view]);
+
   const handleExport = useCallback(() => {
     // TODO: Implement CSV export — port grid.export()
   }, []);
@@ -439,8 +453,8 @@ export function DataGrid({
   }, [viewState.data]);
 
   useEffect(() => {
-    setAutoShowMore(tableDef?.limit?.autoShowMore ?? true);
-  }, [tableDef?.limit?.autoShowMore]);
+    setAutoShowMore(effectiveTableDef.limit?.autoShowMore ?? true);
+  }, [effectiveTableDef.limit?.autoShowMore]);
 
   useEffect(() => {
     setVisibleRowCount(rowBatchSize);
@@ -463,11 +477,24 @@ export function DataGrid({
         loadedRows: limitedViewData?.isPlain && Array.isArray(limitedViewData.data)
           ? limitedViewData.data.length
           : undefined,
+        groupMode: effectiveTableDef.groupMode,
+        showTotalRow: effectiveTableDef.whenGroup?.showTotalRow,
+        showTotalCol: effectiveTableDef.whenPivot?.showTotalCol,
+        groupsExpanded: effectiveTableDef.whenGroup?.showExpandedGroups,
         onShowMore: handleShowMoreRows,
         onShowAll: handleShowAllRows,
       });
     }),
-    [children, limitedViewData, rowBatchSize, autoShowMore, handleShowMoreRows, handleShowAllRows],
+    [
+      children,
+      limitedViewData,
+      rowBatchSize,
+      autoShowMore,
+      effectiveTableDef,
+      tableDefVersion,
+      handleShowMoreRows,
+      handleShowAllRows,
+    ],
   );
 
   // openSlider is available for table renderers and other child components
@@ -812,12 +839,12 @@ export function DataGrid({
             <GridToolbar
               autoShowMore={autoShowMore}
               dataMode={dataMode}
-              tableDef={tableDef}
+              tableDef={effectiveTableDef}
               rowMode={rowMode}
               view={view}
               onAutoShowMoreChange={handleAutoShowMoreChange}
               onRowModeChange={handleRowModeChange}
-              onRedraw={() => view.getData()}
+              onRedraw={handleToolbarRedraw}
               onShowAllRows={handleShowAllRows}
               onOpenColumnConfig={openColumnConfig}
               onOpenTemplateEditor={openTemplateEditor}

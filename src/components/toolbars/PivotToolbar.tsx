@@ -49,8 +49,9 @@ export function PivotToolbar({
       if (tableDef?.whenPivot) {
         tableDef.whenPivot.showTotalCol = checked;
       }
+      onRedraw();
     },
-    [tableDef],
+    [tableDef, onRedraw],
   );
 
   const handlePinGroups = useCallback(

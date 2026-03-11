@@ -6,7 +6,7 @@
  * showing aggregate values.
  */
 
-import { useState, useCallback, useMemo, type ReactNode } from 'react';
+import { useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
 
 import type {
   BaseTableProps,
@@ -144,6 +144,10 @@ export function GroupDetailTable({
     if (initialExpanded) return new Set(groupOrder);
     return new Set();
   });
+
+  useEffect(() => {
+    setExpandedGroups(initialExpanded ? new Set(groupOrder) : new Set());
+  }, [groupOrder, initialExpanded]);
 
   const toggleGroup = useCallback(
     (groupKey: string) => {

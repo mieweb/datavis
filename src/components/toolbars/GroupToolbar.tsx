@@ -65,8 +65,9 @@ export function GroupToolbar({
       if (tableDef?.whenGroup) {
         tableDef.whenGroup.showTotalRow = checked;
       }
+      onRedraw();
     },
-    [tableDef],
+    [tableDef, onRedraw],
   );
 
   const handleExpandAll = useCallback(
