@@ -91,6 +91,9 @@ export interface ViewData {
   pivotFields?: string[];
   groupMetadata?: unknown;
   agg?: unknown;
+  totalCol?: Record<string, unknown>[];
+  totalRow?: Record<string, unknown>[];
+  grandTotal?: Record<string, unknown>;
   /** Overall aggregate totals (e.g. sum/avg across all rows) — used by PlainTable footer */
   totalAggregates?: Record<string, unknown>;
 }

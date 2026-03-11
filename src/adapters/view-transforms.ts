@@ -24,6 +24,31 @@ export interface GroupTransformResult {
   numGroups: number;
 }
 
+export interface PivotTransformResult {
+  rowVals: Record<string, unknown>[];
+  colVals: unknown[];
+  matrix: Record<string, unknown>[][];
+  aggSpecs: AggregateSpec[];
+  totalCol: Record<string, unknown>[];
+  totalRow: Record<string, unknown>[];
+  grandTotal: Record<string, unknown>;
+}
+
+function buildFieldValues(row: Record<string, unknown>, specs: GroupSpec['fieldNames']): Record<string, unknown> {
+  return Object.fromEntries(
+    specs.map((fieldInfo) => [fieldInfo.field, applyGroupFunction(row[fieldInfo.field], fieldInfo.fun)]),
+  );
+}
+
+function serializeFieldValues(values: Record<string, unknown>, fields: string[]): string {
+  return fields.map((field) => `${field}:${String(values[field] ?? '')}`).join('|||');
+}
+
+function toPivotColumnValue(values: Record<string, unknown>, fields: string[]): unknown {
+  if (fields.length <= 1) return values[fields[0] ?? ''];
+  return fields.map((field) => String(values[field] ?? '')).join(' / ');
+}
+
 function getIsoWeek(date: Date): number {
   const utc = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   const dayNum = utc.getUTCDay() || 7;
@@ -150,6 +175,14 @@ export function computeAggregateMap(rows: Record<string, unknown>[], aggregateSp
   return aggregates;
 }
 
+function computePivotAggregateMap(rows: Record<string, unknown>[], aggregateSpecs: AggregateSpec[]): Record<string, unknown> {
+  const aggregates: Record<string, unknown> = {};
+  for (const aggregateSpec of aggregateSpecs) {
+    aggregates[aggregateSpec.fn] = computeAggregateValue(rows, aggregateSpec);
+  }
+  return aggregates;
+}
+
 export function buildGroupMetadata<Row extends Record<string, unknown>>(
   rows: Row[],
   groupSpec: GroupSpec | null,
@@ -184,5 +217,61 @@ export function buildGroupMetadata<Row extends Record<string, unknown>>(
   return {
     groupMetadata,
     numGroups: buckets.size,
+  };
+}
+
+export function buildPivotData<Row extends Record<string, unknown>>(
+  rows: Row[],
+  groupSpec: GroupSpec | null,
+  pivotSpec: GroupSpec | null,
+  aggregateSpecs: AggregateSpec[] | null,
+): PivotTransformResult | null {
+  const rowSpecs = groupSpec?.fieldNames ?? [];
+  const pivotSpecs = pivotSpec?.fieldNames ?? [];
+  if (pivotSpecs.length === 0) return null;
+
+  const effectiveAggSpecs = aggregateSpecs?.length ? aggregateSpecs : [{ fn: 'count', fields: [] }];
+  const rowFields = rowSpecs.map((fieldInfo) => fieldInfo.field);
+  const pivotFields = pivotSpecs.map((fieldInfo) => fieldInfo.field);
+
+  const rowOrder = new Map<string, Record<string, unknown>>();
+  const colOrder = new Map<string, unknown>();
+  const cellBuckets = new Map<string, Map<string, Row[]>>();
+  const rowBuckets = new Map<string, Row[]>();
+  const colBuckets = new Map<string, Row[]>();
+
+  for (const row of rows) {
+    const rowValues = buildFieldValues(row, rowSpecs);
+    const colValues = buildFieldValues(row, pivotSpecs);
+    const rowKey = serializeFieldValues(rowValues, rowFields);
+    const colKey = serializeFieldValues(colValues, pivotFields);
+
+    if (!rowOrder.has(rowKey)) rowOrder.set(rowKey, rowValues);
+    if (!colOrder.has(colKey)) colOrder.set(colKey, toPivotColumnValue(colValues, pivotFields));
+
+    if (!cellBuckets.has(rowKey)) cellBuckets.set(rowKey, new Map());
+    if (!cellBuckets.get(rowKey)?.has(colKey)) cellBuckets.get(rowKey)?.set(colKey, []);
+    cellBuckets.get(rowKey)?.get(colKey)?.push(row);
+
+    if (!rowBuckets.has(rowKey)) rowBuckets.set(rowKey, []);
+    rowBuckets.get(rowKey)?.push(row);
+
+    if (!colBuckets.has(colKey)) colBuckets.set(colKey, []);
+    colBuckets.get(colKey)?.push(row);
+  }
+
+  const rowKeys = [...rowOrder.keys()];
+  const colKeys = [...colOrder.keys()];
+
+  return {
+    rowVals: rowKeys.map((rowKey) => rowOrder.get(rowKey) ?? {}),
+    colVals: colKeys.map((colKey) => colOrder.get(colKey)),
+    matrix: rowKeys.map((rowKey) =>
+      colKeys.map((colKey) => computePivotAggregateMap(cellBuckets.get(rowKey)?.get(colKey) ?? [], effectiveAggSpecs)),
+    ),
+    aggSpecs: effectiveAggSpecs,
+    totalCol: rowKeys.map((rowKey) => computePivotAggregateMap(rowBuckets.get(rowKey) ?? [], effectiveAggSpecs)),
+    totalRow: colKeys.map((colKey) => computePivotAggregateMap(colBuckets.get(colKey) ?? [], effectiveAggSpecs)),
+    grandTotal: computePivotAggregateMap(rows, effectiveAggSpecs),
   };
 }

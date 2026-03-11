@@ -334,6 +334,16 @@ test.describe('Legacy Exhaustive Matrix', () => {
 
       const state = await getState(page);
       expect(state.mode).toBe('pivot');
+      expect(state.rowVals.length).toBeGreaterThan(0);
+      expect(state.colVals.length).toBeGreaterThan(0);
+
+      if (pivotField === 'country') {
+        expect(state.rowVals.map((row) => row.category)).toEqual(['Fruit', 'Vegetables']);
+        expect(state.colVals).toEqual(['Canada', 'Japan', 'Mexico', 'United States']);
+        expect(state.pivotMatrix[0][0].sum).toBe(30);
+        expect(state.pivotMatrix[1][1].sum).toBe(40);
+        expect(state.pivotGrandTotal.sum).toBe(360);
+      }
     });
   }
 });

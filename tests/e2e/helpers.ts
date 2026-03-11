@@ -8,7 +8,12 @@ export type HarnessState = {
   visibleRows: Array<Record<string, unknown>>;
   filterSpec: Record<string, unknown> | null;
   groupFields: string[];
+  pivotFields: string[];
   groupMetadata: Record<string, unknown>;
+  rowVals: Array<Record<string, unknown>>;
+  colVals: unknown[];
+  pivotMatrix: Array<Array<Record<string, unknown>>>;
+  pivotGrandTotal: Record<string, unknown>;
   totalAggregates: Record<string, unknown>;
   sort: { vertical?: { field: string; dir: string } } | null;
   busy: boolean;

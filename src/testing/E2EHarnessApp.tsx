@@ -176,12 +176,22 @@ interface WindowWithHarness extends Window {
   __wcdv?: {
     getState: () => {
       scenario: HarnessScenario;
+      mode: 'plain' | 'group' | 'pivot';
       rowCount: number;
       selectedRows: number[];
       visibleRows: Record<string, unknown>[];
       filterSpec: FilterSpec | null;
       groupFields: string[];
+      pivotFields: string[];
+      groupMetadata: Record<string, unknown>;
+      rowVals: Record<string, unknown>[];
+      colVals: unknown[];
+      pivotMatrix: Array<Array<Record<string, unknown>>>;
+      pivotGrandTotal: Record<string, unknown>;
       sort: { field?: string; dir?: string } | null;
+      totalAggregates: Record<string, unknown>;
+      busy: boolean;
+      revision: number;
     };
     actions: {
       setFilter: (spec: FilterSpec | null) => void;
@@ -307,7 +317,12 @@ function HarnessGrid({
         visibleRows: Array.isArray(viewData.data) ? viewData.data as Record<string, unknown>[] : [],
         filterSpec: view.filterSpec,
         groupFields: viewData.isGroup ? [...(viewData.groupFields ?? [])] : [],
+        pivotFields: viewData.isPivot ? [...(viewData.pivotFields ?? [])] : [],
         groupMetadata: viewData.isGroup ? (viewData.groupMetadata ?? {}) : {},
+        rowVals: viewData.isPivot ? ((viewData.rowVals ?? []) as Record<string, unknown>[]) : [],
+        colVals: viewData.isPivot ? (viewData.colVals ?? []) : [],
+        pivotMatrix: viewData.isPivot ? ((viewData.data ?? []) as Array<Array<Record<string, unknown>>>) : [],
+        pivotGrandTotal: viewData.isPivot ? (viewData.grandTotal ?? {}) : {},
         totalAggregates: viewData.totalAggregates ?? {},
         sort: view.getSort() as { field?: string; dir?: string } | null,
         busy,

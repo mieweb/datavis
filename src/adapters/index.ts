@@ -47,10 +47,12 @@ export {
   computeAggregateValue,
   computeAggregateMap,
   buildGroupMetadata,
+  buildPivotData,
   type AggregateSpec,
   type ViewSortSpec,
   type GroupMetadataEntry,
   type GroupTransformResult,
+  type PivotTransformResult,
 } from './view-transforms';
 
 export {

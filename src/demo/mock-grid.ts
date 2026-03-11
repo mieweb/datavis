@@ -5,6 +5,7 @@ import type { FilterSpec } from '../components/filters/types';
 import { applyFilter } from '../components/filters/apply-filter';
 import {
   buildGroupMetadata,
+  buildPivotData,
   computeAggregateMap,
   sortRows,
   type AggregateSpec,
@@ -85,6 +86,7 @@ export function createMockView(data: Record<string, unknown>[], rowCount: number
           const isPivot = pivotFields.length > 0;
           const isGroup = groupFields.length > 0 || isPivot;
           const { groupMetadata, numGroups } = buildGroupMetadata(result, view._groupSpec, view._aggSpec);
+          const pivotData = buildPivotData(result, view._groupSpec, view._pivotSpec, view._aggSpec);
 
           const totalAggregates = view._aggSpec?.length ? computeAggregateMap(result, view._aggSpec) : undefined;
 
@@ -92,9 +94,20 @@ export function createMockView(data: Record<string, unknown>[], rowCount: number
             isPlain: !isGroup,
             isGroup: groupFields.length > 0,
             isPivot,
-            data: isPivot ? [] : result,
+            data: isPivot ? (pivotData?.matrix ?? []) : result,
             ...(groupFields.length > 0 ? { groupFields } : {}),
-            ...(isPivot ? { groupFields, pivotFields, rowVals: [], colVals: [], agg: view._aggSpec ?? [] } : {}),
+            ...(isPivot
+              ? {
+                  groupFields,
+                  pivotFields,
+                  rowVals: pivotData?.rowVals ?? [],
+                  colVals: pivotData?.colVals ?? [],
+                  agg: pivotData?.aggSpecs ?? view._aggSpec ?? [],
+                  totalCol: pivotData?.totalCol ?? [],
+                  totalRow: pivotData?.totalRow ?? [],
+                  grandTotal: pivotData?.grandTotal ?? {},
+                }
+              : {}),
             ...(groupMetadata ? { groupMetadata } : {}),
             ...(totalAggregates ? { totalAggregates } : {}),
           } as ViewData;
@@ -103,9 +116,9 @@ export function createMockView(data: Record<string, unknown>[], rowCount: number
             isPlain: !isGroup,
             isGroup: groupFields.length > 0,
             isPivot,
-            numRows: isPivot ? 0 : result.length,
+            numRows: isPivot ? (pivotData?.rowVals.length ?? 0) : result.length,
             totalRows: rowCount,
-            numGroups,
+            numGroups: isPivot ? (pivotData?.rowVals.length ?? 0) : numGroups,
           });
           cont?.(true, view.data);
         }, data.length > 1000 ? 600 : 300);

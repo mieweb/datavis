@@ -234,6 +234,9 @@ export function TableRenderer({
       colVals,
       matrix: data as unknown as Record<string, unknown>[][],
       aggFunctions,
+      totalCol: (viewData.totalCol ?? []) as Record<string, unknown>[],
+      totalRow: (viewData.totalRow ?? []) as Record<string, unknown>[],
+      grandTotal: (viewData.grandTotal ?? {}) as Record<string, unknown>,
     };
   }, [viewData]);
 

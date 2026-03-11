@@ -22,6 +22,7 @@ export {
   computeAggregateValue,
   computeAggregateMap,
   buildGroupMetadata,
+  buildPivotData,
   type EventEmitter,
   type SourceInstance,
   type ViewInstance,
@@ -40,6 +41,7 @@ export {
   type ViewSortSpec,
   type GroupMetadataEntry,
   type GroupTransformResult,
+  type PivotTransformResult,
 } from './adapters';
 
 // Components
