@@ -36,7 +36,11 @@ declare global {
 export async function gotoHarness(page: Page, scenario = 'default') {
   await page.goto(`/?e2e=${scenario}`);
   await page.waitForFunction(() => Boolean(window.__wcdv));
-  await waitForIdle(page);
+  await page.waitForFunction(() => {
+    if (!window.__wcdv) return false;
+    const state = window.__wcdv.getState();
+    return !state.busy && state.revision > 0;
+  });
 }
 
 export async function getState(page: Page): Promise<HarnessState> {
@@ -59,6 +63,12 @@ export async function waitForIdle(page: Page, previousRevision?: number) {
 export async function runAction(page: Page, action: () => void) {
   const { revision } = await getState(page);
   await page.evaluate(action);
+  await waitForIdle(page, revision);
+}
+
+export async function runActionWithArg<T>(page: Page, arg: T, action: (value: T) => void) {
+  const { revision } = await getState(page);
+  await (page as unknown as { evaluate: (fn: unknown, value: unknown) => Promise<void> }).evaluate(action, arg);
   await waitForIdle(page, revision);
 }
 

@@ -14,6 +14,7 @@ import type {
   TableRow,
   GroupMeta,
   SortDirection,
+  SelectionState,
 } from './types';
 import { useTranslation, useLocale } from '../../i18n';
 import { formatCellValue, formatAggregateNumber } from './format-cell';
@@ -131,6 +132,7 @@ export function GroupDetailTable({
   onSort,
   onRowClick,
   onRowDoubleClick,
+  onSelectionChange,
   onShowMore,
   onShowAll,
   className = '',
@@ -356,6 +358,7 @@ export function GroupDetailTable({
                   onToggle={toggleGroup}
                   onRowClick={onRowClick}
                   onRowDoubleClick={onRowDoubleClick}
+                  onSelectionChange={onSelectionChange}
                 />
               );
             })}
@@ -434,6 +437,7 @@ interface GroupSectionProps {
   onToggle: (key: string) => void;
   onRowClick?: BaseTableProps['onRowClick'];
   onRowDoubleClick?: BaseTableProps['onRowDoubleClick'];
+  onSelectionChange?: (selection: SelectionState) => void;
 }
 
 function GroupSection({
@@ -449,11 +453,23 @@ function GroupSection({
   onToggle,
   onRowClick,
   onRowDoubleClick,
+  onSelectionChange,
 }: GroupSectionProps) {
   const locale = useLocale();
   const aggByField = useMemo(
     () => buildAggByField(meta.aggregates),
     [meta.aggregates],
+  );
+
+  const selectGroupRows = useCallback(
+    (activeRow: number | null) => {
+      onSelectionChange?.({
+        selectedRows: new Set(rows.map((row) => row.rowNum)),
+        activeRow,
+        activeColumn: null,
+      });
+    },
+    [onSelectionChange, rows],
   );
 
   return (
@@ -464,7 +480,10 @@ function GroupSection({
         role="row"
         aria-expanded={expanded}
         aria-level={meta.level + 1}
-        onClick={() => onToggle(groupKey)}
+        onClick={() => {
+          selectGroupRows(rows[0]?.rowNum ?? null);
+          onToggle(groupKey);
+        }}
       >
         {/* Chevron toggle */}
         <td className="px-1 py-2 text-center text-xs text-gray-500">
@@ -558,7 +577,10 @@ function GroupSection({
               className={`wcdv-tr border-b border-gray-100 transition-colors hover:bg-blue-50/30 ${zebraClass}`}
               role="row"
               aria-level={meta.level + 2}
-              onClick={(e) => onRowClick?.(row, e)}
+              onClick={(e) => {
+                selectGroupRows(row.rowNum);
+                onRowClick?.(row, e);
+              }}
               onDoubleClick={
                 onRowDoubleClick
                   ? (e) => onRowDoubleClick(row, e)

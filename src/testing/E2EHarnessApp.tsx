@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { DataGrid } from '../components/DataGrid';
+import { DetailSlider } from '../components/DetailSlider';
 import { TableRenderer } from '../components/table/TableRenderer';
 import type { SelectionState, TableColumn } from '../components/table/types';
 import type { ColumnFilterConfig, FilterSpec } from '../components/filters/types';
@@ -17,6 +18,7 @@ import {
   generateLedgerData,
 } from '../demo/data';
 import { createMockView, DEMO_AGG_FUNCTIONS, demoTrans, type MockView } from '../demo/mock-grid';
+import { LEGACY_MATRIX_COLUMNS, LEGACY_MATRIX_FILTERS, LEGACY_MATRIX_ROWS } from './legacyMatrixData';
 import {
   AutoLimitScenario,
   CancelScenario,
@@ -39,6 +41,7 @@ type HarnessScenario =
   | 'operations'
   | 'multi-grid'
   | 'group-funs'
+  | 'matrix'
   | 'auto-limit'
   | 'pagination'
   | 'omnifilter'
@@ -69,6 +72,7 @@ function getScenarioFromSearch(): HarnessScenario {
     || scenario === 'operations'
     || scenario === 'multi-grid'
     || scenario === 'group-funs'
+    || scenario === 'matrix'
     || scenario === 'auto-limit'
     || scenario === 'pagination'
     || scenario === 'omnifilter'
@@ -132,6 +136,15 @@ function getScenarioConfig(scenario: HarnessScenario): HarnessConfig {
       filters: SIMPLE_FILTERS,
     };
   }
+  if (scenario === 'matrix') {
+    return {
+      id: 'grid-matrix',
+      title: 'Legacy Matrix Harness Grid',
+      data: LEGACY_MATRIX_ROWS,
+      columns: LEGACY_MATRIX_COLUMNS,
+      filters: LEGACY_MATRIX_FILTERS,
+    };
+  }
   if (scenario === 'wide') {
     return {
       id: 'grid-wide',
@@ -177,6 +190,8 @@ interface WindowWithHarness extends Window {
       clearSort: () => void;
       setGroup: (fields: string[]) => void;
       setGroupSpec: (fields: Array<{ field: string; fun?: string }>) => void;
+      setPivot: (fields: string[]) => void;
+      setPivotSpec: (fields: Array<{ field: string; fun?: string }>) => void;
       clearGroup: () => void;
       setAggregate: (spec: Array<{ fn: string; fields: string[] }> | null) => void;
       refresh: () => void;
@@ -250,6 +265,7 @@ function HarnessGrid({
   );
   const groupFnDefs = useMemo(() => getBuiltinGroupFunctions(demoTrans), []);
   const [operationLog, setOperationLog] = useState<string[]>([]);
+  const [detailRow, setDetailRow] = useState<Record<string, unknown> | null>(null);
   const controlFields = useMemo(
     () => config.columns.map((column) => ({ field: column.field, displayName: column.header ?? column.field, type: column.typeInfo?.type })),
     [config.columns],
@@ -312,6 +328,14 @@ function HarnessGrid({
         setGroupSpec: (fields) => {
           if (fields.length === 0) view.clearGroup();
           else view.setGroup(buildGroupSpec(fields));
+        },
+        setPivot: (fields) => {
+          if (fields.length === 0) view.clearPivot();
+          else view.setPivot(buildGroupSpec(fields.map((field) => ({ field }))));
+        },
+        setPivotSpec: (fields) => {
+          if (fields.length === 0) view.clearPivot();
+          else view.setPivot(buildGroupSpec(fields));
         },
         clearGroup: () => view.clearGroup(),
         setAggregate: (spec) => view.setAggregate(spec),
@@ -391,8 +415,17 @@ function HarnessGrid({
           trans={demoTrans}
           formatCell={formatCell}
           onSelectionChange={setSelection}
+          onRowClick={(row) => setDetailRow(row.data)}
         />
       </DataGrid>
+      <DetailSlider
+        open={detailRow != null}
+        header={detailRow ? `Detail panel` : ''}
+        onClose={() => setDetailRow(null)}
+        trans={demoTrans}
+      >
+        <pre className="text-xs text-slate-700 whitespace-pre-wrap">{detailRow ? JSON.stringify(detailRow, null, 2) : ''}</pre>
+      </DetailSlider>
       {operationLog.length > 0 && (
         <div data-testid="operation-log" className="mt-4 text-sm text-slate-700">
           {operationLog.join(', ')}

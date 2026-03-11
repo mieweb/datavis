@@ -18,6 +18,7 @@ export interface MockView extends ViewInstance {
   filterSpec: FilterSpec | null;
   _sortSpec: { vertical?: { field: string; dir: string } } | null;
   _groupSpec: GroupSpec | null;
+  _pivotSpec: GroupSpec | null;
   _aggSpec: AggSpec[] | null;
 }
 
@@ -178,6 +179,7 @@ export function createMockView(data: Record<string, unknown>[], rowCount: number
     _filterSpec: null as FilterSpec | null,
     _sortSpec: null as { vertical?: { field: string; dir: string } } | null,
     _groupSpec: null as GroupSpec | null,
+    _pivotSpec: null as GroupSpec | null,
     _aggSpec: null as AggSpec[] | null,
     on(event: string, cb: (...args: unknown[]) => void, opts?: { who?: unknown }) {
       if (!listeners[event]) listeners[event] = [];
@@ -203,11 +205,13 @@ export function createMockView(data: Record<string, unknown>[], rowCount: number
           }
 
           const groupFields = (view._groupSpec?.fieldNames ?? []).map((fieldInfo) => fieldInfo.field);
+          const pivotFields = (view._pivotSpec?.fieldNames ?? []).map((fieldInfo) => fieldInfo.field);
           const groupFieldSpecs = view._groupSpec?.fieldNames ?? [];
-          const isGroup = groupFields.length > 0;
+          const isPivot = pivotFields.length > 0;
+          const isGroup = groupFields.length > 0 || isPivot;
           let groupMetadata: Record<string, unknown> | undefined;
 
-          if (isGroup) {
+          if (groupFields.length > 0) {
             const buckets = new Map<string, Record<string, unknown>[]>();
             for (const row of result) {
               const key = groupFieldSpecs
@@ -232,21 +236,22 @@ export function createMockView(data: Record<string, unknown>[], rowCount: number
 
           view.data = {
             isPlain: !isGroup,
-            isGroup,
-            isPivot: false,
-            data: result,
-            ...(isGroup ? { groupFields } : {}),
+            isGroup: groupFields.length > 0,
+            isPivot,
+            data: isPivot ? [] : result,
+            ...(groupFields.length > 0 ? { groupFields } : {}),
+            ...(isPivot ? { groupFields, pivotFields, rowVals: [], colVals: [], agg: view._aggSpec ?? [] } : {}),
             ...(groupMetadata ? { groupMetadata } : {}),
             ...(totalAggregates ? { totalAggregates } : {}),
           } as ViewData;
 
           view.fire('workEnd', {
             isPlain: !isGroup,
-            isGroup,
-            isPivot: false,
-            numRows: result.length,
+            isGroup: groupFields.length > 0,
+            isPivot,
+            numRows: isPivot ? 0 : result.length,
             totalRows: rowCount,
-            numGroups: isGroup
+            numGroups: groupFields.length > 0
               ? new Set(result.map((row) => groupFieldSpecs.map((fieldInfo) => applyGroupFunction(row[fieldInfo.field], fieldInfo.fun)).join('|||'))).size
               : 0,
           });
@@ -270,6 +275,7 @@ export function createMockView(data: Record<string, unknown>[], rowCount: number
       view.getData();
     },
     setPivot(spec: unknown) {
+      view._pivotSpec = spec as GroupSpec | null;
       view.fire('pivotSet', spec);
       view.getData();
     },
@@ -293,6 +299,7 @@ export function createMockView(data: Record<string, unknown>[], rowCount: number
       view.getData();
     },
     clearPivot() {
+      view._pivotSpec = null;
       view.fire('pivotSet', null);
       view.getData();
     },

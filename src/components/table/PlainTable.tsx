@@ -411,6 +411,12 @@ export function PlainTable({
       },
       [onSelectionChange],
     ),
+    useCallback(
+      (row, event) => {
+        onRowClick?.(row, event as unknown as React.MouseEvent);
+      },
+      [onRowClick],
+    ),
   );
 
   // ── DnD sensors ───────────────────────────────
