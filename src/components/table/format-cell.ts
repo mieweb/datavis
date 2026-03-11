@@ -160,3 +160,18 @@ export function formatAggregateNumber(
   if (isNaN(num) || typeof value === 'boolean') return String(value ?? '');
   return num.toLocaleString(locale, { maximumFractionDigits: maxFrac });
 }
+
+export function getAggregateValueForField(
+  aggregates: Record<string, unknown> | undefined,
+  field: string,
+): unknown {
+  if (!aggregates) return undefined;
+  if (aggregates[field] != null) return aggregates[field];
+
+  for (const [key, value] of Object.entries(aggregates)) {
+    const match = key.match(/^\w+\((.+)\)$/);
+    if (match?.[1] === field) return value;
+  }
+
+  return undefined;
+}

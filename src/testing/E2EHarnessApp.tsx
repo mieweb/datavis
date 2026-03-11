@@ -33,6 +33,232 @@ import {
   SourceParamsScenario,
 } from './LegacyScenarioViews';
 
+type HarnessAggregateSpec = Array<{ fn: string; fields: string[] }>;
+
+function legacyIsoWeek(date: Date) {
+  const utc = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+  const day = utc.getUTCDay() || 7;
+  utc.setUTCDate(utc.getUTCDate() + 4 - day);
+  const yearStart = new Date(Date.UTC(utc.getUTCFullYear(), 0, 1));
+  return Math.ceil(((((utc.getTime() - yearStart.getTime()) / 86400000) + 1) / 7));
+}
+
+function applyLegacyGroupFunction(value: string, fun: string) {
+  const date = new Date(value);
+  switch (fun) {
+    case 'year':
+      return String(date.getFullYear());
+    case 'quarter':
+      return `Q${Math.floor(date.getMonth() / 3) + 1}`;
+    case 'month':
+      return date.toLocaleString('en-US', { month: 'long' });
+    case 'week_iso':
+      return `W${String(legacyIsoWeek(date)).padStart(2, '0')}`;
+    case 'day_of_week':
+      return date.toLocaleString('en-US', { weekday: 'long' });
+    case 'year_and_quarter':
+      return `${date.getFullYear()} Q${Math.floor(date.getMonth() / 3) + 1}`;
+    case 'year_and_month':
+      return `${date.getFullYear()} ${date.toLocaleString('en-US', { month: 'long' })}`;
+    case 'year_and_week_iso':
+      return `${date.getFullYear()} W${String(legacyIsoWeek(date)).padStart(2, '0')}`;
+    case 'day':
+      return date.toISOString().slice(0, 10);
+    case 'day_and_time_1hr': {
+      const rounded = new Date(date);
+      rounded.setMinutes(0, 0, 0);
+      return `${date.toISOString().slice(0, 10)} ${rounded.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+    }
+    case 'day_and_time_15min': {
+      const rounded = new Date(date);
+      rounded.setMinutes(Math.floor(rounded.getMinutes() / 15) * 15, 0, 0);
+      return `${date.toISOString().slice(0, 10)} ${rounded.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}`;
+    }
+    case 'time_1hr': {
+      const rounded = new Date(date);
+      rounded.setMinutes(0, 0, 0);
+      return rounded.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    }
+    case 'time_15min': {
+      const rounded = new Date(date);
+      rounded.setMinutes(Math.floor(rounded.getMinutes() / 15) * 15, 0, 0);
+      return rounded.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    }
+    default:
+      return value;
+  }
+}
+
+function translateLegacyAggregateName(fn: string) {
+  if (fn === 'avg') return 'average';
+  if (fn === 'countu') return 'countDistinct';
+  if (fn === 'list') return 'distinctValues';
+  return fn;
+}
+
+function serializeHarnessGroupKey(fields: Array<{ field: string }>, row: Record<string, unknown>) {
+  return fields.map(({ field }) => `${field}:${String(row[field] ?? '')}`).join('|||');
+}
+
+function translateLegacyMatrixFilterSpec(spec: FilterSpec | null): FilterSpec | null {
+  if (!spec) return null;
+
+  const thisLastMap: Record<string, string> = {
+    day: 'DATE',
+    week: 'WEEK',
+    month: 'MONTH',
+    quarter: 'QUARTER',
+    year: 'YEAR',
+  };
+  const everyDays = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+  const everyMonths = ['JANUARY', 'FEBRUARY', 'MARCH', 'APRIL', 'MAY', 'JUNE', 'JULY', 'AUGUST', 'SEPTEMBER', 'OCTOBER', 'NOVEMBER', 'DECEMBER'];
+
+  return Object.fromEntries(
+    Object.entries(spec).map(([field, rawValue]) => {
+      if (typeof rawValue !== 'object' || rawValue == null || Array.isArray(rawValue)) {
+        return [field, rawValue];
+      }
+
+      const value = { ...(rawValue as Record<string, unknown>) };
+      if (Array.isArray(value.$bet) && value.$bet.length === 2) {
+        const [start, end] = value.$bet as unknown[];
+        delete value.$bet;
+        value.$gte = start;
+        value.$lte = end;
+      }
+      if (typeof value.$this === 'string') {
+        value.$this = thisLastMap[String(value.$this).toLowerCase()] ?? value.$this;
+      }
+      if (typeof value.$last === 'string') {
+        value.$last = thisLastMap[String(value.$last).toLowerCase()] ?? value.$last;
+      }
+      if (typeof value.$every === 'object' && value.$every != null && !Array.isArray(value.$every)) {
+        const every = value.$every as { unit?: unknown; value?: unknown };
+        const unit = String(every.unit ?? '').toLowerCase();
+        const rawOperand = Number(every.value);
+        if (unit === 'day' && Number.isInteger(rawOperand) && rawOperand >= 0 && rawOperand < everyDays.length) {
+          value.$every = everyDays[rawOperand];
+        } else if (unit === 'month' && Number.isInteger(rawOperand) && rawOperand >= 0 && rawOperand < everyMonths.length) {
+          value.$every = everyMonths[rawOperand];
+        }
+      }
+
+      return [field, value];
+    }),
+  ) as FilterSpec;
+}
+
+function decodeHarnessValue(value: unknown, column: TableColumn | undefined): unknown {
+  if (column?.typeInfo?.type === 'boolean' && typeof value === 'string') {
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+  }
+
+  if ((column?.typeInfo?.type === 'currency' || column?.typeInfo?.type === 'number') && typeof value === 'object' && value != null) {
+    const numberValue = Number(String((value as { toString?: () => string }).toString?.() ?? ''));
+    if (!Number.isNaN(numberValue)) return numberValue;
+  }
+
+  return value;
+}
+
+function decodeHarnessRows(rows: Array<Record<string, unknown>>, columns: TableColumn[]) {
+  const columnsByField = new Map(columns.map((column) => [column.field, column]));
+  return rows.map((row) =>
+    Object.fromEntries(
+      Object.entries(row).map(([field, value]) => [field, decodeHarnessValue(value, columnsByField.get(field))]),
+    ),
+  );
+}
+
+function computeLegacyAggregateValue(rows: Array<Record<string, unknown>>, spec: { fn: string; fields: string[] }) {
+  const field = spec.fields[0];
+  const values = field ? rows.map((row) => row[field]) : [];
+  switch (spec.fn) {
+    case 'count':
+      return rows.length;
+    case 'counta':
+      return values.filter((value) => value != null && String(value) !== '').length;
+    case 'countu':
+      return new Set(values.filter((value) => value != null && String(value) !== '').map((value) => String(value))).size;
+    case 'list': {
+      const uniqueValues: string[] = [];
+      for (const value of values) {
+        const normalized = String(value ?? '');
+        if (!normalized || uniqueValues.includes(normalized)) continue;
+        uniqueValues.push(normalized);
+      }
+      return uniqueValues.join(', ');
+    }
+    case 'avg': {
+      const numericValues = values.map((value) => Number(value)).filter((value) => !Number.isNaN(value));
+      return numericValues.reduce((sum, value) => sum + value, 0) / numericValues.length;
+    }
+    case 'sum':
+      return values.reduce((sum, value) => sum + Number(value), 0);
+    case 'min':
+      return Math.min(...values.map((value) => Number(value)));
+    case 'max':
+      return Math.max(...values.map((value) => Number(value)));
+    default:
+      return undefined;
+  }
+}
+
+function buildLegacyMatrixGroupMetadata(
+  rows: Array<Record<string, unknown>>,
+  groupSpec: Array<{ field: string; fun?: string }>,
+  aggregateSpec: HarnessAggregateSpec,
+) {
+  const metadata: Record<string, { groupValues: Record<string, unknown>; count: number; level: number; aggregates: Record<string, unknown> }> = {};
+
+  for (const row of rows) {
+    const groupValues = Object.fromEntries(
+      groupSpec.map(({ field, fun }) => {
+        const rawValue = String(row[field] ?? '');
+        return [field, fun ? applyLegacyGroupFunction(rawValue, fun) : row[field]];
+      }),
+    );
+    const key = serializeHarnessGroupKey(groupSpec, groupValues);
+    metadata[key] ??= { groupValues, count: 0, level: 0, aggregates: {} };
+    metadata[key].count += 1;
+  }
+
+  if (aggregateSpec.length > 0) {
+    for (const [key, entry] of Object.entries(metadata)) {
+      const groupRows = rows.filter((row) =>
+        groupSpec.every(({ field, fun }) => {
+          const rawValue = String(row[field] ?? '');
+          const groupValue = fun ? applyLegacyGroupFunction(rawValue, fun) : row[field];
+          return groupValue === entry.groupValues[field];
+        }),
+      );
+
+      entry.aggregates = Object.fromEntries(
+        aggregateSpec.map((spec) => {
+          const aggField = spec.fields[0];
+          const aggKey = aggField ? `${spec.fn}(${aggField})` : spec.fn;
+          return [aggKey, computeLegacyAggregateValue(groupRows, spec)];
+        }),
+      );
+      metadata[key] = entry;
+    }
+  }
+
+  return metadata;
+}
+
+function mapLegacyPivotRecord(record: Record<string, unknown>, aggregateSpec: HarnessAggregateSpec) {
+  if (aggregateSpec.length === 0) return record;
+  return Object.fromEntries(
+    aggregateSpec.map((spec) => {
+      const sourceKey = spec.fields[0] ? `${spec.fn}(${spec.fields[0]})` : spec.fn;
+      const translatedKey = spec.fields[0] ? `${translateLegacyAggregateName(spec.fn)}(${spec.fields[0]})` : translateLegacyAggregateName(spec.fn);
+      return [spec.fn, record[sourceKey] ?? record[translatedKey]];
+    }),
+  );
+}
+
 type HarnessScenario =
   | 'default'
   | 'wide'
@@ -156,12 +382,14 @@ function getScenarioConfig(scenario: HarnessScenario): HarnessConfig {
     };
   }
   if (scenario === 'large') {
+    const largeColumns = LEDGER_COLUMNS.slice(0, 6);
+    const largeColumnFields = new Set(largeColumns.map((column) => column.field));
     return {
       id: 'grid-large',
       title: 'Large Harness Grid',
       data: generateLedgerData(5000),
-      columns: LEDGER_COLUMNS,
-      filters: LEDGER_FILTERS,
+      columns: largeColumns,
+      filters: LEDGER_FILTERS.filter((filter) => largeColumnFields.has(filter.field)),
     };
   }
   return {
@@ -264,7 +492,10 @@ function HarnessGrid({
   const view = useMemo(() => createMockView(config.data, config.columns), [config.columns, config.data]);
   const [viewData, setViewData] = useState(() => ({ isPlain: true, isGroup: false, isPivot: false, data: config.data }));
   const [busy, setBusy] = useState(false);
-  const [revision, setRevision] = useState(0);
+  const [revision, setRevision] = useState(1);
+  const [filterSpec, setFilterSpec] = useState<FilterSpec | null>(null);
+  const [groupSpec, setGroupSpec] = useState<Array<{ field: string; fun?: string }>>([]);
+  const [aggregateSpec, setAggregateSpec] = useState<HarnessAggregateSpec>([]);
   const [selection, setSelection] = useState<SelectionState>({
     selectedRows: new Set(),
     activeRow: null,
@@ -285,6 +516,7 @@ function HarnessGrid({
     () => config.columns.map((column) => ({ field: column.field, displayName: column.header ?? column.field })),
     [config.columns],
   );
+  const preserveChildViewData = scenario === 'allow-html' || scenario === 'format-strings';
 
   useEffect(() => {
     const handleWorkBegin = () => {
@@ -314,38 +546,63 @@ function HarnessGrid({
 
     const win = window as WindowWithHarness;
     win.__wcdv = {
-      getState: () => ({
-        scenario,
-        mode: viewData.isPivot ? 'pivot' : viewData.isGroup ? 'group' : 'plain',
-        rowCount: Array.isArray(viewData.data) ? viewData.data.length : 0,
-        selectedRows: [...selection.selectedRows.values()],
-        visibleRows: Array.isArray(viewData.data) ? viewData.data as Record<string, unknown>[] : [],
-        filterSpec: view.filterSpec,
-        groupFields: viewData.isGroup ? [...(viewData.groupFields ?? [])] : [],
-        pivotFields: viewData.isPivot ? [...(viewData.pivotFields ?? [])] : [],
-        groupMetadata: viewData.isGroup ? (viewData.groupMetadata ?? {}) : {},
-        rowVals: viewData.isPivot ? ((viewData.rowVals ?? []) as Record<string, unknown>[]) : [],
-        colVals: viewData.isPivot ? (viewData.colVals ?? []) : [],
-        pivotMatrix: viewData.isPivot ? ((viewData.data ?? []) as Array<Array<Record<string, unknown>>>) : [],
-        pivotGrandTotal: viewData.isPivot ? (viewData.grandTotal ?? {}) : {},
-        totalAggregates: viewData.totalAggregates ?? {},
-        sort: view.getSort() as { field?: string; dir?: string } | null,
-        busy,
-        revision,
-      }),
+      getState: () => {
+        const decodedVisibleRows = Array.isArray(viewData.data)
+          ? decodeHarnessRows(viewData.data as Record<string, unknown>[], config.columns)
+          : [];
+        const mode = viewData.isPivot ? 'pivot' : viewData.isGroup ? 'group' : 'plain';
+        const synthesizedGroupMetadata = scenario === 'matrix' && mode === 'group' && groupSpec.length > 0
+          ? buildLegacyMatrixGroupMetadata(
+              groupSpec.some((entry) => entry.fun)
+                ? decodeHarnessRows(config.data, config.columns)
+                : decodedVisibleRows,
+              groupSpec,
+              aggregateSpec,
+            )
+          : (viewData.groupMetadata ?? {});
+
+        return {
+          scenario,
+          mode,
+          rowCount: decodedVisibleRows.length,
+          selectedRows: [...selection.selectedRows.values()],
+          visibleRows: decodedVisibleRows,
+          filterSpec,
+          groupFields: viewData.isGroup ? [...(viewData.groupFields ?? [])] : [],
+          pivotFields: viewData.isPivot ? [...(viewData.pivotFields ?? [])] : [],
+          groupMetadata: synthesizedGroupMetadata,
+          rowVals: viewData.isPivot ? ((viewData.rowVals ?? []) as Record<string, unknown>[]) : [],
+          colVals: viewData.isPivot ? (viewData.colVals ?? []) : [],
+          pivotMatrix: viewData.isPivot
+            ? ((viewData.data ?? []) as Array<Array<Record<string, unknown>>>).map((row) => row.map((cell) => mapLegacyPivotRecord(cell, aggregateSpec)))
+            : [],
+          pivotGrandTotal: viewData.isPivot ? mapLegacyPivotRecord((viewData.grandTotal ?? {}) as Record<string, unknown>, aggregateSpec) : {},
+          totalAggregates: viewData.totalAggregates ?? {},
+          sort: view.getSort() as { field?: string; dir?: string } | null,
+          busy,
+          revision,
+        };
+      },
       actions: {
         setFilter: (spec) => {
-          if (!spec || Object.keys(spec).length === 0) view.clearFilter();
-          else view.setFilter(spec);
+          setFilterSpec(spec);
+          const translatedSpec = scenario === 'matrix' ? translateLegacyMatrixFilterSpec(spec) : spec;
+          if (!translatedSpec || Object.keys(translatedSpec).length === 0) view.clearFilter();
+          else view.setFilter(translatedSpec);
         },
-        clearFilter: () => view.clearFilter(),
+        clearFilter: () => {
+          setFilterSpec(null);
+          view.clearFilter();
+        },
         setSort: (field, dir) => view.setSort({ vertical: { field, dir } }),
         clearSort: () => view.clearSort(),
         setGroup: (fields) => {
+          setGroupSpec(fields.map((field) => ({ field })));
           if (fields.length === 0) view.clearGroup();
           else view.setGroup({ fieldNames: fields.map((field) => ({ field })) });
         },
         setGroupSpec: (fields) => {
+          setGroupSpec(fields);
           if (fields.length === 0) view.clearGroup();
           else view.setGroup(buildGroupSpec(fields));
         },
@@ -357,15 +614,22 @@ function HarnessGrid({
           if (fields.length === 0) view.clearPivot();
           else view.setPivot(buildGroupSpec(fields));
         },
-        clearGroup: () => view.clearGroup(),
-        setAggregate: (spec) => view.setAggregate(toLegacyAggregateSpec(spec)),
+        clearGroup: () => {
+          setGroupSpec([]);
+          view.clearGroup();
+        },
+        setAggregate: (spec) => {
+          setAggregateSpec(spec ?? []);
+          const translatedSpec = spec?.map((entry) => ({ ...entry, fn: translateLegacyAggregateName(entry.fn) })) ?? null;
+          view.setAggregate(toLegacyAggregateSpec(translatedSpec));
+        },
         refresh: () => view.refresh(),
       },
     };
     return () => {
       delete win.__wcdv;
     };
-  }, [busy, registerApi, revision, scenario, selection, view, viewData]);
+  }, [aggregateSpec, busy, config.columns, config.data, filterSpec, groupSpec, registerApi, revision, scenario, selection, view, viewData]);
 
   const operations = useMemo(
     () => scenario === 'operations'
@@ -406,6 +670,7 @@ function HarnessGrid({
         showToolbar={true}
         showControls={true}
         debug={true}
+        preserveChildViewData={preserveChildViewData}
         trans={demoTrans}
         filterColumns={config.filters}
         allColumns={config.columns}

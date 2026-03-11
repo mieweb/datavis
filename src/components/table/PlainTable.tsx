@@ -21,6 +21,7 @@ import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   DndContext,
   closestCenter,
+  MouseSensor,
   PointerSensor,
   useSensor,
   useSensors,
@@ -110,6 +111,8 @@ interface SortableHeaderProps {
     event: React.MouseEvent,
   ) => void;
   onContextMenu?: (field: string, event: React.MouseEvent) => void;
+  onReorderStart?: (field: string, event: React.MouseEvent) => void;
+  onReorderEnter?: (field: string, event: React.MouseEvent) => void;
 }
 
 function SortableHeaderCell({
@@ -121,6 +124,8 @@ function SortableHeaderCell({
   onSort,
   onResizeStart,
   onContextMenu,
+  onReorderStart,
+  onReorderEnter,
 }: SortableHeaderProps) {
   const t = useTranslation();
   const {
@@ -170,6 +175,8 @@ function SortableHeaderCell({
           : 'none'
       }
       onContextMenu={handleContextMenu}
+      onMouseDown={(event) => onReorderStart?.(column.field, event)}
+      onMouseEnter={(event) => onReorderEnter?.(column.field, event)}
       {...attributes}
       {...listeners}
     >
@@ -356,6 +363,13 @@ export function PlainTable({
   const tableRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pendingAutoShowRef = useRef(false);
+  const dragStateRef = useRef<{
+    sourceField: string;
+    targetField: string;
+    startX: number;
+    startY: number;
+    active: boolean;
+  } | null>(null);
 
   // ── Visible columns (filtered + ordered by column config) ──
   const visibleColumns = useMemo(() => {
@@ -386,21 +400,82 @@ export function PlainTable({
   );
 
   // ── Column reorder ────────────────────────────
+  const commitColumnReorder = useCallback(
+    (fromIndex: number, toIndex: number) => {
+      const fields = visibleColumns.map((c) => c.field);
+      const [moved] = fields.splice(fromIndex, 1);
+      fields.splice(toIndex, 0, moved);
+      colConfigCtx.setColumnOrder(fields);
+      onColumnReorder?.(fromIndex, toIndex);
+    },
+    [visibleColumns, colConfigCtx, onColumnReorder],
+  );
+
   const { handleDragEnd, columnIds } = useColumnReorder(
     visibleColumns,
     useCallback(
       (fromIndex: number, toIndex: number) => {
-        // Compute the new field order after the drag
-        const fields = visibleColumns.map((c) => c.field);
-        const [moved] = fields.splice(fromIndex, 1);
-        fields.splice(toIndex, 0, moved);
-        // Update the context so visibleColumns memo respects the new order
-        colConfigCtx.setColumnOrder(fields);
-        onColumnReorder?.(fromIndex, toIndex);
+        commitColumnReorder(fromIndex, toIndex);
       },
-      [visibleColumns, colConfigCtx, onColumnReorder],
+      [commitColumnReorder],
     ),
   );
+
+  const handleHeaderReorderStart = useCallback(
+    (field: string, event: React.MouseEvent) => {
+      if (features.columnReorder === false || event.button !== 0) return;
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('[role="separator"]')) return;
+
+      dragStateRef.current = {
+        sourceField: field,
+        targetField: field,
+        startX: event.clientX,
+        startY: event.clientY,
+        active: false,
+      };
+    },
+    [features.columnReorder],
+  );
+
+  const handleHeaderReorderEnter = useCallback((field: string, event: React.MouseEvent) => {
+    if (event.buttons !== 1) return;
+    const dragState = dragStateRef.current;
+    if (!dragState) return;
+    dragState.targetField = field;
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (event: MouseEvent) => {
+      const dragState = dragStateRef.current;
+      if (!dragState || dragState.active) return;
+
+      const deltaX = Math.abs(event.clientX - dragState.startX);
+      const deltaY = Math.abs(event.clientY - dragState.startY);
+      if (deltaX >= 8 || deltaY >= 8) {
+        dragState.active = true;
+      }
+    };
+
+    const handleMouseUp = () => {
+      const dragState = dragStateRef.current;
+      dragStateRef.current = null;
+      if (!dragState?.active || dragState.sourceField === dragState.targetField) return;
+
+      const fromIndex = visibleColumns.findIndex((column) => column.field === dragState.sourceField);
+      const toIndex = visibleColumns.findIndex((column) => column.field === dragState.targetField);
+      if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
+
+      commitColumnReorder(fromIndex, toIndex);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    window.addEventListener('mouseup', handleMouseUp);
+    return () => {
+      window.removeEventListener('mousemove', handleMouseMove);
+      window.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [commitColumnReorder, visibleColumns]);
 
   // ── Keyboard nav ──────────────────────────────
   const { handleKeyDown } = useKeyboardNav(
@@ -423,6 +498,7 @@ export function PlainTable({
 
   // ── DnD sensors ───────────────────────────────
   const sensors = useSensors(
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
 
@@ -626,6 +702,8 @@ export function PlainTable({
                       onSort={onSort}
                       onResizeStart={handleResizeMouseDown}
                       onContextMenu={handleHeaderContextMenu}
+                      onReorderStart={handleHeaderReorderStart}
+                      onReorderEnter={handleHeaderReorderEnter}
                     />
                   ))}
                 </SortableContext>

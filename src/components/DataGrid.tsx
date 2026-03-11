@@ -133,6 +133,8 @@ export interface DataGridProps {
   locale?: string;
   /** Enable debug button */
   debug?: boolean;
+  /** Preserve a child renderer's explicitly supplied viewData prop instead of replacing it with useView output. */
+  preserveChildViewData?: boolean;
   /** Column filter configurations for the filter bar */
   filterColumns?: ColumnFilterConfig[];
   /** All table columns — used to derive filter configs when filter icon is clicked */
@@ -181,6 +183,7 @@ export function DataGrid({
   trans: transProp,
   locale,
   debug = false,
+  preserveChildViewData = false,
   filterColumns = [],
   allColumns = [],
   controlFields = [],
@@ -471,18 +474,20 @@ export function DataGrid({
         return child;
       }
 
+      const childProps = child.props as Partial<TableRendererProps>;
+
       return cloneElement(child as React.ReactElement<TableRendererProps>, {
-        viewData: limitedViewData,
-        limit: { limit: rowBatchSize, autoShowMore },
-        loadedRows: limitedViewData?.isPlain && Array.isArray(limitedViewData.data)
+        viewData: preserveChildViewData && childProps.viewData !== undefined ? childProps.viewData : limitedViewData,
+        limit: childProps.limit ?? { limit: rowBatchSize, autoShowMore },
+        loadedRows: childProps.loadedRows ?? (limitedViewData?.isPlain && Array.isArray(limitedViewData.data)
           ? limitedViewData.data.length
-          : undefined,
-        groupMode: effectiveTableDef.groupMode,
-        showTotalRow: effectiveTableDef.whenGroup?.showTotalRow,
-        showTotalCol: effectiveTableDef.whenPivot?.showTotalCol,
-        groupsExpanded: effectiveTableDef.whenGroup?.showExpandedGroups,
-        onShowMore: handleShowMoreRows,
-        onShowAll: handleShowAllRows,
+          : undefined),
+        groupMode: childProps.groupMode ?? effectiveTableDef.groupMode,
+        showTotalRow: childProps.showTotalRow ?? effectiveTableDef.whenGroup?.showTotalRow,
+        showTotalCol: childProps.showTotalCol ?? effectiveTableDef.whenPivot?.showTotalCol,
+        groupsExpanded: childProps.groupsExpanded ?? effectiveTableDef.whenGroup?.showExpandedGroups,
+        onShowMore: childProps.onShowMore ?? handleShowMoreRows,
+        onShowAll: childProps.onShowAll ?? handleShowAllRows,
       });
     }),
     [
@@ -490,6 +495,7 @@ export function DataGrid({
       limitedViewData,
       rowBatchSize,
       autoShowMore,
+      preserveChildViewData,
       effectiveTableDef,
       tableDefVersion,
       handleShowMoreRows,

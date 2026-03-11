@@ -20,7 +20,8 @@ export interface NormalizedViewData {
 }
 
 export interface AggregateSpecItem {
-  fn: string;
+  fun?: string;
+  fn?: string;
   fields?: string[];
   name?: string;
   isHidden?: boolean;
@@ -171,9 +172,10 @@ function serializeGroupKey(groupValues: Record<string, unknown>, groupFields: st
 }
 
 function buildAggregateKey(info: LegacyAggInfoEntry | undefined): string | null {
-  if (!info?.fun) return null;
+  const fn = info?.fun ?? (info as AggregateSpecItem | undefined)?.fn;
+  if (!fn) return null;
   const field = info.fields?.[0];
-  return field ? `${info.fun}(${field})` : info.fun;
+  return field ? `${fn}(${field})` : fn;
 }
 
 function buildAggregateRecord(infos: LegacyAggInfoEntry[] | undefined, values: unknown[] | undefined): Record<string, unknown> {
@@ -334,7 +336,7 @@ export function toLegacyAggregateSpec(specs: Array<{ fn: string; fields: string[
   if (!specs || specs.length === 0) return null;
 
   const normalizedSpecs = specs.map((spec) => ({
-    fn: spec.fn,
+    fun: spec.fn,
     fields: spec.fields,
   }));
 

@@ -17,7 +17,7 @@ import type {
   SelectionState,
 } from './types';
 import { useTranslation, useLocale } from '../../i18n';
-import { formatCellValue, formatAggregateNumber } from './format-cell';
+import { formatCellValue, formatAggregateNumber, getAggregateValueForField } from './format-cell';
 
 /**
  * Parse aggregate keys like "sum(salary)" into a map of field → [{fn, value}].
@@ -379,9 +379,10 @@ export function GroupDetailTable({
                       colSpan={col.span}
                       className="border-r border-gray-200 px-3 py-2 text-sm"
                     >
-                      {totalAggregates?.[col.field] != null
-                        ? String(totalAggregates[col.field])
-                        : ''}
+                      {(() => {
+                        const aggregateValue = getAggregateValueForField(totalAggregates, col.field);
+                        return aggregateValue != null ? String(aggregateValue) : '';
+                      })()}
                     </td>
                   ))}
               </tr>

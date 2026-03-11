@@ -9,6 +9,7 @@ import { useMemo } from 'react';
 
 import type { BaseTableProps, TableColumn, GroupMeta, SortDirection } from './types';
 import { useTranslation } from '../../i18n';
+import { getAggregateValueForField } from './format-cell';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -183,9 +184,10 @@ export function GroupSummaryTable({
                           }}
                           role="gridcell"
                         >
-                          {meta.aggregates?.[col.field] != null
-                            ? String(meta.aggregates[col.field])
-                            : ''}
+                          {(() => {
+                            const aggregateValue = getAggregateValueForField(meta.aggregates, col.field);
+                            return aggregateValue != null ? String(aggregateValue) : '';
+                          })()}
                         </td>
                       );
                     })}
@@ -206,8 +208,8 @@ export function GroupSummaryTable({
                       ? `${t('TABLE.TOTAL') || 'Total'} (${groupOrder.length})`
                       : groupFields.includes(col.field)
                       ? ''
-                      : totalAggregates?.[col.field] != null
-                      ? String(totalAggregates[col.field])
+                      : getAggregateValueForField(totalAggregates, col.field) != null
+                      ? String(getAggregateValueForField(totalAggregates, col.field))
                       : ''}
                   </td>
                 ))}
