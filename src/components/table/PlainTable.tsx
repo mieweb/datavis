@@ -128,6 +128,7 @@ function SortableHeaderCell({
   onReorderEnter,
 }: SortableHeaderProps) {
   const t = useTranslation();
+  const thRef = useRef<HTMLTableCellElement>(null);
   const {
     attributes,
     listeners,
@@ -136,6 +137,15 @@ function SortableHeaderCell({
     transition,
     isDragging,
   } = useSortable({ id: column.field });
+
+  // Merge dnd-kit ref with our local ref so we can read offsetWidth
+  const mergedRef = useCallback(
+    (node: HTMLTableCellElement | null) => {
+      (thRef as React.MutableRefObject<HTMLTableCellElement | null>).current = node;
+      setNodeRef(node);
+    },
+    [setNodeRef],
+  );
 
   const style: React.CSSProperties = {
     transform: CSS.Translate.toString(transform),
@@ -162,7 +172,7 @@ function SortableHeaderCell({
 
   return (
     <th
-      ref={setNodeRef}
+      ref={mergedRef}
       style={style}
       className={`wcdv-th relative select-none border-b border-r border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 ${
         isDragging ? 'z-10 shadow-lg' : ''
@@ -215,9 +225,13 @@ function SortableHeaderCell({
         <div
           className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-400 active:bg-blue-500"
           onPointerDown={(e) => e.stopPropagation()}
-          onMouseDown={(e) =>
-            onResizeStart?.(column.field, column.width ?? 100, e)
-          }
+          onMouseDown={(e) => {
+            const offsetW = thRef.current?.offsetWidth;
+            const propW = column.width;
+            const actualWidth = offsetW ?? propW ?? 100;
+            console.log('[resize-start]', column.field, { offsetW, propW, actualWidth, thRef: thRef.current });
+            onResizeStart?.(column.field, actualWidth, e);
+          }}
           role="separator"
           tabIndex={0}
           aria-orientation="vertical"
@@ -391,6 +405,7 @@ export function PlainTable({
   const { handleResizeMouseDown } = useColumnResize(
     useCallback(
       (field: string, width: number) => {
+        console.log('[PlainTable] onResize callback', { field, width });
         setColumns((prev) =>
           prev.map((c) => (c.field === field ? { ...c, width } : c)),
         );

@@ -31,6 +31,7 @@ export function useColumnResize(
         startX: event.clientX,
         startWidth: startWidth || MIN_COLUMN_WIDTH,
       };
+      console.log('[useColumnResize] mousedown', { field, startX: event.clientX, startWidth });
 
       // Create resize indicator
       const indicator = document.createElement('div');
@@ -55,6 +56,14 @@ export function useColumnResize(
             MIN_COLUMN_WIDTH,
             resizeRef.current.startWidth + delta,
           );
+          console.log('[useColumnResize] mouseup', {
+            field: resizeRef.current.field,
+            startX: resizeRef.current.startX,
+            endX: e.clientX,
+            delta,
+            startWidth: resizeRef.current.startWidth,
+            newWidth,
+          });
           onResize?.(resizeRef.current.field, newWidth);
         }
 
