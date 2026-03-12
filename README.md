@@ -1,19 +1,24 @@
-# WC DataVis — React
+# DataVis NITRO
 
-A React + Tailwind CSS data visualization library built with [`@mieweb/ui`](https://ui.mieweb.org) components. Successor to the legacy jQuery-based [wcdatavis](https://github.com/mieweb/wcdatavis) library.
+A React + Tailwind + [`@mieweb/ui`](https://ui.mieweb.org) UI built on top of the [DataVis ACE](https://github.com/mieweb/wcdatavis) data acquisition and computation engine.
 
 [**Live Demo**](https://verbose-disco-y7k1zoq.pages.github.io/) · [**Storybook**](https://verbose-disco-y7k1zoq.pages.github.io/storybook/) · [**Rewrite Plan**](v0-rewrite-plan.md)
 
-**wcdatavis** is a tool for exploring, manipulating, and visualizing tabular data. It imports data over HTTP (XML, JSON, CSV) or from local JavaScript, auto-parses dates/numbers/currency, and supports interactive filtering, grouping, pivoting, aggregation, perspectives, CSV export, and graphing.
+**DataVis** is a set of tools for exploring, manipulating, and visualizing data. It features, among other things:
+
+- Extensible data acquisition methods; it has builtin support for HTTP (XML, JSON, CSV), local CSV, in-page HTML table & JS value.
+- Intelligent automatic handling of numerous data types such as dates, currency, and embedded JSON. User-added type handling is available.
+- Efficient and extensive type-associated filtering, grouping, pivotting, and aggregation operations.
+- Flexible user interfaces for exploring and understanding data, including tables and graphs. This project is one such interface.
 
 ```mermaid
 graph LR
-    subgraph DataCore["wcdatavis core (unchanged JS)"]
+    subgraph ACE["DataVis ACE (from wcdatavis project)"]
         Source
-        View["View / ComputedView"]
+        View
         Aggregates
-        Types["Types / trans()"]
-        Prefs["Prefs / Perspectives"]
+        Types
+        Prefs
     end
 
     subgraph Adapter["Adapter Layer"]
@@ -30,7 +35,7 @@ graph LR
         Dialogs["Dialogs"]
     end
 
-    DataCore --> Adapter --> ReactUI
+    ACE --> Adapter --> ReactUI
 
     classDef core fill:#e8f5e9,stroke:#2e7d32
     classDef adapter fill:#fff3e0,stroke:#e65100

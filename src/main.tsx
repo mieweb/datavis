@@ -208,7 +208,7 @@ function App() {
       {/* Page header */}
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-800">WC DataVis — Demo</h1>
+          <h1 className="text-xl font-bold text-gray-800">DataVis NITRO — Demo</h1>
           <p className="text-sm text-gray-500 mt-1">
             React table renderer with column resize, reorder, sort, sticky headers, and context menus.
           </p>

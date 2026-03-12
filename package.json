@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "WC DataVis v0 — React UI rewrite using @mieweb/ui",
+  "description": "DataVis NITRO: UI for DataVis built using React + Tailwind + @mieweb/ui",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
