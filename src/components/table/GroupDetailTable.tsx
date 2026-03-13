@@ -332,7 +332,7 @@ export function GroupDetailTable({
                       key={`${col.field}-${fn}`}
                       className="border-b border-r border-gray-200 bg-gray-100 px-2 py-1 text-center text-[10px] font-bold uppercase tracking-widest text-gray-500"
                     >
-                      {aggFnLabels?.[fn] ?? fn}
+                      {aggFnLabels?.[fn] ? t(aggFnLabels[fn]) : fn}
                     </th>
                   ));
                 })}

@@ -262,6 +262,7 @@ interface AggregateFooterProps {
 }
 
 function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale }: AggregateFooterProps) {
+  const { t } = useTranslation();
   // Group aggregate entries by function name so each fn gets its own row
   const byFn = new Map<string, { field: string | null; value: unknown }[]>();
   for (const [key, value] of Object.entries(aggregates)) {
@@ -273,7 +274,8 @@ function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale }: Ag
   return (
     <tfoot className="wcdv-agg-footer sticky bottom-0 bg-gray-100 border-t-2 border-gray-300 font-semibold text-sm">
       {[...byFn.entries()].map(([fn, entries]) => {
-        const label = aggFnLabels?.[fn] ?? fn.charAt(0).toUpperCase() + fn.slice(1);
+        const rawLabel = aggFnLabels?.[fn] ?? fn;
+        const label = t(rawLabel);
         // Build a field→value map for quick lookup
         const fieldMap = new Map(
           entries.filter((e) => e.field != null).map((e) => [e.field!, e.value]),

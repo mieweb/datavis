@@ -289,7 +289,7 @@ export function DateFilter({
       {/* No-input operators ($exists / $notexists) */}
       {isNoInput && (
         <span className="text-xs text-gray-400 italic px-1" role="status">
-          {operators.find((o) => o.value === operator)?.label}
+          {t(operators.find((o) => o.value === operator)?.label ?? '')}
         </span>
       )}
     </div>

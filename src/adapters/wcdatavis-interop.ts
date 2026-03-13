@@ -406,12 +406,12 @@ export function normalizeLocalSourceRows(
 
 export function buildAggregateFunctions(): Array<{ name: string; label: string; fieldCount: number }> {
   const functions: Array<{ name: string; label: string; fieldCount: number }> = [];
-  const registry = AGGREGATE_REGISTRY as { each: (fn: (value: { prototype: { enabled?: boolean; fieldCount?: number; getTransName?: () => string; name?: string } }, key: string) => void) => void };
+  const registry = AGGREGATE_REGISTRY as { each: (fn: (value: { prototype: { enabled?: boolean; fieldCount?: number; transLabel?: string; name?: string } }, key: string) => void) => void };
   registry.each((AggregateCtor, key) => {
     if (AggregateCtor.prototype.enabled === false) return;
     functions.push({
       name: key,
-      label: AggregateCtor.prototype.getTransName?.() ?? AggregateCtor.prototype.name ?? key,
+      label: AggregateCtor.prototype.transLabel ?? key,
       fieldCount: AggregateCtor.prototype.fieldCount ?? 0,
     });
   });

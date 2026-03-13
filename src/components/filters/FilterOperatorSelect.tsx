@@ -104,7 +104,7 @@ export function FilterOperatorSelect({
     >
       {operators.map((op) => (
         <option key={op.value} value={op.value}>
-          {op.label}
+          {op.symbol ? `${op.symbol} ${t(op.label)}` : t(op.label)}
         </option>
       ))}
     </select>

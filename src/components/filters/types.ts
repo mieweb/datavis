@@ -32,47 +32,49 @@ export type FilterOperator =
 export interface OperatorInfo {
   /** Operator key */
   value: FilterOperator;
-  /** Display label (unicode symbol or short text) */
+  /** i18n key for the operator label */
   label: string;
+  /** Optional Unicode prefix symbol (e.g. ∈, ≠, >) */
+  symbol?: string;
   /** Whether this operator hides the value input (e.g. $exists, $notexists) */
   noInput?: boolean;
 }
 
 /** Operators for string fields */
 export const STRING_OPERATORS: OperatorInfo[] = [
-  { value: '$contains', label: '∈ contains' },
-  { value: '$notcontains', label: '∉ not contains' },
-  { value: '$eq', label: '= equals' },
-  { value: '$ne', label: '≠ not equals' },
-  { value: '$in', label: 'in' },
-  { value: '$nin', label: 'not in' },
-  { value: '$exists', label: 'not blank', noInput: true },
-  { value: '$notexists', label: 'blank', noInput: true },
+  { value: '$contains', label: 'FILTER.STRING.OPERATOR.CONTAINS', symbol: '∈' },
+  { value: '$notcontains', label: 'FILTER.STRING.OPERATOR.NOT_CONTAINS', symbol: '∉' },
+  { value: '$eq', label: 'FILTER.STRING.OPERATOR.EQUALS', symbol: '=' },
+  { value: '$ne', label: 'FILTER.STRING.OPERATOR.NOT_EQUALS', symbol: '≠' },
+  { value: '$in', label: 'FILTER.STRING.OPERATOR.IN' },
+  { value: '$nin', label: 'FILTER.STRING.OPERATOR.NOT_IN' },
+  { value: '$exists', label: 'FILTER.STRING.OPERATOR.NOT_BLANK', noInput: true },
+  { value: '$notexists', label: 'FILTER.STRING.OPERATOR.BLANK', noInput: true },
 ];
 
 /** Operators for number / currency fields */
 export const NUMBER_OPERATORS: OperatorInfo[] = [
-  { value: '$eq', label: '= equals' },
-  { value: '$ne', label: '≠ not equals' },
-  { value: '$gt', label: '> greater than' },
-  { value: '$gte', label: '≥ greater or equal' },
-  { value: '$lt', label: '< less than' },
-  { value: '$lte', label: '≤ less or equal' },
-  { value: '$exists', label: 'not blank', noInput: true },
-  { value: '$notexists', label: 'blank', noInput: true },
+  { value: '$eq', label: 'FILTER.NUMBER.OPERATOR.EQUALS', symbol: '=' },
+  { value: '$ne', label: 'FILTER.NUMBER.OPERATOR.NOT_EQUALS', symbol: '≠' },
+  { value: '$gt', label: 'FILTER.NUMBER.OPERATOR.GREATER_THAN', symbol: '>' },
+  { value: '$gte', label: 'FILTER.NUMBER.OPERATOR.GREATER_OR_EQUAL', symbol: '≥' },
+  { value: '$lt', label: 'FILTER.NUMBER.OPERATOR.LESS_THAN', symbol: '<' },
+  { value: '$lte', label: 'FILTER.NUMBER.OPERATOR.LESS_OR_EQUAL', symbol: '≤' },
+  { value: '$exists', label: 'FILTER.NUMBER.OPERATOR.NOT_BLANK', noInput: true },
+  { value: '$notexists', label: 'FILTER.NUMBER.OPERATOR.BLANK', noInput: true },
 ];
 
 /** Operators for date / datetime fields */
 export const DATE_OPERATORS: OperatorInfo[] = [
-  { value: '$eq', label: 'on' },
-  { value: '$bet', label: 'between' },
-  { value: '$lte', label: 'before' },
-  { value: '$gte', label: 'after' },
-  { value: '$every', label: 'every' },
-  { value: '$this', label: 'current' },
-  { value: '$last', label: 'last' },
-  { value: '$exists', label: 'not blank', noInput: true },
-  { value: '$notexists', label: 'blank', noInput: true },
+  { value: '$eq', label: 'FILTER.DATE.OPERATOR.ON' },
+  { value: '$bet', label: 'FILTER.DATE.OPERATOR.BETWEEN' },
+  { value: '$lte', label: 'FILTER.DATE.OPERATOR.BEFORE' },
+  { value: '$gte', label: 'FILTER.DATE.OPERATOR.AFTER' },
+  { value: '$every', label: 'FILTER.DATE.OPERATOR.EVERY' },
+  { value: '$this', label: 'FILTER.DATE.OPERATOR.CURRENT' },
+  { value: '$last', label: 'FILTER.DATE.OPERATOR.LAST' },
+  { value: '$exists', label: 'FILTER.DATE.OPERATOR.NOT_BLANK', noInput: true },
+  { value: '$notexists', label: 'FILTER.DATE.OPERATOR.BLANK', noInput: true },
 ];
 
 // ───────────────────────────────────────────────────────────

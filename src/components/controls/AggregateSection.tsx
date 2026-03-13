@@ -111,7 +111,7 @@ export function AggregateSection({
 
   const fnOptions = functions.map((f) => ({
     value: f.name,
-    label: f.label,
+    label: t(f.label),
   }));
 
   return (
@@ -174,14 +174,14 @@ export function AggregateSection({
               aria-label={t('CONTROL.VISIBLE') || 'Visible'}
             />
             <span className="text-xs font-medium text-gray-600 min-w-[50px]">
-              {fn?.label ?? entry.functionName}
+              {fn ? t(fn.label) : entry.functionName}
             </span>
             {entry.fields.map((fieldVal, idx) => (
               <Select
                 key={idx}
                 size="sm"
                 hideLabel
-                label={`${fn?.label} field ${idx + 1}`}
+                label={`${fn ? t(fn.label) : entry.functionName} field ${idx + 1}`}
                 placeholder={t('CONTROL.SELECT_FIELD') || 'Field…'}
                 options={fieldOptions}
                 value={fieldVal}
@@ -196,7 +196,7 @@ export function AggregateSection({
                 variant="ghost"
                 className="!p-0 !min-w-0 !h-4 !w-4 text-gray-400 hover:text-red-500"
                 onClick={() => handleRemove(entry.id)}
-                aria-label={`${t('CONTROL.REMOVE')} ${fn?.label}`}
+                aria-label={`${t('CONTROL.REMOVE')} ${fn ? t(fn.label) : entry.functionName}`}
               >
                 ✕
               </Button>
