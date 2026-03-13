@@ -18,6 +18,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      'wcdatavis': path.resolve(__dirname, './wcdatavis-lib'),
     },
   },
   build: {

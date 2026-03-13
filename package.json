@@ -26,7 +26,16 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-i18next": "^16.5.8",
-    "wcdatavis": "git+https://github.com/mieweb/wcdatavis.git#8219021d456820ece579c6418f1406c0d4f9dbe0"
+    "bignumber.js": "^9.3.1",
+    "core-js": "^3.47.0",
+    "handlebars": "^4.7.8",
+    "jquery": "^3.7.1",
+    "json-formatter-js": "^2.2.0",
+    "moment": "^2.30.1",
+    "numeral": "^2.0.6",
+    "papaparse": "^5.5.3",
+    "sprintf-js": "^1.1.3",
+    "underscore": "^1.13.7"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
