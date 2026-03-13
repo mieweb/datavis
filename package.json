@@ -26,7 +26,7 @@
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-i18next": "^16.5.8",
-    "wcdatavis": "mieweb/wcdatavis.git#8219021d456820ece579c6418f1406c0d4f9dbe0"
+    "wcdatavis": "git+https://github.com/mieweb/wcdatavis.git#8219021d456820ece579c6418f1406c0d4f9dbe0"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
