@@ -8,7 +8,7 @@
 import { useMemo } from 'react';
 
 import type { BaseTableProps, TableColumn, GroupMeta, SortDirection } from './types';
-import { useTranslation } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 import { getAggregateValueForField } from './format-cell';
 
 // ───────────────────────────────────────────────────────────
@@ -43,13 +43,12 @@ export function GroupSummaryTable({
   sort,
   features = {},
   totalRows,
-  trans: transProp,
   showTotalRow = false,
   totalAggregates,
   onSort,
   className = '',
 }: GroupSummaryTableProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   const firstGroup = groupOrder.length > 0 ? groups[groupOrder[0]] : undefined;
 
   // Build column list: group fields first, then aggregate columns

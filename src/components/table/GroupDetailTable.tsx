@@ -16,7 +16,8 @@ import type {
   SortDirection,
   SelectionState,
 } from './types';
-import { useTranslation, useLocale } from '../../i18n';
+import { useTranslation } from 'react-i18next';
+import { useLocale } from '../../i18n';
 import { formatCellValue, formatAggregateNumber, getAggregateValueForField } from './format-cell';
 
 /**
@@ -124,7 +125,6 @@ export function GroupDetailTable({
   totalRows,
   limit,
   formatCell,
-  trans: transProp,
   showTotalRow = false,
   initialExpanded = true,
   totalAggregates,
@@ -137,7 +137,7 @@ export function GroupDetailTable({
   onShowAll,
   className = '',
 }: GroupDetailTableProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   const locale = useLocale();
   // Track expanded state per group
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(() => {
@@ -309,7 +309,7 @@ export function GroupDetailTable({
                           : 'asc',
                       )
                     }
-                    aria-label={t('TABLE.SORT_BY', col.header) || `Sort by ${col.header}`}
+                    aria-label={t('TABLE.SORT_BY', { param0: col.header }) || `Sort by ${col.header}`}
                   >
                     <span className="truncate">{col.header}</span>
                     {sort?.field === col.field && (

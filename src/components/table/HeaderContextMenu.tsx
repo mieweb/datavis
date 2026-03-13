@@ -9,7 +9,7 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ContextMenuItem } from './types';
-import { useTranslation, type TransFn } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 
 export interface HeaderContextMenuProps {
   /** Whether the menu is visible */
@@ -20,8 +20,6 @@ export interface HeaderContextMenuProps {
   items: ContextMenuItem[];
   /** Close callback */
   onClose: () => void;
-  /** i18n */
-  trans?: TransFn;
 }
 
 export function HeaderContextMenu({
@@ -29,9 +27,8 @@ export function HeaderContextMenu({
   position,
   items,
   onClose,
-  trans: transProp,
 }: HeaderContextMenuProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   const menuRef = useRef<HTMLDivElement>(null);
   const [openSub, setOpenSub] = useState<string | null>(null);
 

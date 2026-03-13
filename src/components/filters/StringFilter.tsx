@@ -9,7 +9,7 @@ import { useState, useCallback, useRef, useEffect } from 'react';
 import { Input } from '@mieweb/ui/components/Input';
 import { Checkbox } from '@mieweb/ui/components/Checkbox';
 import { Button } from '@mieweb/ui/components/Button';
-import { useTranslation, type TransFn } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 import { FilterOperatorSelect } from './FilterOperatorSelect';
 import {
   STRING_OPERATORS,
@@ -36,8 +36,6 @@ export interface StringFilterProps {
   onChange: (field: string, spec: FieldFilterSpec | null) => void;
   /** Auto-focus the operator select on mount */
   autoFocus?: boolean;
-  /** i18n */
-  trans?: TransFn;
 }
 
 export function StringFilter({
@@ -50,9 +48,8 @@ export function StringFilter({
   value,
   onChange,
   autoFocus,
-  trans: transProp,
 }: StringFilterProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   // Determine which operators to show
   const operators = STRING_OPERATORS.filter((op) => {
     if (includeOperators?.length) return includeOperators.includes(op.value);
@@ -175,7 +172,6 @@ export function StringFilter({
             onSelectAll={selectAll}
             onClearAll={clearAll}
             label={label}
-            trans={t}
           />
         </div>
       </div>
@@ -203,7 +199,7 @@ export function StringFilter({
             onBlur={handleTextCommit}
             onKeyDown={handleKeyDown}
             placeholder={label}
-            aria-label={`${t('FILTER.VALUE_FOR')} ${label}`}
+            aria-label={t('FILTER.VALUE_FOR', { param0: label })}
           />
         </div>
       )}
@@ -227,7 +223,6 @@ interface MultiSelectDropdownProps {
   onSelectAll: () => void;
   onClearAll: () => void;
   label: string;
-  trans: (key: string) => string;
 }
 
 function MultiSelectDropdown({
@@ -237,8 +232,8 @@ function MultiSelectDropdown({
   onSelectAll,
   onClearAll,
   label,
-  trans: t,
 }: MultiSelectDropdownProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);

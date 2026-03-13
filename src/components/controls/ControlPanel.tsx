@@ -23,7 +23,7 @@ import {
 import { ControlSection, type ControlFieldItem, type AvailableField } from './ControlSection';
 import { AggregateSection, type AggregateFunction, type AggregateEntry } from './AggregateSection';
 import { FilterBar } from '../filters/FilterBar';
-import { useTranslation, type TransFn } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 import type { ColumnFilterConfig, FilterSpec } from '../filters/types';
 
 // ───────────────────────────────────────────────────────────
@@ -63,9 +63,6 @@ export interface ControlPanelProps {
   onGroupFunctionClick?: (field: string) => void;
   /** Called when user clicks the group-function button on a pivot pill */
   onPivotFunctionClick?: (field: string) => void;
-
-  /** i18n */
-  trans?: TransFn;
 }
 
 // ───────────────────────────────────────────────────────────
@@ -90,9 +87,8 @@ export function ControlPanel({
   onAggregateChange,
   onGroupFunctionClick,
   onPivotFunctionClick,
-  trans: transProp,
 }: ControlPanelProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   // ── DnD sensors ──
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),

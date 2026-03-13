@@ -10,7 +10,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { Modal, ModalHeader, ModalTitle, ModalClose, ModalBody, ModalFooter } from '@mieweb/ui/components/Modal';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@mieweb/ui/components/Tabs';
 import { Button } from '@mieweb/ui/components/Button';
-import { useTranslation, type TransFn } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -57,8 +57,6 @@ export interface DebugDialogProps {
   grid?: DebugGridInfo;
   /** Prefs debugging info */
   prefs?: DebugPrefsInfo;
-  /** i18n */
-  trans?: TransFn;
 }
 
 // ───────────────────────────────────────────────────────────
@@ -139,9 +137,8 @@ export function DebugDialog({
   view = {},
   grid = {},
   prefs,
-  trans: transProp,
 }: DebugDialogProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   const dismissLabel = useMemo(
     () => DISMISS_LABELS[Math.floor(Math.random() * DISMISS_LABELS.length)],
     // Re-pick each time dialog opens

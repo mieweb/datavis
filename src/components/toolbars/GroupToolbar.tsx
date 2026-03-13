@@ -11,14 +11,13 @@ import { Switch } from '@mieweb/ui/components/Switch';
 import { Radio, RadioGroup } from '@mieweb/ui/components/Radio';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 
-import { useTranslation, type TransFn } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 import type { GridTableDef } from '../DataGrid';
 import type { ViewInstance } from '../../adapters/use-data';
 
 export interface GroupToolbarProps {
   tableDef?: GridTableDef;
   view: ViewInstance;
-  trans?: TransFn;
   onRedraw: () => void;
   onOpenColumnConfig?: () => void;
   onOpenTemplateEditor?: () => void;
@@ -27,12 +26,11 @@ export interface GroupToolbarProps {
 export function GroupToolbar({
   tableDef,
   view: _view,
-  trans: transProp,
   onRedraw,
   onOpenColumnConfig,
   onOpenTemplateEditor,
 }: GroupToolbarProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   const [groupMode, setGroupMode] = useState<'summary' | 'detail'>(
     tableDef?.groupMode ?? 'detail',
   );

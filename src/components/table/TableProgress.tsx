@@ -6,7 +6,7 @@
  */
 
 import { Progress } from '@mieweb/ui/components/Progress';
-import { useTranslation, type TransFn } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 
 export interface TableProgressProps {
   /** Current number of loaded rows */
@@ -15,17 +15,14 @@ export interface TableProgressProps {
   total: number;
   /** Whether loading is in progress */
   active: boolean;
-  /** i18n function */
-  trans?: TransFn;
 }
 
 export function TableProgress({
   loaded,
   total,
   active,
-  trans: transProp,
 }: TableProgressProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   if (!active || total <= 0) return null;
 
   const percent = Math.min(100, Math.round((loaded / total) * 100));

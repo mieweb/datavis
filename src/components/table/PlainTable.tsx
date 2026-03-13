@@ -47,7 +47,8 @@ import { useKeyboardNav } from './useKeyboardNav';
 import { HeaderContextMenu } from './HeaderContextMenu';
 import { useFilterContext } from '../filters/FilterContext';
 import { useColumnConfig } from './ColumnConfigContext';
-import { useTranslation, useLocale } from '../../i18n';
+import { useTranslation } from 'react-i18next';
+import { useLocale } from '../../i18n';
 import { formatCellValue, formatAggregateNumber, DATE_FORMAT_PRESETS, type DateFormatPreset } from './format-cell';
 
 // ───────────────────────────────────────────────────────────
@@ -55,7 +56,7 @@ import { formatCellValue, formatAggregateNumber, DATE_FORMAT_PRESETS, type DateF
 // ───────────────────────────────────────────────────────────
 
 function SortIcon({ direction }: { direction?: SortDirection }) {
-  const t = useTranslation();
+  const { t } = useTranslation();
   if (!direction) {
     return (
       <span
@@ -127,7 +128,7 @@ function SortableHeaderCell({
   onReorderStart,
   onReorderEnter,
 }: SortableHeaderProps) {
-  const t = useTranslation();
+  const { t } = useTranslation();
   const thRef = useRef<HTMLTableCellElement>(null);
   const {
     attributes,
@@ -196,7 +197,7 @@ function SortableHeaderCell({
           className="flex flex-1 items-center gap-0.5 min-w-0 bg-transparent border-none p-0 text-left text-inherit font-inherit cursor-pointer"
           onClick={handleClick}
           tabIndex={-1}
-          aria-label={t('TABLE.SORT_BY', column.header) || `Sort by ${column.header}`}
+          aria-label={t('TABLE.SORT_BY', { param0: column.header }) || `Sort by ${column.header}`}
         >
           <span className="truncate">{column.header}</span>
           {(column.sortable !== false) && <SortIcon direction={sortDir} />}
@@ -212,7 +213,7 @@ function SortableHeaderCell({
               onFilterClick();
             }}
             tabIndex={-1}
-            aria-label={filterActive ? (t('TABLE.FILTER_ACTIVE_ON', column.header) || `Filter active on ${column.header}`) : (t('TABLE.ADD_FILTER_FOR', column.header) || `Add filter for ${column.header}`)}
+            aria-label={filterActive ? (t('TABLE.FILTER_ACTIVE_ON', { param0: column.header }) || `Filter active on ${column.header}`) : (t('TABLE.ADD_FILTER_FOR', { param0: column.header }) || `Add filter for ${column.header}`)}
             title={filterActive ? (t('TABLE.FILTER_ACTIVE') || 'Filter active') : (t('TABLE.ADD_FILTER') || 'Add filter')}
           >
             <FilterIcon active={filterActive} />
@@ -235,7 +236,7 @@ function SortableHeaderCell({
           role="separator"
           tabIndex={0}
           aria-orientation="vertical"
-          aria-label={t('TABLE.RESIZE_COLUMN', column.header) || `Resize column ${column.header}`}
+          aria-label={t('TABLE.RESIZE_COLUMN', { param0: column.header }) || `Resize column ${column.header}`}
         />
       )}
     </th>
@@ -257,11 +258,10 @@ interface AggregateFooterProps {
   aggregates: Record<string, unknown>;
   aggFnLabels?: Record<string, string>;
   visibleColumns: TableColumn[];
-  t: (key: string, ...args: unknown[]) => string;
   locale?: string;
 }
 
-function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, t: _t, locale }: AggregateFooterProps) {
+function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale }: AggregateFooterProps) {
   // Group aggregate entries by function name so each fn gets its own row
   const byFn = new Map<string, { field: string | null; value: unknown }[]>();
   for (const [key, value] of Object.entries(aggregates)) {
@@ -330,7 +330,6 @@ export function PlainTable({
   totalRows,
   limit,
   formatCell,
-  trans: transProp,
   aggregates,
   aggFnLabels,
   onSort,
@@ -344,7 +343,7 @@ export function PlainTable({
   onSelectionChange,
   className = '',
 }: BaseTableProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   const locale = useLocale();
   // ── Filter context (provided by DataGrid) ─────
   const filterCtx = useFilterContext();
@@ -797,7 +796,6 @@ export function PlainTable({
                 aggregates={aggregates}
                 aggFnLabels={aggFnLabels}
                 visibleColumns={visibleColumns}
-                t={t}
                 locale={locale}
               />
             )}

@@ -2,13 +2,13 @@
  * LanguageSelector — locale picker for the DataVis grid.
  *
  * Uses @mieweb/ui Select to present the 10 supported locales.
- * On change, sets `window.DATAVIS_LANG` (the legacy global used by
- * `trans()`) and fires the `onLanguageChange` callback so the
- * host application can re-render with the new locale.
+ * On change, calls i18n.changeLanguage() and fires the
+ * `onLanguageChange` callback so the host application can
+ * re-render with the new locale.
  */
 
 import { Select } from '@mieweb/ui/components/Select';
-import { useTranslation, type TransFn } from '../i18n';
+import { useTranslation } from 'react-i18next';
 
 // ───────────────────────────────────────────────────────────
 // Supported locales — mirrors wcdatavis/src/trans.js registry
@@ -46,19 +46,11 @@ const LOCALE_OPTIONS = SUPPORTED_LOCALES.map((l) => ({
 // Component
 // ───────────────────────────────────────────────────────────
 
-declare global {
-  interface Window {
-    DATAVIS_LANG?: string;
-  }
-}
-
 export interface LanguageSelectorProps {
   /** Current locale code (BCP-47, e.g. 'en-US'). */
   value?: string;
   /** Called when the user picks a new locale. */
   onLanguageChange?: (code: string) => void;
-  /** i18n override. */
-  trans?: TransFn;
   /** Extra CSS class. */
   className?: string;
 }
@@ -66,21 +58,19 @@ export interface LanguageSelectorProps {
 export function LanguageSelector({
   value,
   onLanguageChange,
-  trans: transProp,
   className,
 }: LanguageSelectorProps) {
-  const t = useTranslation(transProp);
+  const { t, i18n } = useTranslation();
 
   const handleChange = (code: string) => {
-    // Update the legacy global so `trans()` reads the new locale.
-    window.DATAVIS_LANG = code;
+    i18n.changeLanguage(code);
     onLanguageChange?.(code);
   };
 
   return (
     <Select
       options={LOCALE_OPTIONS}
-      value={value ?? window.DATAVIS_LANG ?? 'en-US'}
+      value={value ?? i18n.language ?? 'en-US'}
       onValueChange={handleChange}
       placeholder={t('LANG.SELECT') || 'Language'}
       label={t('LANG.SELECT') || 'Language'}

@@ -7,7 +7,7 @@
  */
 
 import { useRef, useEffect, useCallback } from 'react';
-import { useTranslation, type TransFn } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 import type { FilterOperator, OperatorInfo } from './types';
 
 /**
@@ -53,8 +53,6 @@ export interface FilterOperatorSelectProps {
   'aria-label'?: string;
   /** Auto-focus and open on mount */
   autoFocus?: boolean;
-  /** i18n function */
-  trans?: TransFn;
 }
 
 export function FilterOperatorSelect({
@@ -63,9 +61,8 @@ export function FilterOperatorSelect({
   onChange,
   'aria-label': ariaLabel,
   autoFocus,
-  trans: transProp,
 }: FilterOperatorSelectProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   const selectRef = useRef<HTMLSelectElement>(null);
 
   useEffect(() => {

@@ -10,7 +10,7 @@ import { Modal, ModalHeader, ModalTitle, ModalClose, ModalBody, ModalFooter } fr
 import { Checkbox } from '@mieweb/ui/components/Checkbox';
 import { Textarea } from '@mieweb/ui/components/Textarea';
 import { Button } from '@mieweb/ui/components/Button';
-import { useTranslation, type TransFn } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -30,8 +30,6 @@ export interface GridTableOptionsDialogProps {
   displayFormat?: DisplayFormatConfig;
   /** Called with updated configuration on save */
   onSave: (displayFormat: DisplayFormatConfig) => void;
-  /** i18n */
-  trans?: TransFn;
 }
 
 // ───────────────────────────────────────────────────────────
@@ -43,9 +41,8 @@ export function GridTableOptionsDialog({
   onOpenChange,
   displayFormat: initialDisplayFormat,
   onSave,
-  trans: transProp,
 }: GridTableOptionsDialogProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   const [cellEnabled, setCellEnabled] = useState(false);
   const [cellTemplate, setCellTemplate] = useState('');
 

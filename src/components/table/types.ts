@@ -6,7 +6,6 @@
  */
 
 import type React from 'react';
-import type { TransFn } from '../../i18n';
 
 // ───────────────────────────────────────────────────────────
 // Column configuration
@@ -207,8 +206,7 @@ export interface BaseTableProps {
   limit?: { limit: number; autoShowMore?: boolean };
   /** Custom cell formatter (overrides default) */
   formatCell?: CellFormatter;
-  /** i18n function */
-  trans?: TransFn;
+
   /** Overall aggregate totals — rendered as a sticky footer row */
   aggregates?: Record<string, unknown>;
   /** Map of aggregate function internal names to display labels */

@@ -9,7 +9,7 @@
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
 import { Button } from '@mieweb/ui/components/Button';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
-import { useTranslation, type TransFn } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 import { StringFilter } from './StringFilter';
 import { NumberFilter } from './NumberFilter';
 import { DateFilter } from './DateFilter';
@@ -40,8 +40,6 @@ export interface FilterBarProps {
   availableFields?: FilterFieldOption[];
   /** Called when user picks a field from the "Add field" dropdown */
   onAddColumn?: (field: string) => void;
-  /** i18n */
-  trans?: TransFn;
 }
 
 export function FilterBar({
@@ -51,9 +49,8 @@ export function FilterBar({
   onRemoveColumn,
   availableFields = [],
   onAddColumn,
-  trans: transProp,
 }: FilterBarProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   // Track each field's individual spec
   const [specs, setSpecs] = useState<Record<string, FieldFilterSpec | null>>(
     () => {

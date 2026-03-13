@@ -10,7 +10,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@mieweb/ui/components/Button';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
-import { useTranslation, type TransFn } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 
 export interface FieldPillProps {
   /** Unique ID for DnD */
@@ -25,8 +25,6 @@ export interface FieldPillProps {
   onFunctionClick?: (id: string) => void;
   /** Whether to show the group function button */
   showFunctionButton?: boolean;
-  /** i18n */
-  trans?: TransFn;
 }
 
 export function FieldPill({
@@ -36,9 +34,8 @@ export function FieldPill({
   onRemove,
   onFunctionClick,
   showFunctionButton = false,
-  trans: transProp,
 }: FieldPillProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   const {
     attributes,
     listeners,

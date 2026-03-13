@@ -3,7 +3,7 @@ import { ComputedView, Source } from 'wcdatavis/index.js';
 import type { ViewInstance, SourceInstance } from '../adapters/use-data';
 import type { AggregateFunction } from '../components/controls/AggregateSection';
 import { buildAggregateFunctions, buildLocalSourceTypeInfo, normalizeLocalSourceRows } from '../adapters/wcdatavis-interop';
-import enUsTsv from '../i18n/en-US.tsv?raw';
+import i18n from '../i18n/config';
 
 export type MockView = ViewInstance;
 
@@ -28,28 +28,7 @@ export function createMockView(data: Record<string, unknown>[], columns: Array<{
   return new ComputedView(source, { name: 'Demo View' }) as unknown as MockView;
 }
 
-export function parseTsv(raw: string): Record<string, string> {
-  const labels: Record<string, string> = {};
-  for (const line of raw.split(/\r?\n/)) {
-    if (!line.trim() || line.startsWith('//') || line.startsWith('Translation Label')) continue;
-    const [key, value] = line.split('\t');
-    if (key && /^[A-Z0-9_.-]+$/.test(key.trim())) {
-      labels[key.trim()] = value?.trim() ?? key.trim();
-    }
-  }
-  return labels;
-}
-
-const LABELS = parseTsv(enUsTsv);
-
-export const demoTrans = (key: string, ...args: unknown[]): string => {
-  const raw = LABELS[key];
-  if (!raw) return '';
-  let text = raw;
-  for (const arg of args) {
-    text = text.replace('%s', String(arg ?? ''));
-  }
-  return text;
-};
+/** i18next translation function for use outside React components. */
+export const demoTrans = i18n.t.bind(i18n);
 
 export const DEMO_AGG_FUNCTIONS: AggregateFunction[] = buildAggregateFunctions();

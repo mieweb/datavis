@@ -17,6 +17,7 @@ import { getBuiltinGroupFunctions } from './adapters/group-adapter';
 import { normalizeComputedViewData } from './adapters/wcdatavis-interop';
 import { E2EHarnessApp, isE2EMode } from './testing/E2EHarnessApp';
 import { createMockView, DEMO_AGG_FUNCTIONS, demoTrans } from './demo/mock-grid';
+import { LanguageSelector } from './components/LanguageSelector';
 
 import {
   SIMPLE_DATA, SIMPLE_COLUMNS, SIMPLE_FILTERS,
@@ -97,7 +98,6 @@ function GridDemo({
       showToolbar={true}
       showControls={true}
       debug={true}
-      trans={demoTrans}
       filterColumns={filters}
       allColumns={columns}
       controlFields={controlFields}
@@ -118,7 +118,6 @@ function GridDemo({
           keyboardNav: true,
           headerContextMenu: true,
         }}
-        trans={demoTrans}
         onRowClick={(row) => console.log('Row clicked:', row.data)}
       />
     </DataGrid>
@@ -213,19 +212,22 @@ function App() {
             React table renderer with column resize, reorder, sort, sticky headers, and context menus.
           </p>
         </div>
-        {location.hostname === 'localhost' && <a
-          href="http://localhost:6006"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-pink-600 border border-pink-300 rounded-md hover:bg-pink-50 transition-colors"
-          aria-label="Open Storybook"
-        >
+        <div className="flex items-center gap-3">
+          <LanguageSelector />
+          {location.hostname === 'localhost' && <a
+            href="http://localhost:6006"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-pink-600 border border-pink-300 rounded-md hover:bg-pink-50 transition-colors"
+            aria-label="Open Storybook"
+          >
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4" aria-hidden="true">
             <path d="M12.232 4.232a2.5 2.5 0 0 1 3.536 3.536l-1.225 1.224a.75.75 0 0 0 1.061 1.06l1.224-1.224a4 4 0 0 0-5.656-5.656l-3 3a4 4 0 0 0 .225 5.865.75.75 0 0 0 .977-1.138 2.5 2.5 0 0 1-.142-3.667l3-3Z" />
             <path d="M11.603 7.963a.75.75 0 0 0-.977 1.138 2.5 2.5 0 0 1 .142 3.667l-3 3a2.5 2.5 0 0 1-3.536-3.536l1.225-1.224a.75.75 0 0 0-1.061-1.06l-1.224 1.224a4 4 0 1 0 5.656 5.656l3-3a4 4 0 0 0-.225-5.865Z" />
           </svg>
           Storybook
         </a>}
+        </div>
       </header>
 
       {/* Tab bar */}

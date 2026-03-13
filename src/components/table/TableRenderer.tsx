@@ -25,7 +25,7 @@ import { PivotTable, type PivotData } from './PivotTable';
 import { TableProgress } from './TableProgress';
 import { useSortContext } from './SortContext';
 import type { ViewData } from '../../adapters/use-data';
-import { useTranslation, type TransFn } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 
 function serializeGroupKey(groupFields: string[], row: Record<string, unknown>): string {
   return groupFields
@@ -56,8 +56,6 @@ export interface TableRendererProps {
   loading?: boolean;
   /** Custom cell formatter */
   formatCell?: CellFormatter;
-  /** i18n function */
-  trans?: TransFn;
   /** Group mode: 'detail' | 'summary' */
   groupMode?: 'detail' | 'summary';
   /** Whether to show total row (group/pivot) */
@@ -106,7 +104,6 @@ export function TableRenderer({
   loadedRows,
   loading = false,
   formatCell,
-  trans: transProp,
   groupMode = 'detail',
   showTotalRow = false,
   showTotalCol = true,
@@ -123,7 +120,7 @@ export function TableRenderer({
   onShowAll,
   onSelectionChange,
 }: TableRendererProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
 
   // Fall back to SortContext when sort/onSort props are not explicitly passed
   const sortCtx = useSortContext();
@@ -253,7 +250,6 @@ export function TableRenderer({
           loaded={loadedRows!}
           total={totalRows!}
           active={loading}
-          trans={t}
         />
       )}
 
@@ -267,7 +263,6 @@ export function TableRenderer({
           totalRows={totalRows}
           limit={limit}
           formatCell={formatCell}
-          trans={t}
           aggregates={viewData.totalAggregates as Record<string, unknown> | undefined}
           aggFnLabels={aggFnLabels}
           onSort={effectiveOnSort}
@@ -295,7 +290,6 @@ export function TableRenderer({
             totalRows={totalRows}
             showTotalRow={showTotalRow}
             totalAggregates={viewData.totalAggregates as Record<string, unknown> | undefined}
-            trans={t}
             onSort={effectiveOnSort}
           />
         ) : (
@@ -314,7 +308,6 @@ export function TableRenderer({
             showTotalRow={showTotalRow}
             initialExpanded={groupsExpanded}
             aggFnLabels={aggFnLabels}
-            trans={t}
             onSort={effectiveOnSort}
             onRowClick={onRowClick}
             onRowDoubleClick={onRowDoubleClick}
@@ -336,7 +329,6 @@ export function TableRenderer({
           sort={effectiveSort}
           features={features}
           showTotalCol={showTotalCol}
-          trans={t}
           onSort={effectiveOnSort}
         />
       )}

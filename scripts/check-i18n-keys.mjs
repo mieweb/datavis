@@ -4,7 +4,7 @@ import path from 'node:path';
 import ts from 'typescript';
 
 const ROOT = process.cwd();
-const SOURCE_LOCALE = path.join(ROOT, 'src', 'i18n', 'en-US.tsv');
+const SOURCE_LOCALE = path.join(ROOT, 'src', 'i18n', 'en-US.json');
 const UPDATE_MODE = process.argv.includes('--update');
 const SEARCH_DIRS = [
   path.join(ROOT, 'src'),
@@ -27,20 +27,10 @@ function walkFiles(directory, files = []) {
   return files;
 }
 
-function readDefinedKeys(tsvFile) {
-  const content = fs.readFileSync(tsvFile, 'utf8');
-  const keys = new Set();
-
-  for (const rawLine of content.split(/\r?\n/)) {
-    const line = rawLine.trim();
-    if (!line || line.startsWith('//')) continue;
-    const [key] = rawLine.split('\t');
-    if (key && KEY_PATTERN.test(key.trim())) {
-      keys.add(key.trim());
-    }
-  }
-
-  return keys;
+function readDefinedKeys(jsonFile) {
+  const content = fs.readFileSync(jsonFile, 'utf8');
+  const obj = JSON.parse(content);
+  return new Set(Object.keys(obj));
 }
 
 function scriptKindFromPath(filePath) {
@@ -117,19 +107,13 @@ function relative(filePath) {
   return path.relative(ROOT, filePath).replaceAll('\\\\', '/');
 }
 
-function appendMissingKeys(tsvFile, missingKeys, fallbackMap) {
-  const lines = [
-    '',
-    '// Auto-added by lint:i18n:update',
-    '',
-    ...missingKeys.map((key) => {
-      const value = fallbackMap.get(key) ?? key;
-      return `${key}\t${value}`;
-    }),
-    '',
-  ];
-
-  fs.appendFileSync(tsvFile, lines.join('\n'), 'utf8');
+function appendMissingKeys(jsonFile, missingKeys, fallbackMap) {
+  const content = fs.readFileSync(jsonFile, 'utf8');
+  const obj = JSON.parse(content);
+  for (const key of missingKeys) {
+    obj[key] = fallbackMap.get(key) ?? key;
+  }
+  fs.writeFileSync(jsonFile, JSON.stringify(obj, null, 2) + '\n', 'utf8');
 }
 
 function main() {
@@ -141,7 +125,7 @@ function main() {
   const missing = Array.from(usedKeys).filter((key) => !definedKeys.has(key)).sort();
 
   if (missing.length === 0) {
-    console.log(`✅ i18n key check passed (${usedKeys.size} keys used, all present in src/i18n/en-US.tsv)`);
+    console.log(`✅ i18n key check passed (${usedKeys.size} keys used, all present in src/i18n/en-US.json)`);
     return;
   }
 
@@ -154,11 +138,11 @@ function main() {
       }
     }
     appendMissingKeys(SOURCE_LOCALE, missing, fallbackMap);
-    console.log(`🛠️ Added ${missing.length} missing key(s) to src/i18n/en-US.tsv`);
+    console.log(`🛠️ Added ${missing.length} missing key(s) to src/i18n/en-US.json`);
     return;
   }
 
-  console.error(`❌ Missing ${missing.length} translation key(s) in src/i18n/en-US.tsv:`);
+  console.error(`❌ Missing ${missing.length} translation key(s) in src/i18n/en-US.json:`);
 
   for (const key of missing) {
     const match = usedEntries.find((entry) => entry.key === key);

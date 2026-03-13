@@ -24,7 +24,8 @@ import {
   needsGroupFunction,
 } from '../adapters/group-adapter';
 import { toLegacyAggregateSpec } from '../adapters/wcdatavis-interop';
-import { TransProvider, useTranslation, type TransFn, LocaleProvider } from '../i18n';
+import { useTranslation } from 'react-i18next';
+import { LocaleProvider } from '../i18n';
 import { TitleBar } from './TitleBar';
 import { GridToolbar } from './GridToolbar';
 import { ControlPanel } from './controls/ControlPanel';
@@ -127,8 +128,6 @@ export interface DataGridProps {
   className?: string;
   /** Children rendered in the content area (e.g. table renderer) */
   children?: React.ReactNode;
-  /** i18n function — defaults to identity. Also available via TransProvider / useTranslation(). */
-  trans?: TransFn;
   /** BCP-47 locale for number/date formatting (e.g. 'en-US'). Defaults to browser locale. */
   locale?: string;
   /** Enable debug button */
@@ -180,7 +179,6 @@ export function DataGrid({
   onToggle,
   className = '',
   children,
-  trans: transProp,
   locale,
   debug = false,
   preserveChildViewData = false,
@@ -198,8 +196,8 @@ export function DataGrid({
   groupFunctionDefs = [],
   onGroupFunctionSelect,
 }: DataGridProps) {
-  // ── i18n via context (with optional prop override) ─
-  const t = useTranslation(transProp);
+  // ── i18n via react-i18next ─
+  const { t } = useTranslation();
   const [internalTableDef] = useState<GridTableDef>(() => ({
     rowMode: 'wrapped',
     limit: { autoShowMore: true, limit: DEFAULT_ROW_BATCH_SIZE },
@@ -799,7 +797,6 @@ export function DataGrid({
   const gridTableId = `wcdv-grid-table-${title?.replace(/\s+/g, '-') || 'main'}`;
 
   return (
-    <TransProvider value={t}>
     <LocaleProvider value={locale}>
     <div
       className={`wcdv-grid flex flex-col border border-gray-200 rounded-lg bg-white shadow-sm ${className}`}
@@ -992,6 +989,5 @@ export function DataGrid({
       )}
     </div>
     </LocaleProvider>
-    </TransProvider>
   );
 }

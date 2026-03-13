@@ -14,7 +14,7 @@ import {
 import { Select } from '@mieweb/ui/components/Select';
 import { Button } from '@mieweb/ui/components/Button';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
-import { useTranslation, type TransFn } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 import { FieldPill } from './FieldPill';
 
 export interface ControlFieldItem {
@@ -56,8 +56,6 @@ export interface ControlSectionProps {
   onFunctionClick?: (field: string) => void;
   /** Whether to show the group-function button on pills */
   showFunctionButton?: boolean;
-  /** i18n */
-  trans?: TransFn;
 }
 
 export function ControlSection({
@@ -70,9 +68,8 @@ export function ControlSection({
   onClear,
   onFunctionClick,
   showFunctionButton = false,
-  trans: transProp,
 }: ControlSectionProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   // Filter out already-added fields from dropdown options
   const addedFieldNames = new Set(fields.map((f) => f.field));
   const dropdownOptions = availableFields
@@ -138,7 +135,7 @@ export function ControlSection({
 
       {/* Sortable field list */}
       {fields.length > 0 && (
-        <div className="flex flex-wrap gap-1" role="list" aria-label={t('CONTROL.SECTION_FIELDS', title) || `${title} fields`}>
+        <div className="flex flex-wrap gap-1" role="list" aria-label={t('CONTROL.SECTION_FIELDS', { param0: title }) || `${title} fields`}>
           <SortableContext items={fieldIds} strategy={verticalListSortingStrategy}>
             {fields.map((f) => (
               <FieldPill
@@ -149,7 +146,6 @@ export function ControlSection({
                 onRemove={onRemove}
                 onFunctionClick={onFunctionClick}
                 showFunctionButton={showFunctionButton}
-                trans={t}
               />
             ))}
           </SortableContext>

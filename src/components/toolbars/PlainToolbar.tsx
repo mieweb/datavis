@@ -10,14 +10,13 @@ import { Switch } from '@mieweb/ui/components/Switch';
 import { Radio, RadioGroup } from '@mieweb/ui/components/Radio';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 
-import { useTranslation, type TransFn } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 import type { GridTableDef } from '../DataGrid';
 
 export interface PlainToolbarProps {
   autoShowMore: boolean;
   tableDef?: GridTableDef;
   rowMode: 'wrapped' | 'clipped';
-  trans?: TransFn;
   onRowModeChange: (mode: 'wrapped' | 'clipped') => void;
   onAutoShowMoreChange?: (checked: boolean) => void;
   onShowAllRows?: () => void;
@@ -30,7 +29,6 @@ export function PlainToolbar({
   autoShowMore,
   tableDef,
   rowMode,
-  trans: transProp,
   onRowModeChange,
   onAutoShowMoreChange,
   onShowAllRows,
@@ -38,7 +36,7 @@ export function PlainToolbar({
   onOpenTemplateEditor,
   onAutoResizeColumns,
 }: PlainToolbarProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
 
   const handleAutoShowMoreChange = useCallback(
     (checked: boolean) => {

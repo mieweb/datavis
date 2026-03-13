@@ -9,7 +9,7 @@ import { useCallback, useMemo } from 'react';
 
 import { Modal, ModalHeader, ModalTitle, ModalClose, ModalBody, ModalFooter } from '@mieweb/ui/components/Modal';
 import { Button } from '@mieweb/ui/components/Button';
-import { useTranslation, type TransFn } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -37,8 +37,6 @@ export interface GroupFunctionDialogProps {
   fieldName?: string;
   /** Called with the selected function name (or 'none') */
   onSelect: (functionName: string | null) => void;
-  /** i18n */
-  trans?: TransFn;
 }
 
 // ───────────────────────────────────────────────────────────
@@ -64,9 +62,8 @@ export function GroupFunctionDialog({
   currentFunction,
   fieldName,
   onSelect,
-  trans: transProp,
 }: GroupFunctionDialogProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   // Group functions by category
   const categories = useMemo(() => {
     const map = new Map<string, GroupFunction[]>();

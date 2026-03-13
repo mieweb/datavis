@@ -671,7 +671,6 @@ function HarnessGrid({
         showControls={true}
         debug={true}
         preserveChildViewData={preserveChildViewData}
-        trans={demoTrans}
         filterColumns={config.filters}
         allColumns={config.columns}
         controlFields={controlFields}
@@ -697,7 +696,6 @@ function HarnessGrid({
             headerContextMenu: true,
             rowSelection: true,
           }}
-          trans={demoTrans}
           formatCell={formatCell}
           onSelectionChange={setSelection}
           onRowClick={(row) => setDetailRow(row.data)}
@@ -707,7 +705,6 @@ function HarnessGrid({
         open={detailRow != null}
         header={detailRow ? `Detail panel` : ''}
         onClose={() => setDetailRow(null)}
-        trans={demoTrans}
       >
         <pre className="text-xs text-slate-700 whitespace-pre-wrap">{detailRow ? JSON.stringify(detailRow, null, 2) : ''}</pre>
       </DetailSlider>

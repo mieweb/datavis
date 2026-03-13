@@ -7,7 +7,7 @@
 
 
 import type { ViewInstance } from '../adapters/use-data';
-import { useTranslation, type TransFn } from '../i18n';
+import { useTranslation } from 'react-i18next';
 import type { GridTableDef } from './DataGrid';
 import { PlainToolbar } from './toolbars/PlainToolbar';
 import { GroupToolbar } from './toolbars/GroupToolbar';
@@ -19,7 +19,6 @@ export interface GridToolbarProps {
   tableDef?: GridTableDef;
   rowMode: 'wrapped' | 'clipped';
   view: ViewInstance;
-  trans?: TransFn;
   onAutoShowMoreChange: (checked: boolean) => void;
   onRowModeChange: (mode: 'wrapped' | 'clipped') => void;
   onRedraw: () => void;
@@ -35,7 +34,6 @@ export function GridToolbar({
   tableDef,
   rowMode,
   view,
-  trans: transProp,
   onAutoShowMoreChange,
   onRowModeChange,
   onRedraw,
@@ -44,7 +42,7 @@ export function GridToolbar({
   onOpenTemplateEditor,
   onOpenTableOptions,
 }: GridToolbarProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
 
   return (
     <div

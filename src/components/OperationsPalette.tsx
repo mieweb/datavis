@@ -7,7 +7,7 @@
 import React, { useMemo, useCallback } from 'react';
 import { Button } from '@mieweb/ui/components/Button';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
-import { useTranslation, type TransFn } from '../i18n';
+import { useTranslation } from 'react-i18next';
 
 export interface Operation {
   /** Unique index (assigned automatically if not provided) */
@@ -34,16 +34,13 @@ export interface OperationsPaletteProps {
   operations: Operation[];
   /** Currently selected rows — passed to operation callbacks */
   selectedRows?: unknown[];
-  /** i18n function */
-  trans?: TransFn;
 }
 
 export function OperationsPalette({
   operations,
   selectedRows = [],
-  trans: transProp,
 }: OperationsPaletteProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   // Group operations by category
   const groups = useMemo(() => {
     const map = new Map<string, Operation[]>();

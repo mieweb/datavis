@@ -14,7 +14,7 @@ import { Modal, ModalHeader, ModalTitle, ModalClose, ModalBody, ModalFooter } fr
 import { Button } from '@mieweb/ui/components/Button';
 import { Input } from '@mieweb/ui/components/Input';
 import { Textarea } from '@mieweb/ui/components/Textarea';
-import { useTranslation, type TransFn } from '../../i18n';
+import { useTranslation } from 'react-i18next';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -46,8 +46,6 @@ export interface PerspectiveManagerDialogProps {
   onRename?: (id: string, newName: string) => void;
   /** Callback: delete a perspective */
   onDelete?: (id: string) => void;
-  /** i18n */
-  trans?: TransFn;
 }
 
 // ───────────────────────────────────────────────────────────
@@ -63,9 +61,8 @@ export function PerspectiveManagerDialog({
   onCreate,
   onRename,
   onDelete,
-  trans: transProp,
 }: PerspectiveManagerDialogProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   const [newName, setNewName] = useState('');
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameName, setRenameName] = useState('');
@@ -118,7 +115,7 @@ export function PerspectiveManagerDialog({
       if (
         perspective &&
         confirm(
-          (t('PERSPECTIVE.CONFIRM_DELETE') || 'Delete perspective "%s"?').replace('%s', perspective.name),
+          t('PERSPECTIVE.CONFIRM_DELETE', { param0: perspective.name }) || `Delete perspective "${perspective.name}"?`,
         )
       ) {
         onDelete?.(id);

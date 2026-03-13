@@ -6,7 +6,7 @@
  */
 
 import React, { useEffect, useRef } from 'react';
-import { useTranslation, type TransFn } from '../i18n';
+import { useTranslation } from 'react-i18next';
 
 export interface DetailSliderProps {
   /** Whether the slider is open */
@@ -17,8 +17,6 @@ export interface DetailSliderProps {
   onClose: () => void;
   /** Body content */
   children?: React.ReactNode;
-  /** i18n */
-  trans?: TransFn;
 }
 
 export function DetailSlider({
@@ -26,9 +24,8 @@ export function DetailSlider({
   header = '',
   onClose,
   children,
-  trans: transProp,
 }: DetailSliderProps) {
-  const t = useTranslation(transProp);
+  const { t } = useTranslation();
   const panelRef = useRef<HTMLDivElement>(null);
 
   // Trap focus when open
