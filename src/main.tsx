@@ -14,7 +14,7 @@ import { TableRenderer } from './components/table/TableRenderer';
 import type { TableColumn } from './components/table/types';
 import type { ColumnFilterConfig } from './components/filters/types';
 import { getBuiltinGroupFunctions } from './adapters/group-adapter';
-import { normalizeComputedViewData } from './adapters/wcdatavis-interop';
+import { normalizeComputedViewData, type NormalizedViewData } from './adapters/wcdatavis-interop';
 import { E2EHarnessApp, isE2EMode } from './testing/E2EHarnessApp';
 import { createMockView, DEMO_AGG_FUNCTIONS, demoTrans } from './demo/mock-grid';
 import { LanguageSelector } from './components/LanguageSelector';
@@ -74,7 +74,7 @@ function GridDemo({
   const initialViewData = useMemo(() => ({
     isPlain: true, isGroup: false, isPivot: false, data,
   }), [data]);
-  const [viewData, setViewData] = useState(initialViewData);
+  const [viewData, setViewData] = useState<NormalizedViewData>(initialViewData);
 
   useEffect(() => {
     const handler = () => {

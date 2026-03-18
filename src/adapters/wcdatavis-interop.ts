@@ -1,4 +1,4 @@
-import { AGGREGATE_REGISTRY, AggregateInfo, Source } from 'wcdatavis/index.js';
+import { AGGREGATE_REGISTRY, AggregateInfo, Source } from '../../wcdatavis-lib/index.js';
 
 export interface NormalizedViewData {
   isPlain: boolean;
@@ -103,7 +103,7 @@ interface ColumnLike {
   header?: string;
   typeInfo?: {
     type?: string;
-    format?: string;
+    format?: string | Record<string, unknown>;
     internalType?: string;
   };
 }
@@ -173,7 +173,7 @@ function serializeGroupKey(groupValues: Record<string, unknown>, groupFields: st
 function buildAggregateKey(info: LegacyAggInfoEntry | undefined): string | null {
   const fn = info?.fun ?? (info as AggregateSpecItem | undefined)?.fn;
   if (!fn) return null;
-  const field = info.fields?.[0];
+  const field = info?.fields?.[0];
   return field ? `${fn}(${field})` : fn;
 }
 
@@ -287,7 +287,7 @@ function computeAggregateRecord(
 export function normalizeComputedViewData(rawData: unknown, typeInfo: unknown, aggregateSpec: unknown): NormalizedViewData | null {
   if (!isObject(rawData)) return null;
 
-  const raw = rawData as LegacyViewData;
+  const raw = rawData as unknown as LegacyViewData;
   const normalized: NormalizedViewData = {
     isPlain: Boolean(raw.isPlain),
     isGroup: Boolean(raw.isGroup),
@@ -355,7 +355,7 @@ function inferTypeFromValue(value: unknown): string {
     if (/^\d{4}-\d{2}-\d{2}(?:[T\s].*)?$/.test(value)) {
       return value.includes('T') || value.includes(' ') ? 'datetime' : 'date';
     }
-    const numeric = Number(value.replaceAll(',', ''));
+    const numeric = Number(value.replace(/,/g, ''));
     if (!Number.isNaN(numeric) && value.trim() !== '') {
       return 'number';
     }
@@ -363,7 +363,7 @@ function inferTypeFromValue(value: unknown): string {
   return 'string';
 }
 
-export function buildLocalSourceTypeInfo(data: Record<string, unknown>[], columns: ColumnLike[] = []): Record<string, { field: string; type: string; format?: string; internalType?: string }> {
+export function buildLocalSourceTypeInfo(data: Record<string, unknown>[], columns: ColumnLike[] = []): Record<string, { field: string; type: string; format?: string | Record<string, unknown>; internalType?: string }> {
   const fields = new Set<string>(columns.map((column) => column.field));
   data.forEach((row) => {
     Object.keys(row).forEach((field) => fields.add(field));

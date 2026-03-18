@@ -506,7 +506,7 @@ export function PlainTable({
       [onSelectionChange],
     ),
     useCallback(
-      (row, event) => {
+      (row: TableRow, event: React.KeyboardEvent) => {
         onRowClick?.(row, event as unknown as React.MouseEvent);
       },
       [onRowClick],

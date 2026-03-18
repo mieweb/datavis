@@ -1,4 +1,4 @@
-import { ComputedView, Source } from 'wcdatavis/index.js';
+import { ComputedView, Source } from '../../wcdatavis-lib/index.js';
 
 import type { ViewInstance, SourceInstance } from '../adapters/use-data';
 import type { AggregateFunction } from '../components/controls/AggregateSection';
@@ -12,18 +12,18 @@ let localSourceCounter = 0;
 function installLocalDataset(data: Record<string, unknown>[], typeInfo: Record<string, unknown>) {
   localSourceCounter += 1;
   const varName = `__wcdv_local_source_${localSourceCounter}`;
-  (window as Window & Record<string, unknown>)[varName] = { data, typeInfo };
+  (window as unknown as Record<string, unknown>)[varName] = { data, typeInfo };
   return varName;
 }
 
-export function createMockSource(data: Record<string, unknown>[], columns: Array<{ field: string; header?: string; typeInfo?: { type?: string; format?: string; internalType?: string } }> = []): SourceInstance {
+export function createMockSource(data: Record<string, unknown>[], columns: Array<{ field: string; header?: string; typeInfo?: { type?: string; format?: string | Record<string, unknown>; internalType?: string } }> = []): SourceInstance {
   const typeInfo = buildLocalSourceTypeInfo(data, columns);
   const normalizedRows = normalizeLocalSourceRows(data, typeInfo);
   const varName = installLocalDataset(normalizedRows, typeInfo);
   return new Source({ type: 'local', varName }, [], undefined, { name: 'Demo Source' }) as unknown as SourceInstance;
 }
 
-export function createMockView(data: Record<string, unknown>[], columns: Array<{ field: string; header?: string; typeInfo?: { type?: string; format?: string; internalType?: string } }> = []): MockView {
+export function createMockView(data: Record<string, unknown>[], columns: Array<{ field: string; header?: string; typeInfo?: { type?: string; format?: string | Record<string, unknown>; internalType?: string } }> = []): MockView {
   const source = createMockSource(data, columns);
   return new ComputedView(source, { name: 'Demo View' }) as unknown as MockView;
 }

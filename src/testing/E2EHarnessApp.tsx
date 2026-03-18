@@ -6,7 +6,7 @@ import { TableRenderer } from '../components/table/TableRenderer';
 import type { SelectionState, TableColumn } from '../components/table/types';
 import type { ColumnFilterConfig, FilterSpec } from '../components/filters/types';
 import { buildGroupSpec, getBuiltinGroupFunctions } from '../adapters/group-adapter';
-import { normalizeComputedViewData, toLegacyAggregateSpec } from '../adapters/wcdatavis-interop';
+import { normalizeComputedViewData, toLegacyAggregateSpec, type NormalizedViewData } from '../adapters/wcdatavis-interop';
 import {
   SIMPLE_DATA,
   SIMPLE_COLUMNS,
@@ -195,7 +195,7 @@ function computeLegacyAggregateValue(rows: Array<Record<string, unknown>>, spec:
       return numericValues.reduce((sum, value) => sum + value, 0) / numericValues.length;
     }
     case 'sum':
-      return values.reduce((sum, value) => sum + Number(value), 0);
+      return values.reduce((sum: number, value) => sum + Number(value), 0);
     case 'min':
       return Math.min(...values.map((value) => Number(value)));
     case 'max':
@@ -490,7 +490,7 @@ function HarnessGrid({
   registerApi?: boolean;
 }) {
   const view = useMemo(() => createMockView(config.data, config.columns), [config.columns, config.data]);
-  const [viewData, setViewData] = useState(() => ({ isPlain: true, isGroup: false, isPivot: false, data: config.data }));
+  const [viewData, setViewData] = useState<NormalizedViewData>(() => ({ isPlain: true, isGroup: false, isPivot: false, data: config.data }));
   const [busy, setBusy] = useState(false);
   const [revision, setRevision] = useState(1);
   const [filterSpec, setFilterSpec] = useState<FilterSpec | null>(null);
@@ -559,7 +559,7 @@ function HarnessGrid({
               groupSpec,
               aggregateSpec,
             )
-          : (viewData.groupMetadata ?? {});
+          : ((viewData.groupMetadata ?? {}) as Record<string, unknown>);
 
         return {
           scenario,
