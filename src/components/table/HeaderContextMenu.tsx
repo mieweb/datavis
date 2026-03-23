@@ -10,7 +10,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ContextMenuItem } from './types';
 import { useTranslation } from 'react-i18next';
-import { DisclosureButton, MenuAction } from '../ui';
+import { ChevronGlyphIcon, DisclosureButton, MenuAction } from '../ui';
 
 export interface HeaderContextMenuProps {
   /** Whether the menu is visible */
@@ -109,7 +109,7 @@ export function HeaderContextMenu({
                 indicator={item.icon ? <span className="w-4 text-center">{item.icon}</span> : undefined}
               >
                 <span className="flex-1 text-left">{item.label}</span>
-                <span className="text-xs text-gray-400">▸</span>
+                <ChevronGlyphIcon className="h-3.5 w-3.5 text-gray-400" direction="right" />
               </DisclosureButton>
               {subOpen && (
                 <div

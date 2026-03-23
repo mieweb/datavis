@@ -11,7 +11,7 @@ import { Modal, ModalHeader, ModalTitle, ModalClose, ModalBody, ModalFooter } fr
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@mieweb/ui/components/Tabs';
 import { Button } from '@mieweb/ui/components/Button';
 import { useTranslation } from 'react-i18next';
-import { DisclosureButton } from '../ui';
+import { DisclosureButton, DisclosureGlyphIcon } from '../ui';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -79,7 +79,7 @@ function CollapsibleSection({ title, children, defaultOpen = false }: Collapsibl
         className="rounded-none px-3 py-2 text-gray-700 hover:bg-gray-50"
         onClick={() => setOpen((prev) => !prev)}
         aria-expanded={open}
-        indicator={<span className="text-xs">{open ? '▼' : '▶'}</span>}
+        indicator={<DisclosureGlyphIcon className="h-3.5 w-3.5" expanded={open} />}
       >
         {title}
       </DisclosureButton>

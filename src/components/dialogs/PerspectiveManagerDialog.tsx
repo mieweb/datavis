@@ -15,6 +15,7 @@ import { Button } from '@mieweb/ui/components/Button';
 import { Input } from '@mieweb/ui/components/Input';
 import { Textarea } from '@mieweb/ui/components/Textarea';
 import { useTranslation } from 'react-i18next';
+import { CloseGlyphIcon, DocumentIcon } from '../ui';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -236,7 +237,7 @@ export function PerspectiveManagerDialog({
                       onClick={() => handleStartRename(p.id, p.name)}
                       aria-label={`${t('PERSPECTIVE.RENAME') || 'Rename'} ${p.name}`}
                     >
-                      ✏
+                      <DocumentIcon className="h-4 w-4" />
                     </Button>
 
                     {!p.isEssential && (
@@ -247,7 +248,7 @@ export function PerspectiveManagerDialog({
                         onClick={() => handleDelete(p.id)}
                         aria-label={`${t('PERSPECTIVE.DELETE') || 'Delete'} ${p.name}`}
                       >
-                        ✕
+                        <CloseGlyphIcon className="h-4 w-4" />
                       </Button>
                     )}
                   </>

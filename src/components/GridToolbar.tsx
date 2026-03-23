@@ -28,13 +28,13 @@ export interface GridToolbarProps {
 }
 
 export function GridToolbar({
-  autoShowMore,
+  autoShowMore: _autoShowMore,
   dataMode,
   tableDef,
-  rowMode,
+  rowMode: _rowMode,
   view,
-  onAutoShowMoreChange,
-  onRowModeChange,
+  onAutoShowMoreChange: _onAutoShowMoreChange,
+  onRowModeChange: _onRowModeChange,
   onRedraw,
   onShowAllRows,
   onOpenColumnConfig,
@@ -50,11 +50,7 @@ export function GridToolbar({
     >
       {dataMode === 'plain' && (
         <PlainToolbar
-          autoShowMore={autoShowMore}
           tableDef={tableDef}
-          rowMode={rowMode}
-          onAutoShowMoreChange={onAutoShowMoreChange}
-          onRowModeChange={onRowModeChange}
           onShowAllRows={onShowAllRows}
           onOpenColumnConfig={onOpenColumnConfig}
         />

@@ -50,7 +50,7 @@ import { useFilterContext } from '../filters/FilterContext';
 import { useColumnConfig } from './ColumnConfigContext';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '../../i18n';
-import { IconButton, TableActionButton } from '../ui';
+import { CalendarIcon, ChevronGlyphIcon, IconButton, SearchIcon, SortGlyphIcon, TableActionButton } from '../ui';
 import { formatCellValue, formatAggregateNumber, DATE_FORMAT_PRESETS, type DateFormatPreset } from './format-cell';
 
 // ───────────────────────────────────────────────────────────
@@ -65,7 +65,7 @@ function SortIcon({ direction }: { direction?: SortDirection }) {
         className="ml-1 inline-block text-gray-300 text-xs"
         aria-hidden="true"
       >
-        ↕
+        <SortGlyphIcon className="text-gray-300" />
       </span>
     );
   }
@@ -74,7 +74,7 @@ function SortIcon({ direction }: { direction?: SortDirection }) {
       className="ml-1 inline-block text-blue-500 text-xs"
       aria-label={direction === 'asc' ? (t('TABLE.SORTED_ASC') || 'Sorted ascending') : (t('TABLE.SORTED_DESC') || 'Sorted descending')}
     >
-      {direction === 'asc' ? '↑' : '↓'}
+      <SortGlyphIcon className="text-blue-500" direction={direction} />
     </span>
   );
 }
@@ -570,18 +570,18 @@ export function PlainTable({
     const items: ContextMenuItem[] = [
       {
         label: t('TABLE.SORT_ASC') || 'Sort Ascending',
-        icon: '↑',
+        icon: <ChevronGlyphIcon className="h-4 w-4" direction="up" />,
         onClick: () => onSort?.(col.field, 'asc'),
       },
       {
         label: t('TABLE.SORT_DESC') || 'Sort Descending',
-        icon: '↓',
+        icon: <ChevronGlyphIcon className="h-4 w-4" direction="down" />,
         onClick: () => onSort?.(col.field, 'desc'),
       },
       { separator: true, label: '' },
       {
         label: t('TABLE.HIDE_COLUMN') || 'Hide Column',
-        icon: '👁',
+        icon: <SearchIcon className="h-4 w-4" />,
         onClick: () => {
           // Notify DataGrid via context so column config dialog stays in sync
           colConfigCtx.setColumnHidden(col.field, true);
@@ -602,7 +602,7 @@ export function PlainTable({
         { separator: true, label: '' },
         {
           label: t('TABLE.DATE_FORMAT') || 'Date Format',
-          icon: '📅',
+          icon: <CalendarIcon className="h-4 w-4" />,
           children: DATE_FORMAT_PRESETS.map((p) => ({
             label: `${p.label}  ${p.example}`,
             checked: current === p.key,

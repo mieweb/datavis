@@ -14,8 +14,8 @@ export interface Operation {
   idx?: number;
   /** Display label */
   label?: string;
-  /** Icon identifier (e.g. FA class name or emoji) */
-  icon?: string;
+  /** Optional icon element */
+  icon?: React.ReactNode;
   /** Category for grouping */
   category?: string;
   /** Callback invoked when the operation is triggered */
@@ -81,7 +81,7 @@ export function OperationsPalette({
 
             {ops.map((op, i) => {
               const label = op.label ?? '';
-              const tooltipText = label || op.icon || `Operation ${i}`;
+              const tooltipText = label || `Operation ${i + 1}`;
 
               return (
                 <Tooltip key={i} content={tooltipText}>
@@ -91,7 +91,7 @@ export function OperationsPalette({
                     onClick={() => handleClick(op)}
                     aria-label={tooltipText}
                   >
-                    {op.icon && <span className="mr-0.5">{op.icon}</span>}
+                    {op.icon ? <span className="mr-0.5 inline-flex items-center">{op.icon}</span> : null}
                     {label && <span>{label}</span>}
                   </Button>
                 </Tooltip>

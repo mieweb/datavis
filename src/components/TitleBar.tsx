@@ -10,7 +10,7 @@ import { Spinner } from '@mieweb/ui/components/Spinner';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 
 import { useTranslation } from 'react-i18next';
-import { InlineActionButton } from './ui';
+import { ChevronGlyphIcon, HelpIcon, InlineActionButton, RefreshGlyphIcon, SettingsIcon } from './ui';
 import { PrefsToolbar } from './toolbars/PrefsToolbar';
 import type { PrefsInstance } from '../adapters/use-prefs';
 
@@ -108,7 +108,7 @@ export function TitleBar({
             role="img"
             aria-label={t('GRID.TITLEBAR.HELP')}
           >
-            &#9432;
+            <HelpIcon className="h-4 w-4" />
           </span>
         </Tooltip>
       )}
@@ -130,7 +130,7 @@ export function TitleBar({
             onClick={onRefresh}
             aria-label={t('GRID.TITLEBAR.REFRESH')}
           >
-            ↻
+            <RefreshGlyphIcon className="h-4 w-4" />
           </Button>
         </Tooltip>
 
@@ -142,7 +142,7 @@ export function TitleBar({
             onDoubleClick={onOpenPerspective}
             aria-label={t('GRID.TITLEBAR.CONTROLS')}
           >
-            ⚙
+            <SettingsIcon className="h-4 w-4" />
           </Button>
         </Tooltip>
 
@@ -153,7 +153,7 @@ export function TitleBar({
             onClick={onToggle}
             aria-label={collapsed ? t('GRID.TITLEBAR.EXPAND') : t('GRID.TITLEBAR.COLLAPSE')}
           >
-            {collapsed ? '▶' : '▼'}
+            <ChevronGlyphIcon className="h-4 w-4" direction={collapsed ? 'right' : 'down'} />
           </Button>
         </Tooltip>
       </div>

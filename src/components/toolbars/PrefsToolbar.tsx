@@ -12,6 +12,7 @@ import { Tooltip } from '@mieweb/ui/components/Tooltip';
 
 import { useTranslation } from 'react-i18next';
 import { usePrefs, type PrefsInstance } from '../../adapters/use-prefs';
+import { ChevronGlyphIcon, ClipboardIcon, CloseGlyphIcon, DocumentIcon, RefreshGlyphIcon } from '../ui';
 
 export interface PrefsToolbarProps {
   prefs: PrefsInstance;
@@ -88,7 +89,7 @@ export function PrefsToolbar({ prefs }: PrefsToolbarProps) {
           onClick={handleReset}
           aria-label={t('GRID_TOOLBAR.PREFS.RESET')}
         >
-          ↺
+          <RefreshGlyphIcon className="h-4 w-4" />
         </Button>
       </Tooltip>
 
@@ -101,7 +102,7 @@ export function PrefsToolbar({ prefs }: PrefsToolbarProps) {
           onClick={back}
           aria-label={t('GRID_TOOLBAR.PREFS.BACK')}
         >
-          ◀
+          <ChevronGlyphIcon className="h-4 w-4" direction="left" />
         </Button>
       </Tooltip>
 
@@ -114,7 +115,7 @@ export function PrefsToolbar({ prefs }: PrefsToolbarProps) {
           onClick={forward}
           aria-label={t('GRID_TOOLBAR.PREFS.FORWARD')}
         >
-          ▶
+          <ChevronGlyphIcon className="h-4 w-4" direction="right" />
         </Button>
       </Tooltip>
 
@@ -151,7 +152,7 @@ export function PrefsToolbar({ prefs }: PrefsToolbarProps) {
             onClick={clonePerspective}
             aria-label={t('GRID_TOOLBAR.PREFS.SAVE_AS')}
           >
-            💾⁺
+            <ClipboardIcon className="h-4 w-4" />
           </Button>
         </Tooltip>
       )}
@@ -165,7 +166,7 @@ export function PrefsToolbar({ prefs }: PrefsToolbarProps) {
             onClick={save}
             aria-label={t('GRID_TOOLBAR.PREFS.SAVE')}
           >
-            💾
+            <DocumentIcon className="h-4 w-4" />
           </Button>
         </Tooltip>
       )}
@@ -179,7 +180,7 @@ export function PrefsToolbar({ prefs }: PrefsToolbarProps) {
             onClick={handleRename}
             aria-label={t('GRID_TOOLBAR.PREFS.RENAME')}
           >
-            ✏
+            <DocumentIcon className="h-4 w-4" />
           </Button>
         </Tooltip>
       )}
@@ -193,7 +194,7 @@ export function PrefsToolbar({ prefs }: PrefsToolbarProps) {
             onClick={handleDelete}
             aria-label={t('GRID_TOOLBAR.PREFS.DELETE')}
           >
-            🗑
+            <CloseGlyphIcon className="h-4 w-4" />
           </Button>
         </Tooltip>
       )}

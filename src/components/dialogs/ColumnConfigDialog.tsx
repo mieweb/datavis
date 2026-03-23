@@ -30,7 +30,7 @@ import { Button } from '@mieweb/ui/components/Button';
 import { Checkbox } from '@mieweb/ui/components/Checkbox';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 import { useTranslation } from 'react-i18next';
-import { IconButton } from '../ui';
+import { DoubleChevronGlyphIcon, DragHandleIcon, IconButton } from '../ui';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -101,7 +101,7 @@ function SortableRow({
     <tr ref={setNodeRef} style={style} className="border-b border-gray-100 hover:bg-gray-50">
       {/* Drag handle */}
       <td className="px-2 py-1.5 w-8 cursor-grab text-gray-400" {...attributes} {...listeners}>
-        <span aria-label={t('COL_CONFIG.DRAG_HANDLE')}>☰</span>
+        <span aria-label={t('COL_CONFIG.DRAG_HANDLE')}><DragHandleIcon className="h-4 w-4" /></span>
       </td>
 
       {/* Field name */}
@@ -154,7 +154,7 @@ function SortableRow({
             onClick={() => onMoveToTop(column.field)}
             aria-label={t('COL_CONFIG.MOVE_TOP')}
           >
-            ⇈
+            <DoubleChevronGlyphIcon className="h-4 w-4" direction="up" />
           </IconButton>
         </Tooltip>
         <Tooltip content={t('COL_CONFIG.MOVE_BOTTOM') || 'Move to bottom'}>
@@ -163,7 +163,7 @@ function SortableRow({
             onClick={() => onMoveToBottom(column.field)}
             aria-label={t('COL_CONFIG.MOVE_BOTTOM')}
           >
-            ⇊
+            <DoubleChevronGlyphIcon className="h-4 w-4" direction="down" />
           </IconButton>
         </Tooltip>
       </td>

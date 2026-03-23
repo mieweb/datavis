@@ -11,6 +11,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@mieweb/ui/components/Button';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 import { useTranslation } from 'react-i18next';
+import { CloseGlyphIcon, DragHandleIcon, SettingsIcon } from '../ui';
 
 export interface FieldPillProps {
   /** Unique ID for DnD */
@@ -62,7 +63,7 @@ export function FieldPill({
       {...attributes}
       {...listeners}
     >
-      <span className="text-gray-400 select-none" aria-hidden="true">⠿</span>
+      <span className="text-gray-400 select-none" aria-hidden="true"><DragHandleIcon className="h-3.5 w-3.5" /></span>
       <span className="truncate max-w-[120px]">{label}</span>
       {subtitle && (
         <span className="text-blue-500 text-[10px] font-medium">({subtitle})</span>
@@ -79,7 +80,7 @@ export function FieldPill({
             }}
             aria-label={`${t('CONTROL.GROUP_FUNCTION') || 'Group function'} ${label}`}
           >
-            ⚡
+            <SettingsIcon className="h-3.5 w-3.5" />
           </Button>
         </Tooltip>
       )}
@@ -94,7 +95,7 @@ export function FieldPill({
           }}
           aria-label={`${t('CONTROL.REMOVE')} ${label}`}
         >
-          ✕
+          <CloseGlyphIcon className="h-3.5 w-3.5" />
         </Button>
       </Tooltip>
     </div>

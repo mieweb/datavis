@@ -12,6 +12,7 @@ import { Tooltip } from '@mieweb/ui/components/Tooltip';
 import { useTranslation } from 'react-i18next';
 import type { GridTableDef } from '../DataGrid';
 import type { ViewInstance } from '../../adapters/use-data';
+import { DocumentIcon, SettingsIcon } from '../ui';
 
 export interface PivotToolbarProps {
   tableDef?: GridTableDef;
@@ -118,10 +119,11 @@ export function PivotToolbar({
         <Button
           size="sm"
           variant="outline"
+          leftIcon={<DocumentIcon className="h-4 w-4" />}
           onClick={onOpenColumnConfig}
           aria-label={t('GRID_TOOLBAR.PLAIN.COLUMNS')}
         >
-          ☰ {t('GRID_TOOLBAR.PLAIN.COLUMNS') || 'Columns'}
+          {t('GRID_TOOLBAR.PLAIN.COLUMNS') || 'Columns'}
         </Button>
       </Tooltip>
 
@@ -130,10 +132,11 @@ export function PivotToolbar({
         <Button
           size="sm"
           variant="outline"
+          leftIcon={<SettingsIcon className="h-4 w-4" />}
           onClick={onOpenTableOptions}
           aria-label={t('GRID_TOOLBAR.PIVOT.TABLE_OPTIONS')}
         >
-          ⚙ {t('GRID_TOOLBAR.PIVOT.TABLE_OPTIONS') || 'Table Options'}
+          {t('GRID_TOOLBAR.PIVOT.TABLE_OPTIONS') || 'Table Options'}
         </Button>
       </Tooltip>
     </>

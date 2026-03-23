@@ -11,7 +11,7 @@ import { Button } from '@mieweb/ui/components/Button';
 import { Dropdown, DropdownContent } from '@mieweb/ui/components/Dropdown';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 import { useTranslation } from 'react-i18next';
-import { IconButton, MenuAction } from '../ui';
+import { CloseGlyphIcon, IconButton, MenuAction } from '../ui';
 import { StringFilter } from './StringFilter';
 import { NumberFilter } from './NumberFilter';
 import { DateFilter } from './DateFilter';
@@ -36,7 +36,7 @@ export interface FilterBarProps {
   initialSpec?: FilterSpec;
   /** Called when any filter changes; receives full combined spec */
   onFilterChange: (spec: FilterSpec) => void;
-  /** Called when the user removes a filter column via its ✕ button */
+  /** Called when the user removes a filter column via its remove button */
   onRemoveColumn?: (field: string) => void;
   /** All available fields that can be added as filters */
   availableFields?: FilterFieldOption[];
@@ -138,7 +138,7 @@ export function FilterBar({
               onClick={clearAll}
               aria-label={t('FILTER.CLEAR_ALL') || 'Clear all filters'}
             >
-              ✕
+              <CloseGlyphIcon className="h-4 w-4" />
             </Button>
           </Tooltip>
         )}
@@ -167,7 +167,7 @@ export function FilterBar({
                   aria-label={`${t('FILTER.REMOVE') || 'Remove filter'}: ${col.displayName}`}
                   title={t('FILTER.REMOVE') || 'Remove filter'}
                 >
-                  ✕
+                  <CloseGlyphIcon className="h-3.5 w-3.5" />
                 </IconButton>
               )}
             </div>

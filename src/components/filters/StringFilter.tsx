@@ -10,7 +10,7 @@ import { Input } from '@mieweb/ui/components/Input';
 import { Checkbox } from '@mieweb/ui/components/Checkbox';
 import { Button } from '@mieweb/ui/components/Button';
 import { useTranslation } from 'react-i18next';
-import { InlineActionButton } from '../ui';
+import { ChevronGlyphIcon, InlineActionButton } from '../ui';
 import { FilterOperatorSelect } from './FilterOperatorSelect';
 import {
   STRING_OPERATORS,
@@ -290,7 +290,7 @@ function MultiSelectDropdown({
         aria-label={`${label}: ${summary}`}
       >
         <span className="truncate">{summary}</span>
-        <span className="ml-1 text-gray-400" aria-hidden="true">▾</span>
+        <span className="ml-1 text-gray-400" aria-hidden="true"><ChevronGlyphIcon className="h-3.5 w-3.5" direction="down" /></span>
       </Button>
 
       {open && (

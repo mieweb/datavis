@@ -19,7 +19,7 @@ import type {
 } from './types';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '../../i18n';
-import { IconButton, TableActionButton } from '../ui';
+import { ClipboardIcon, DisclosureGlyphIcon, IconButton, SortGlyphIcon, TableActionButton } from '../ui';
 import { formatCellValue, formatAggregateNumber, getAggregateValueForField } from './format-cell';
 
 /**
@@ -269,13 +269,7 @@ export function GroupDetailTable({
                   onClick={toggleAll}
                   aria-label={t('TABLE.TOGGLE_ALL_GROUPS') || (allExpanded ? 'Collapse all groups' : 'Expand all groups')}
                 >
-                  <span
-                    className="inline-block transition-transform text-xs"
-                    style={{ transform: allExpanded ? 'rotate(90deg)' : 'rotate(0)' }}
-                    aria-hidden="true"
-                  >
-                    ▶
-                  </span>
+                  <DisclosureGlyphIcon className="h-4 w-4" expanded={allExpanded} />
                 </IconButton>
               </th>
               {columnLayout.map((col) => (
@@ -319,7 +313,7 @@ export function GroupDetailTable({
                     <span className="truncate">{col.header}</span>
                     {sort?.field === col.field && (
                       <span className="ml-1 text-blue-500 text-xs">
-                        {sort.direction === 'asc' ? '↑' : '↓'}
+                        <SortGlyphIcon className="text-blue-500" direction={sort.direction} />
                       </span>
                     )}
                   </Button>
@@ -376,7 +370,7 @@ export function GroupDetailTable({
             {showTotalRow && (
               <tr className="bg-gray-100 font-semibold border-t-2 border-gray-300">
                 <td className="px-1 py-2 text-center text-xs text-gray-500">
-                  Σ
+                  <ClipboardIcon className="mx-auto h-4 w-4" />
                 </td>
                 {columnLayout.map((col) => (
                     <td
@@ -499,13 +493,7 @@ function GroupSection({
       >
         {/* Chevron toggle */}
         <td className="px-1 py-2 text-center text-xs text-gray-500">
-          <span
-            className="inline-block transition-transform"
-            style={{ transform: expanded ? 'rotate(90deg)' : 'rotate(0)' }}
-            aria-hidden="true"
-          >
-            ▶
-          </span>
+          <DisclosureGlyphIcon className="mx-auto h-4 w-4" expanded={expanded} />
         </td>
         {/* First column: group label + row count */}
         {columnLayout.length > 0 && (() => {

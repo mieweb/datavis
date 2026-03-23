@@ -3,6 +3,7 @@ import { Button } from '@mieweb/ui/components/Button';
 import { Checkbox } from '@mieweb/ui/components/Checkbox';
 import { Input } from '@mieweb/ui/components/Input';
 import { Select } from '@mieweb/ui/components/Select';
+import { ClipboardIcon, UserIcon } from '../components/ui';
 
 import { SIMPLE_DATA } from '../demo/data';
 
@@ -360,8 +361,8 @@ export function RowCustomizationScenario() {
   return (
     <div className="min-h-screen bg-slate-100 p-6 space-y-4">
       <h1 className="text-xl font-semibold">Row Customization Scenario</h1>
-      <div data-testid="group-header-fruit" style={{ color: 'rgb(220, 38, 38)' }} className="rounded bg-white px-3 py-2">🍎 Fruit</div>
-      <div data-testid="group-header-vegetables" style={{ color: 'rgb(22, 163, 74)' }} className="rounded bg-white px-3 py-2">🥬 Vegetables</div>
+      <div data-testid="group-header-fruit" style={{ color: 'rgb(220, 38, 38)' }} className="flex items-center gap-2 rounded bg-white px-3 py-2"><UserIcon className="h-4 w-4" /> Fruit</div>
+      <div data-testid="group-header-vegetables" style={{ color: 'rgb(22, 163, 74)' }} className="flex items-center gap-2 rounded bg-white px-3 py-2"><ClipboardIcon className="h-4 w-4" /> Vegetables</div>
     </div>
   );
 }

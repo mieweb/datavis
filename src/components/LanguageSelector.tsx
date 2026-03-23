@@ -19,27 +19,25 @@ export interface LocaleEntry {
   code: string;
   /** Native name shown in the dropdown. */
   name: string;
-  /** Optional flag emoji. */
-  flag?: string;
 }
 
 export const SUPPORTED_LOCALES: LocaleEntry[] = [
-  { code: 'en-US', name: 'English',    flag: '🇺🇸' },
-  { code: 'es-MX', name: 'Español',    flag: '🇲🇽' },
-  { code: 'fr-FR', name: 'Français',   flag: '🇫🇷' },
-  { code: 'id-ID', name: 'Bahasa',     flag: '🇮🇩' },
-  { code: 'nl-NL', name: 'Nederlands', flag: '🇳🇱' },
-  { code: 'pt-BR', name: 'Português',  flag: '🇧🇷' },
-  { code: 'ru-RU', name: 'Русский',    flag: '🇷🇺' },
-  { code: 'th-TH', name: 'ไทย',       flag: '🇹🇭' },
-  { code: 'vi-VN', name: 'Tiếng Việt', flag: '🇻🇳' },
-  { code: 'zh-Hans-CN', name: '简体中文', flag: '🇨🇳' },
+  { code: 'en-US', name: 'English' },
+  { code: 'es-MX', name: 'Español' },
+  { code: 'fr-FR', name: 'Français' },
+  { code: 'id-ID', name: 'Bahasa' },
+  { code: 'nl-NL', name: 'Nederlands' },
+  { code: 'pt-BR', name: 'Português' },
+  { code: 'ru-RU', name: 'Русский' },
+  { code: 'th-TH', name: 'ไทย' },
+  { code: 'vi-VN', name: 'Tiếng Việt' },
+  { code: 'zh-Hans-CN', name: '简体中文' },
 ];
 
 /** Build Select-compatible options from locale list. */
 const LOCALE_OPTIONS = SUPPORTED_LOCALES.map((l) => ({
   value: l.code,
-  label: `${l.flag ?? ''} ${l.name}`.trim(),
+  label: `${l.name} (${l.code})`,
 }));
 
 // ───────────────────────────────────────────────────────────

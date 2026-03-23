@@ -8,6 +8,7 @@
 import { useMemo } from 'react';
 import type { BaseTableProps, PivotHeader, SortDirection } from './types';
 import { useTranslation } from 'react-i18next';
+import { SortGlyphIcon } from '../ui';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -139,7 +140,7 @@ export function PivotTable({
                   <span className="truncate">{col.header}</span>
                   {sort?.field === col.field && (
                     <span className="ml-1 text-blue-500 text-xs">
-                      {sort.direction === 'asc' ? '↑' : '↓'}
+                      <SortGlyphIcon className="text-blue-500" direction={sort.direction} />
                     </span>
                   )}
                 </th>

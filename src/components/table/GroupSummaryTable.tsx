@@ -10,6 +10,7 @@ import { useMemo } from 'react';
 import type { BaseTableProps, TableColumn, GroupMeta, SortDirection } from './types';
 import { useTranslation } from 'react-i18next';
 import { getAggregateValueForField } from './format-cell';
+import { SortGlyphIcon } from '../ui';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -120,7 +121,7 @@ export function GroupSummaryTable({
                   <span className="truncate">{col.header}</span>
                   {sort?.field === col.field && (
                     <span className="ml-1 text-blue-500 text-xs">
-                      {sort.direction === 'asc' ? '↑' : '↓'}
+                      <SortGlyphIcon className="text-blue-500" direction={sort.direction} />
                     </span>
                   )}
                 </th>

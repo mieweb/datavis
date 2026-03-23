@@ -8,6 +8,7 @@ import { DataGrid } from '../components/DataGrid';
 import { TableRenderer } from '../components/table/TableRenderer';
 import type { TableColumn } from '../components/table/types';
 import type { ViewInstance } from '../adapters/use-data';
+import { CloseGlyphIcon, DocumentIcon, SendGlyphIcon } from '../components/ui';
 
 // ───────────────────────────────────────────────────────────
 // Mock objects — simulate wcdatavis core without real deps
@@ -214,9 +215,9 @@ export const WithOperations: StoryFn = () => {
         view={view}
         title="Grid with Operations"
         operations={[
-          { label: 'Edit', icon: '✏', category: 'Actions', callback: (ctx) => alert(`Edit: ${ctx.rows.length} rows`) },
-          { label: 'Delete', icon: '🗑', category: 'Actions', callback: (ctx) => alert(`Delete: ${ctx.rows.length} rows`) },
-          { label: 'Export', icon: '⬇', category: 'Export', callback: () => alert('Exporting...') },
+          { label: 'Edit', icon: <DocumentIcon className="h-4 w-4" />, category: 'Actions', callback: (ctx) => alert(`Edit: ${ctx.rows.length} rows`) },
+          { label: 'Delete', icon: <CloseGlyphIcon className="h-4 w-4" />, category: 'Actions', callback: (ctx) => alert(`Delete: ${ctx.rows.length} rows`) },
+          { label: 'Export', icon: <SendGlyphIcon className="h-4 w-4" />, category: 'Export', callback: () => alert('Exporting...') },
         ]}
       >
         <div className="p-4 text-gray-500 text-center">
@@ -234,7 +235,7 @@ export const Collapsed: StoryFn = () => {
         title="Collapsible Grid"
       >
         <div className="p-4 text-gray-500 text-center">
-          Click the ▼ button to collapse.
+          Click the collapse button to collapse.
         </div>
       </DataGrid>
     );

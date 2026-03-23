@@ -14,6 +14,7 @@ import { Tooltip } from '@mieweb/ui/components/Tooltip';
 import { useTranslation } from 'react-i18next';
 import type { GridTableDef } from '../DataGrid';
 import type { ViewInstance } from '../../adapters/use-data';
+import { DocumentIcon } from '../ui';
 
 export interface GroupToolbarProps {
   tableDef?: GridTableDef;
@@ -161,10 +162,11 @@ export function GroupToolbar({
           <Button
             size="sm"
             variant="outline"
+            leftIcon={<DocumentIcon className="h-4 w-4" />}
             onClick={onOpenColumnConfig}
             aria-label={t('GRID_TOOLBAR.PLAIN.COLUMNS')}
           >
-            ☰ {t('GRID_TOOLBAR.PLAIN.COLUMNS') || 'Columns'}
+            {t('GRID_TOOLBAR.PLAIN.COLUMNS') || 'Columns'}
           </Button>
         </Tooltip>
       )}

@@ -90,7 +90,7 @@ export const MenuAction = forwardRef<HTMLButtonElement, MenuActionProps>(
       {...props}
     >
       <span className="w-4 text-center text-xs" aria-hidden="true">
-        {checked ? '✓' : ''}
+        {checked ? <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500 align-middle" /> : null}
       </span>
       <span className="flex-1 text-left">{children}</span>
       {shortcut ? <span className="ml-2 text-xs text-gray-400">{shortcut}</span> : null}

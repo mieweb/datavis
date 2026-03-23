@@ -25,6 +25,7 @@ import { AggregateSection, type AggregateFunction, type AggregateEntry } from '.
 import { FilterBar } from '../filters/FilterBar';
 import { useTranslation } from 'react-i18next';
 import type { ColumnFilterConfig, FilterSpec } from '../filters/types';
+import { SettingsIcon, UserIcon } from '../ui';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -232,7 +233,7 @@ export function ControlPanel({
           {/* Group */}
           <ControlSection
             title={t('CONTROL.GROUP') || 'Group'}
-            icon="🔢"
+            icon={<UserIcon className="h-4 w-4" />}
             fields={groupFields}
             availableFields={groupAvailable}
             onAdd={handleGroupAdd}
@@ -245,7 +246,7 @@ export function ControlPanel({
           {/* Pivot */}
           <ControlSection
             title={t('CONTROL.PIVOT') || 'Pivot'}
-            icon="🔄"
+            icon={<SettingsIcon className="h-4 w-4" />}
             fields={pivotFields}
             availableFields={pivotAvailable}
             onAdd={handlePivotAdd}

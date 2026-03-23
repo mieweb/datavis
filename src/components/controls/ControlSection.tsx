@@ -6,7 +6,7 @@
  * added fields (FieldPill instances).
  */
 
-import { useCallback } from 'react';
+import { useCallback, type ReactNode } from 'react';
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -16,6 +16,7 @@ import { Button } from '@mieweb/ui/components/Button';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 import { useTranslation } from 'react-i18next';
 import { FieldPill } from './FieldPill';
+import { CloseGlyphIcon } from '../ui';
 
 export interface ControlFieldItem {
   /** Field name (key in data) */
@@ -39,7 +40,7 @@ export interface ControlSectionProps {
   /** Section title */
   title: string;
   /** Icon for the section header */
-  icon?: string;
+  icon?: ReactNode;
   /** Currently added fields */
   fields: ControlFieldItem[];
   /** All available fields to add */
@@ -97,7 +98,7 @@ export function ControlSection({
     >
       {/* Section header */}
       <div className="flex items-center gap-1">
-        {icon && <span className="text-sm" aria-hidden="true">{icon}</span>}
+        {icon ? <span className="text-sm text-gray-500" aria-hidden="true">{icon}</span> : null}
         <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
           {title}
         </span>
@@ -114,7 +115,7 @@ export function ControlSection({
               onClick={onClear}
               aria-label={`${t('CONTROL.CLEAR')} ${title}`}
             >
-              ✕
+              <CloseGlyphIcon className="h-3.5 w-3.5" />
             </Button>
           </Tooltip>
         )}

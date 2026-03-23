@@ -11,6 +11,7 @@ import { Button } from '@mieweb/ui/components/Button';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 import { Switch } from '@mieweb/ui/components/Switch';
 import { useTranslation } from 'react-i18next';
+import { ClipboardIcon, CloseGlyphIcon } from '../ui';
 
 export interface AggregateFunction {
   /** Function name (key) */
@@ -122,7 +123,7 @@ export function AggregateSection({
     >
       {/* Header */}
       <div className="flex items-center gap-1">
-        <span className="text-sm" aria-hidden="true">Σ</span>
+        <span className="text-sm text-gray-500" aria-hidden="true"><ClipboardIcon className="h-4 w-4" /></span>
         <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
           {t('CONTROL.AGGREGATE') || 'Aggregate'}
         </span>
@@ -139,7 +140,7 @@ export function AggregateSection({
               onClick={handleClear}
               aria-label={`${t('CONTROL.CLEAR')} aggregate`}
             >
-              ✕
+              <CloseGlyphIcon className="h-3.5 w-3.5" />
             </Button>
           </Tooltip>
         )}
@@ -198,7 +199,7 @@ export function AggregateSection({
                 onClick={() => handleRemove(entry.id)}
                 aria-label={`${t('CONTROL.REMOVE')} ${fn ? t(fn.label) : entry.functionName}`}
               >
-                ✕
+                <CloseGlyphIcon className="h-3.5 w-3.5" />
               </Button>
             </Tooltip>
           </div>

@@ -32,6 +32,7 @@ import {
   RowCustomizationScenario,
   SourceParamsScenario,
 } from './LegacyScenarioViews';
+import { BellIcon, CloseGlyphIcon } from '../components/ui';
 
 type HarnessAggregateSpec = Array<{ fn: string; fields: string[] }>;
 
@@ -636,13 +637,13 @@ function HarnessGrid({
       ? [
           {
             label: 'Delete',
-            icon: '🗑',
+            icon: <CloseGlyphIcon className="h-4 w-4" />,
             category: 'Power',
             callback: () => setOperationLog((current) => [...current, 'Delete']),
           },
           {
             label: 'Favorite',
-            icon: '★',
+            icon: <BellIcon className="h-4 w-4" />,
             category: 'Rating',
             callback: () => setOperationLog((current) => [...current, 'Favorite']),
           },
