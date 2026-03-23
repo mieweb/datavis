@@ -1,14 +1,14 @@
 /**
  * DateFilter — filter component for date and datetime columns.
  *
- * Replaces the legacy flatpickr-based filters with native date inputs
- * and the "neon" operator-based date filter UI.
+ * Uses the MIE DateInput for date entry while preserving the
+ * engine's canonical date and datetime filter formats.
  *
  * Operators: On, Between, Before, After, Every, Current, Last
  */
 
 import { useState, useCallback, useRef } from 'react';
-import { Input } from '@mieweb/ui/components/Input';
+import { DateInput } from '@mieweb/ui/components/DateInput';
 import { Select } from '@mieweb/ui/components/Select';
 import { useTranslation } from 'react-i18next';
 import { FilterOperatorSelect } from './FilterOperatorSelect';
@@ -54,6 +54,160 @@ const EVERY_OPTIONS: { value: EveryUnit; label: string }[] = [
   { value: 'month', label: 'Month' },
 ];
 
+const ISO_DATE_RE = /^(\d{4})-(\d{2})-(\d{2})/;
+const DISPLAY_DATE_RE = /^(\d{2})\/(\d{2})\/(\d{4})$/;
+
+function extractIsoDate(value: unknown): string {
+  if (typeof value !== 'string') return '';
+
+  const isoMatch = value.match(ISO_DATE_RE);
+  if (isoMatch) {
+    return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+  }
+
+  const displayMatch = value.match(DISPLAY_DATE_RE);
+  if (displayMatch) {
+    const [, month, day, year] = displayMatch;
+    return `${year}-${month}-${day}`;
+  }
+
+  return '';
+}
+
+function toDisplayDate(value: unknown): string {
+  const isoDate = extractIsoDate(value);
+  if (!isoDate) return '';
+
+  const [, year, month, day] = isoDate.match(/^(\d{4})-(\d{2})-(\d{2})$/) ?? [];
+  return year && month && day ? `${month}/${day}/${year}` : '';
+}
+
+function toDateTimeStart(value: string): string {
+  return `${value} 00:00:00`;
+}
+
+function toDateTimeEnd(value: string): string {
+  return `${value} 23:59:59`;
+}
+
+function deferChange(callback: () => void): void {
+  requestAnimationFrame(callback);
+}
+
+function isStartOfDay(value: string): boolean {
+  return /(?:T| )00:00(?::00)?$/.test(value);
+}
+
+function isEndOfDay(value: string): boolean {
+  return /(?:T| )23:59(?::59)?$/.test(value);
+}
+
+function resolveInitialDateState(
+  value: FieldFilterSpec | undefined,
+  fallbackOperator: FilterOperator,
+  includeTime: boolean,
+): {
+  operator: FilterOperator;
+  dateValue: string;
+  rangeStart: string;
+  rangeEnd: string;
+  everyUnit: EveryUnit;
+  everyValue: string;
+  periodUnit: PeriodUnit;
+} {
+  const every = value?.$every as { unit?: EveryUnit; value?: string } | undefined;
+
+  if (typeof value?.$eq === 'string') {
+    return {
+      operator: '$eq',
+      dateValue: toDisplayDate(value.$eq),
+      rangeStart: '',
+      rangeEnd: '',
+      everyUnit: every?.unit ?? 'day',
+      everyValue: every?.value ?? '',
+      periodUnit: typeof value?.$this === 'string' ? (value.$this as PeriodUnit) : 'month',
+    };
+  }
+
+  if (typeof value?.$bet === 'object' && value.$bet != null) {
+    const between = value.$bet as { start?: string; end?: string };
+    return {
+      operator: '$bet',
+      dateValue: '',
+      rangeStart: toDisplayDate(between.start),
+      rangeEnd: toDisplayDate(between.end),
+      everyUnit: every?.unit ?? 'day',
+      everyValue: every?.value ?? '',
+      periodUnit: typeof value?.$this === 'string' ? (value.$this as PeriodUnit) : 'month',
+    };
+  }
+
+  const gte = typeof value?.$gte === 'string' ? value.$gte : undefined;
+  const lte = typeof value?.$lte === 'string' ? value.$lte : undefined;
+  if (gte && lte) {
+    const start = toDisplayDate(gte);
+    const end = toDisplayDate(lte);
+    const operator = includeTime && extractIsoDate(gte) === extractIsoDate(lte) && isStartOfDay(gte) && isEndOfDay(lte)
+      ? '$eq'
+      : '$bet';
+
+    return {
+      operator,
+      dateValue: operator === '$eq' ? start : '',
+      rangeStart: operator === '$bet' ? start : '',
+      rangeEnd: operator === '$bet' ? end : '',
+      everyUnit: every?.unit ?? 'day',
+      everyValue: every?.value ?? '',
+      periodUnit: typeof value?.$this === 'string' ? (value.$this as PeriodUnit) : 'month',
+    };
+  }
+
+  if (gte) {
+    return {
+      operator: '$gte',
+      dateValue: toDisplayDate(gte),
+      rangeStart: '',
+      rangeEnd: '',
+      everyUnit: every?.unit ?? 'day',
+      everyValue: every?.value ?? '',
+      periodUnit: typeof value?.$this === 'string' ? (value.$this as PeriodUnit) : 'month',
+    };
+  }
+
+  if (lte) {
+    return {
+      operator: '$lte',
+      dateValue: toDisplayDate(lte),
+      rangeStart: '',
+      rangeEnd: '',
+      everyUnit: every?.unit ?? 'day',
+      everyValue: every?.value ?? '',
+      periodUnit: typeof value?.$this === 'string' ? (value.$this as PeriodUnit) : 'month',
+    };
+  }
+
+  return {
+    operator: typeof value?.$this === 'string'
+      ? '$this'
+      : typeof value?.$last === 'string'
+        ? '$last'
+        : typeof value?.$every === 'object' && value.$every != null
+          ? '$every'
+          : fallbackOperator,
+    dateValue: '',
+    rangeStart: '',
+    rangeEnd: '',
+    everyUnit: every?.unit ?? 'day',
+    everyValue: every?.value ?? '',
+    periodUnit:
+      typeof value?.$this === 'string'
+        ? (value.$this as PeriodUnit)
+        : typeof value?.$last === 'string'
+          ? (value.$last as PeriodUnit)
+          : 'month',
+  };
+}
+
 export function DateFilter({
   field,
   label,
@@ -71,41 +225,26 @@ export function DateFilter({
     return true;
   });
 
-  const initialOp = value
-    ? (Object.keys(value)[0] as FilterOperator)
-    : operators[0]?.value ?? '$eq';
-  const initialVal = value?.[initialOp];
+  const fallbackOperator = operators[0]?.value ?? '$eq';
+  const initialState = resolveInitialDateState(value, fallbackOperator, includeTime);
 
-  const [operator, setOperator] = useState<FilterOperator>(initialOp);
+  const [operator, setOperator] = useState<FilterOperator>(initialState.operator);
 
   // For single date value ($eq, $lte, $gte)
-  const [dateValue, setDateValue] = useState(
-    typeof initialVal === 'string' ? initialVal : '',
-  );
+  const [dateValue, setDateValue] = useState(initialState.dateValue);
 
   // For $bet (between) — {start, end}
-  const [rangeStart, setRangeStart] = useState(
-    (initialVal as { start?: string })?.start ?? '',
-  );
-  const [rangeEnd, setRangeEnd] = useState(
-    (initialVal as { end?: string })?.end ?? '',
-  );
+  const [rangeStart, setRangeStart] = useState(initialState.rangeStart);
+  const [rangeEnd, setRangeEnd] = useState(initialState.rangeEnd);
 
   // For $every — { unit, value }
-  const [everyUnit, setEveryUnit] = useState<EveryUnit>(
-    (initialVal as { unit?: EveryUnit })?.unit ?? 'day',
-  );
-  const [everyValue, setEveryValue] = useState(
-    (initialVal as { value?: string })?.value ?? '',
-  );
+  const [everyUnit, setEveryUnit] = useState<EveryUnit>(initialState.everyUnit);
+  const [everyValue, setEveryValue] = useState(initialState.everyValue);
 
   // For $this / $last — period unit
-  const [periodUnit, setPeriodUnit] = useState<PeriodUnit>(
-    typeof initialVal === 'string' ? (initialVal as PeriodUnit) : 'month',
-  );
+  const [periodUnit, setPeriodUnit] = useState<PeriodUnit>(initialState.periodUnit);
 
   const isNoInput = operators.find((o) => o.value === operator)?.noInput;
-  const inputType = includeTime ? 'datetime-local' : 'date';
 
   // Ref for the "end" date input in Between mode
   const endDateRef = useRef<HTMLInputElement>(null);
@@ -132,13 +271,37 @@ export function DateFilter({
         case '$eq':
         case '$lte':
         case '$gte':
-          if (!opts.date) onChange(field, null);
-          else onChange(field, { [op]: opts.date });
+          if (!opts.date) {
+            onChange(field, null);
+          } else if (includeTime) {
+            if (op === '$eq') {
+              onChange(field, {
+                $gte: toDateTimeStart(opts.date),
+                $lte: toDateTimeEnd(opts.date),
+              });
+            } else if (op === '$gte') {
+              onChange(field, { $gte: toDateTimeStart(opts.date) });
+            } else {
+              onChange(field, { $lte: toDateTimeEnd(opts.date) });
+            }
+          } else {
+            onChange(field, { [op]: opts.date });
+          }
           break;
 
         case '$bet':
-          if (!opts.start && !opts.end) onChange(field, null);
-          else onChange(field, { $bet: { start: opts.start, end: opts.end } });
+          if (!opts.start && !opts.end) {
+            onChange(field, null);
+          } else {
+            const nextSpec: FieldFilterSpec = {};
+            if (opts.start) {
+              nextSpec.$gte = includeTime ? toDateTimeStart(opts.start) : opts.start;
+            }
+            if (opts.end) {
+              nextSpec.$lte = includeTime ? toDateTimeEnd(opts.end) : opts.end;
+            }
+            onChange(field, Object.keys(nextSpec).length > 0 ? nextSpec : null);
+          }
           break;
 
         case '$every':
@@ -189,16 +352,18 @@ export function DateFilter({
 
       {/* Single date: On / Before / After */}
       {(operator === '$eq' || operator === '$lte' || operator === '$gte') && (
-        <Input
+        <DateInput
           size="sm"
           hideLabel
           label={t('FILTER.DATE_VALUE', { param0: label })}
-          type={inputType}
+          mode={includeTime ? 'default' : 'default'}
           className="min-w-0 flex-1"
           value={dateValue}
-          onChange={(e) => {
-            setDateValue(e.target.value);
-            emitChange(operator, { date: e.target.value });
+          onChange={(nextValue) => {
+            setDateValue(nextValue);
+            deferChange(() => {
+              emitChange(operator, { date: extractIsoDate(nextValue) });
+            });
           }}
           aria-label={t('FILTER.DATE_VALUE', { param0: label })}
         />
@@ -207,21 +372,18 @@ export function DateFilter({
       {/* Between: two date inputs */}
       {operator === '$bet' && (
         <>
-          <Input
+          <DateInput
             size="sm"
             hideLabel
             label={`${label} ${t('FILTER.DATE_FROM') || 'from'}`}
-            type={inputType}
             value={rangeStart}
-            onChange={(e) => {
-              setRangeStart(e.target.value);
-              emitChange(operator, { start: e.target.value, end: rangeEnd });
-              // Auto-focus end date only when a complete, valid date is entered.
-              // Browser fires onChange with year=0001 while user is still typing
-              // month/day segments, so require year >= 1000 to be sure.
-              const input = e.target;
-              const year = input.valueAsDate?.getFullYear() ?? 0;
-              if (input.value && input.validity.valid && !isNaN(input.valueAsNumber) && year >= 1000 && endDateRef.current) {
+            onChange={(nextValue) => {
+              const nextStart = extractIsoDate(nextValue);
+              setRangeStart(nextValue);
+              deferChange(() => {
+                emitChange(operator, { start: nextStart, end: extractIsoDate(rangeEnd) });
+              });
+              if (nextStart && endDateRef.current) {
                 requestAnimationFrame(() => {
                   endDateRef.current?.focus();
                 });
@@ -230,16 +392,17 @@ export function DateFilter({
             aria-label={`${label} ${t('FILTER.DATE_FROM') || 'from'}`}
           />
           <span className="text-xs text-gray-400">–</span>
-          <Input
+          <DateInput
             size="sm"
             hideLabel
             label={`${label} ${t('FILTER.DATE_TO') || 'to'}`}
             ref={endDateRef}
-            type={inputType}
             value={rangeEnd}
-            onChange={(e) => {
-              setRangeEnd(e.target.value);
-              emitChange(operator, { start: rangeStart, end: e.target.value });
+            onChange={(nextValue) => {
+              setRangeEnd(nextValue);
+              deferChange(() => {
+                emitChange(operator, { start: extractIsoDate(rangeStart), end: extractIsoDate(nextValue) });
+              });
             }}
             aria-label={`${label} ${t('FILTER.DATE_TO') || 'to'}`}
           />
