@@ -40,8 +40,7 @@ import { OperationsPalette, type Operation } from './OperationsPalette';
 import { DetailSlider } from './DetailSlider';
 import { LoadingOverlay } from './LoadingOverlay';
 import { ColumnConfigDialog, type ColumnConfig } from './dialogs/ColumnConfigDialog';
-import { TemplateEditorDialog, type TemplateData } from './dialogs/TemplateEditorDialog';
-import { DebugDialog } from './dialogs/DebugDialog';
+import type { TemplateData } from './dialogs/TemplateEditorDialog';
 import { GridTableOptionsDialog, type DisplayFormatConfig } from './dialogs/GridTableOptionsDialog';
 import { GroupFunctionDialog } from './dialogs/GroupFunctionDialog';
 import type { GroupFunction as GroupFunctionDef } from './dialogs/GroupFunctionDialog';
@@ -180,7 +179,7 @@ export function DataGrid({
   className = '',
   children,
   locale,
-  debug = false,
+  debug: _debug = false,
   preserveChildViewData = false,
   filterColumns = [],
   allColumns = [],
@@ -364,8 +363,6 @@ export function DataGrid({
 
   // ── Dialog state ───────────────────────────────
   const [colConfigOpen, setColConfigOpen] = useState(false);
-  const [templateEditorOpen, setTemplateEditorOpen] = useState(false);
-  const [debugOpen, setDebugOpen] = useState(false);
   const [tableOptsOpen, setTableOptsOpen] = useState(false);
   const [groupFnOpen, setGroupFnOpen] = useState(false);
   /** Which field the group function dialog is editing */
@@ -430,10 +427,6 @@ export function DataGrid({
     setTableDefVersion((current) => current + 1);
     view.getData();
   }, [view]);
-
-  const handleExport = useCallback(() => {
-    // TODO: Implement CSV export — port grid.export()
-  }, []);
 
   const handleRowModeChange = useCallback((mode: 'wrapped' | 'clipped') => {
     setRowMode(mode);
@@ -649,8 +642,6 @@ export function DataGrid({
 
   // ── Dialog open helpers ────────────────────────
   const openColumnConfig = useCallback(() => setColConfigOpen(true), []);
-  const openTemplateEditor = useCallback(() => setTemplateEditorOpen(true), []);
-  const openDebug = useCallback(() => setDebugOpen(true), []);
   const openTableOpts = useCallback(() => setTableOptsOpen(true), []);
   const openPerspective = useCallback(() => setPerspectiveOpen(true), []);
 
@@ -681,13 +672,6 @@ export function DataGrid({
       onColumnConfigSave?.(cols, clearCache);
     },
     [view, onColumnConfigSave],
-  );
-
-  const handleTemplateSave = useCallback(
-    (tpls: TemplateData) => {
-      onTemplateSave?.(tpls);
-    },
-    [onTemplateSave],
   );
 
   const handleDisplayFormatSave = useCallback(
@@ -822,15 +806,12 @@ export function DataGrid({
         hasActiveFilter={hasActiveFilter}
         cancellable={sourceState.source.isCancellable()}
         collapsed={collapsed}
-        debug={debug}
         prefs={prefs}
         onToggle={handleToggle}
         onToggleControls={handleToggleControls}
         onRefresh={handleRefresh}
-        onExport={handleExport}
         onCancel={sourceState.cancel}
         onClearFilter={clearFilter}
-        onOpenDebug={openDebug}
         onOpenPerspective={openPerspective}
       />
 
@@ -850,7 +831,6 @@ export function DataGrid({
               onRedraw={handleToolbarRedraw}
               onShowAllRows={handleShowAllRows}
               onOpenColumnConfig={openColumnConfig}
-              onOpenTemplateEditor={openTemplateEditor}
               onOpenTableOptions={openTableOpts}
             />
           )}
@@ -921,42 +901,6 @@ export function DataGrid({
         onOpenChange={setColConfigOpen}
         columns={columnConfigs}
         onSave={handleColumnConfigSave}
-      />
-
-      <TemplateEditorDialog
-        open={templateEditorOpen}
-        onOpenChange={setTemplateEditorOpen}
-        templates={templates}
-        onSave={handleTemplateSave}
-      />
-
-      <DebugDialog
-        open={debugOpen}
-        onOpenChange={setDebugOpen}
-        source={{
-          type: (sourceState.source as unknown as Record<string, unknown>).type as string | undefined,
-          name: (sourceState.source as unknown as Record<string, unknown>).name as string | undefined,
-          params: (sourceState as unknown as Record<string, unknown>).params,
-        }}
-        view={{
-          name: (view as unknown as Record<string, unknown>).name as string | undefined,
-          filter: viewState.data ? (viewState.data as unknown as Record<string, unknown>).filter : undefined,
-          group: viewState.data?.isGroup ? viewState.data.groupFields : undefined,
-          pivot: viewState.data?.isPivot ? viewState.data.pivotFields : undefined,
-          aggregate: viewState.data ? (viewState.data as unknown as Record<string, unknown>).agg : undefined,
-        }}
-        grid={{ colConfig: columnConfigs }}
-        prefs={prefs ? {
-          autoSave: (prefs as unknown as Record<string, unknown>).autoSave as boolean | undefined,
-          backendType: (prefs as unknown as Record<string, unknown>).backendType as string | undefined,
-          currentPerspective: prefs.getCurrentPerspective()
-            ? { id: prefs.getCurrentPerspective()!.id, name: prefs.getCurrentPerspective()!.name }
-            : undefined,
-          perspectives: prefs.getPerspectives().reduce(
-            (acc, p) => ({ ...acc, [p.id]: { name: p.name, config: null } }),
-            {},
-          ),
-        } : undefined}
       />
 
       <GridTableOptionsDialog

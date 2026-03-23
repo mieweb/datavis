@@ -23,15 +23,12 @@ export interface TitleBarProps {
   hasActiveFilter: boolean;
   cancellable: boolean;
   collapsed: boolean;
-  debug: boolean;
   prefs?: PrefsInstance;
   onToggle: () => void;
   onToggleControls: () => void;
   onRefresh: () => void;
-  onExport: () => void;
   onCancel: () => void;
   onClearFilter: () => void;
-  onOpenDebug?: () => void;
   onOpenPerspective?: () => void;
 }
 
@@ -44,15 +41,12 @@ export function TitleBar({
   hasActiveFilter,
   cancellable,
   collapsed,
-  debug,
   prefs,
   onToggle,
   onToggleControls,
   onRefresh,
-  onExport,
   onCancel,
   onClearFilter,
-  onOpenDebug,
   onOpenPerspective,
 }: TitleBarProps) {
   const { t } = useTranslation();
@@ -129,30 +123,6 @@ export function TitleBar({
 
       {/* Action buttons */}
       <div className="wcdv-titlebar-controls flex items-center gap-1" role="toolbar" aria-label={t('GRID.TITLEBAR.ACTIONS')}>
-        {debug && (
-          <Tooltip content={t('GRID.TITLEBAR.DEBUG') || 'Debug'}>
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={onOpenDebug}
-              aria-label={t('GRID.TITLEBAR.DEBUG')}
-            >
-              🐛
-            </Button>
-          </Tooltip>
-        )}
-
-        <Tooltip content={t('GRID.TITLEBAR.EXPORT') || 'Export'}>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={onExport}
-            aria-label={t('GRID.TITLEBAR.EXPORT')}
-          >
-            ⬇
-          </Button>
-        </Tooltip>
-
         <Tooltip content={t('GRID.TITLEBAR.REFRESH') || 'Refresh'}>
           <Button
             size="sm"

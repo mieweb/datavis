@@ -24,7 +24,6 @@ export interface GridToolbarProps {
   onRedraw: () => void;
   onShowAllRows: () => void;
   onOpenColumnConfig?: () => void;
-  onOpenTemplateEditor?: () => void;
   onOpenTableOptions?: () => void;
 }
 
@@ -39,7 +38,6 @@ export function GridToolbar({
   onRedraw,
   onShowAllRows,
   onOpenColumnConfig,
-  onOpenTemplateEditor,
   onOpenTableOptions,
 }: GridToolbarProps) {
   const { t } = useTranslation();
@@ -59,7 +57,6 @@ export function GridToolbar({
           onRowModeChange={onRowModeChange}
           onShowAllRows={onShowAllRows}
           onOpenColumnConfig={onOpenColumnConfig}
-          onOpenTemplateEditor={onOpenTemplateEditor}
         />
       )}
 
@@ -69,7 +66,6 @@ export function GridToolbar({
           view={view}
           onRedraw={onRedraw}
           onOpenColumnConfig={onOpenColumnConfig}
-          onOpenTemplateEditor={onOpenTemplateEditor}
         />
       )}
 
@@ -79,7 +75,6 @@ export function GridToolbar({
           view={view}
           onRedraw={onRedraw}
           onOpenColumnConfig={onOpenColumnConfig}
-          onOpenTemplateEditor={onOpenTemplateEditor}
           onOpenTableOptions={onOpenTableOptions}
         />
       )}

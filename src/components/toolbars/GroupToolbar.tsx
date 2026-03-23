@@ -20,7 +20,6 @@ export interface GroupToolbarProps {
   view: ViewInstance;
   onRedraw: () => void;
   onOpenColumnConfig?: () => void;
-  onOpenTemplateEditor?: () => void;
 }
 
 export function GroupToolbar({
@@ -28,7 +27,6 @@ export function GroupToolbar({
   view: _view,
   onRedraw,
   onOpenColumnConfig,
-  onOpenTemplateEditor,
 }: GroupToolbarProps) {
   const { t } = useTranslation();
   const [groupMode, setGroupMode] = useState<'summary' | 'detail'>(
@@ -171,17 +169,6 @@ export function GroupToolbar({
         </Tooltip>
       )}
 
-      {/* Templates Editor */}
-      <Tooltip content={t('GRID_TOOLBAR.PLAIN.TEMPLATES_EDITOR') || 'Templates'}>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onOpenTemplateEditor}
-          aria-label={t('GRID_TOOLBAR.PLAIN.TEMPLATES_EDITOR')}
-        >
-          ✏ {t('GRID_TOOLBAR.PLAIN.TEMPLATES_EDITOR') || 'Templates'}
-        </Button>
-      </Tooltip>
     </>
   );
 }

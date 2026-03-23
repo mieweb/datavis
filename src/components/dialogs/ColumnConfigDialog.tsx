@@ -71,7 +71,6 @@ export interface ColumnConfigDialogProps {
 interface SortableRowProps {
   column: ColumnConfig;
   onToggle: (field: string, prop: keyof ColumnConfig) => void;
-  onRename: (field: string) => void;
   onMoveToTop: (field: string) => void;
   onMoveToBottom: (field: string) => void;
 }
@@ -79,7 +78,6 @@ interface SortableRowProps {
 function SortableRow({
   column,
   onToggle,
-  onRename,
   onMoveToTop,
   onMoveToBottom,
 }: SortableRowProps) {
@@ -111,27 +109,7 @@ function SortableRow({
 
       {/* Display name */}
       <td className="px-2 py-1.5 text-sm">
-        <span className="mr-1">{column.displayText}</span>
-        <Tooltip content={t('COL_CONFIG.RENAME') || 'Rename'}>
-          <IconButton
-            className="h-6 w-6 text-gray-400 hover:text-blue-600"
-            onClick={() => onRename(column.field)}
-            aria-label={t('COL_CONFIG.RENAME')}
-          >
-            ✏
-          </IconButton>
-        </Tooltip>
-      </td>
-
-      {/* Pinned */}
-      <td className="px-2 py-1.5 text-center">
-        <Tooltip content={t('COL_CONFIG.PIN') || 'Pin column'}>
-          <Checkbox
-            checked={column.isPinned}
-            onChange={() => onToggle(column.field, 'isPinned')}
-            aria-label={t('COL_CONFIG.PIN')}
-          />
-        </Tooltip>
+        {column.displayText}
       </td>
 
       {/* Hidden */}
@@ -227,8 +205,6 @@ export function ColumnConfigDialog({
     }
   }, [open, initialColumns]);
 
-  const hasPinnedColumns = columns.some((c) => c.isPinned);
-
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
@@ -260,22 +236,6 @@ export function ColumnConfigDialog({
       }),
     );
   }, []);
-
-  const handleRename = useCallback(
-    (field: string) => {
-      const col = columns.find((c) => c.field === field);
-      const newName = prompt(
-        t('COL_CONFIG.RENAME_PROMPT') || 'Enter new display name:',
-        col?.displayText ?? field,
-      );
-      if (newName != null && newName.trim() !== '') {
-        setColumns((prev) =>
-          prev.map((c) => (c.field === field ? { ...c, displayText: newName.trim() } : c)),
-        );
-      }
-    },
-    [columns, t],
-  );
 
   const handleMoveToTop = useCallback((field: string) => {
     setColumns((prev) => {
@@ -320,16 +280,6 @@ export function ColumnConfigDialog({
       </ModalHeader>
 
       <ModalBody>
-        {/* Pinned-column warning */}
-        {hasPinnedColumns && (
-          <div
-            className="mb-3 px-3 py-2 bg-blue-50 border border-blue-200 rounded text-sm text-blue-700"
-            role="alert"
-          >
-            {t('COL_CONFIG.PIN_WARNING') || 'Pinned columns will be frozen on the left side of the table.'}
-          </div>
-        )}
-
         {/* Sortable table */}
         <div className="max-h-[50vh] overflow-auto border rounded">
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
@@ -343,9 +293,6 @@ export function ColumnConfigDialog({
                     </th>
                     <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500">
                       {t('COL_CONFIG.DISPLAY_NAME') || 'Display Name'}
-                    </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500">
-                      {t('COL_CONFIG.PIN') || 'Pin'}
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500">
                       {t('COL_CONFIG.HIDE') || 'Hide'}
@@ -367,7 +314,6 @@ export function ColumnConfigDialog({
                       key={col.field}
                       column={col}
                       onToggle={handleToggle}
-                      onRename={handleRename}
                       onMoveToTop={handleMoveToTop}
                       onMoveToBottom={handleMoveToBottom}
                     />

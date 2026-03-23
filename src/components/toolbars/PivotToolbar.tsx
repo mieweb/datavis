@@ -18,7 +18,6 @@ export interface PivotToolbarProps {
   view: ViewInstance;
   onRedraw: () => void;
   onOpenColumnConfig?: () => void;
-  onOpenTemplateEditor?: () => void;
   onOpenTableOptions?: () => void;
 }
 
@@ -27,7 +26,6 @@ export function PivotToolbar({
   view: _view,
   onRedraw,
   onOpenColumnConfig,
-  onOpenTemplateEditor,
   onOpenTableOptions,
 }: PivotToolbarProps) {
   const { t } = useTranslation();
@@ -124,18 +122,6 @@ export function PivotToolbar({
           aria-label={t('GRID_TOOLBAR.PLAIN.COLUMNS')}
         >
           ☰ {t('GRID_TOOLBAR.PLAIN.COLUMNS') || 'Columns'}
-        </Button>
-      </Tooltip>
-
-      {/* Templates Editor */}
-      <Tooltip content={t('GRID_TOOLBAR.PLAIN.TEMPLATES_EDITOR') || 'Templates'}>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={onOpenTemplateEditor}
-          aria-label={t('GRID_TOOLBAR.PLAIN.TEMPLATES_EDITOR')}
-        >
-          ✏ {t('GRID_TOOLBAR.PLAIN.TEMPLATES_EDITOR') || 'Templates'}
         </Button>
       </Tooltip>
 
