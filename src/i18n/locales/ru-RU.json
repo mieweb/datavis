@@ -69,7 +69,6 @@
   "CONTROL.ADD_FIELD": "+ Добавить поле…",
   "CONTROL.AGGREGATE": "Агрегат",
   "CONTROL.CLEAR": "Очистить всё",
-  "CONTROL.DROP_HINT": "Добавьте или перетащите поля сюда",
   "CONTROL.GROUP": "Группа",
   "CONTROL.GROUP_FUNCTION": "Функция группировки",
   "CONTROL.PIVOT": "Сводная таблица",

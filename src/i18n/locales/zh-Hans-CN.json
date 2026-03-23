@@ -69,7 +69,6 @@
   "CONTROL.ADD_FIELD": "+ 添加字段…",
   "CONTROL.AGGREGATE": "聚合",
   "CONTROL.CLEAR": "全部清除",
-  "CONTROL.DROP_HINT": "在此添加或拖放字段",
   "CONTROL.GROUP": "分组",
   "CONTROL.GROUP_FUNCTION": "分组函数",
   "CONTROL.PIVOT": "数据透视",

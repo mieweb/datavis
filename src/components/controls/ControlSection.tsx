@@ -152,16 +152,6 @@ export function ControlSection({
           </SortableContext>
         </div>
       )}
-
-      {/* Empty state */}
-      {fields.length === 0 && (
-        <div
-          className="text-xs text-gray-400 italic px-2 py-1 border border-dashed border-gray-200 rounded text-center"
-          role="status"
-        >
-          {t('CONTROL.DROP_HINT') || 'Add or drag fields here'}
-        </div>
-      )}
     </div>
   );
 }

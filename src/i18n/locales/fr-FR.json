@@ -69,7 +69,6 @@
   "CONTROL.ADD_FIELD": "+ Ajouter un champ…",
   "CONTROL.AGGREGATE": "Agrégat",
   "CONTROL.CLEAR": "Tout effacer",
-  "CONTROL.DROP_HINT": "Ajoutez ou glissez des champs ici",
   "CONTROL.GROUP": "Groupe",
   "CONTROL.GROUP_FUNCTION": "Fonction de groupe",
   "CONTROL.PIVOT": "Pivot",

@@ -69,7 +69,6 @@
   "CONTROL.ADD_FIELD": "+ เพิ่มฟิลด์…",
   "CONTROL.AGGREGATE": "การรวม",
   "CONTROL.CLEAR": "ล้างทั้งหมด",
-  "CONTROL.DROP_HINT": "เพิ่มหรือลากฟิลด์ที่นี่",
   "CONTROL.GROUP": "กลุ่ม",
   "CONTROL.GROUP_FUNCTION": "ฟังก์ชันกลุ่ม",
   "CONTROL.PIVOT": "ตารางสรุป",
