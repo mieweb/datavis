@@ -2,15 +2,15 @@
  * StringFilter — filter component for string-type columns.
  *
  * Renders either a text input (with operator dropdown) or a multi-select
- * dropdown (replacing SumoSelect) depending on the widget hint.
+ * dropdown using @mieweb/ui depending on the widget hint.
  */
 
-import { useState, useCallback, useRef, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { Input } from '@mieweb/ui/components/Input';
-import { Checkbox } from '@mieweb/ui/components/Checkbox';
 import { Button } from '@mieweb/ui/components/Button';
+import { Dropdown, DropdownContent, DropdownItem } from '@mieweb/ui/components/Dropdown';
 import { useTranslation } from 'react-i18next';
-import { ChevronGlyphIcon, InlineActionButton } from '../ui';
+import { ChevronGlyphIcon } from '../ui';
 import { FilterOperatorSelect } from './FilterOperatorSelect';
 import {
   STRING_OPERATORS,
@@ -19,23 +19,14 @@ import {
 } from './types';
 
 export interface StringFilterProps {
-  /** Field name */
   field: string;
-  /** Display label */
   label: string;
-  /** Widget variant: 'textbox' | 'dropdown' */
   widget?: 'textbox' | 'dropdown';
-  /** Available options for dropdown mode */
   options?: string[];
-  /** Operators to include */
   includeOperators?: FilterOperator[];
-  /** Operators to exclude */
   excludeOperators?: FilterOperator[];
-  /** Current filter value */
   value?: FieldFilterSpec;
-  /** Change handler */
   onChange: (field: string, spec: FieldFilterSpec | null) => void;
-  /** Auto-focus the operator select on mount */
   autoFocusOperator?: boolean;
 }
 
@@ -51,110 +42,90 @@ export function StringFilter({
   autoFocusOperator,
 }: StringFilterProps) {
   const { t } = useTranslation();
-  // Determine which operators to show
-  const operators = STRING_OPERATORS.filter((op) => {
-    if (includeOperators?.length) return includeOperators.includes(op.value);
-    if (excludeOperators?.length) return !excludeOperators.includes(op.value);
-    // For dropdown mode, default to $in/$nin/$exists/$notexists
+
+  const operators = STRING_OPERATORS.filter((operatorInfo) => {
+    if (includeOperators?.length) return includeOperators.includes(operatorInfo.value);
+    if (excludeOperators?.length) return !excludeOperators.includes(operatorInfo.value);
     if (widget === 'dropdown') {
-      return ['$in', '$nin', '$exists', '$notexists'].includes(op.value);
+      return ['$in', '$nin', '$exists', '$notexists'].includes(operatorInfo.value);
     }
     return true;
   });
 
-  // Parse initial state from spec
-  const initialOp = value ? (Object.keys(value)[0] as FilterOperator) : operators[0]?.value ?? '$contains';
-  const initialVal = value?.[initialOp];
+  const initialOperator = value
+    ? (Object.keys(value)[0] as FilterOperator)
+    : operators[0]?.value ?? '$contains';
+  const initialValue = value?.[initialOperator];
 
-  const [operator, setOperator] = useState<FilterOperator>(initialOp);
-  const [textValue, setTextValue] = useState(typeof initialVal === 'string' ? initialVal : '');
+  const [operator, setOperator] = useState<FilterOperator>(initialOperator);
+  const [textValue, setTextValue] = useState(typeof initialValue === 'string' ? initialValue : '');
   const [selectedValues, setSelectedValues] = useState<Set<string>>(
-    () => new Set(Array.isArray(initialVal) ? initialVal : []),
+    () => new Set(Array.isArray(initialValue) ? initialValue : []),
   );
 
-  const isNoInput = operators.find((o) => o.value === operator)?.noInput;
+  const isNoInput = operators.find((operatorInfo) => operatorInfo.value === operator)?.noInput;
 
   const emitChange = useCallback(
-    (op: FilterOperator, text: string, selected: Set<string>) => {
-      const info = operators.find((o) => o.value === op);
-      if (info?.noInput) {
-        onChange(field, { [op]: true });
+    (nextOperator: FilterOperator, nextTextValue: string, nextSelectedValues: Set<string>) => {
+      const operatorInfo = operators.find((candidate) => candidate.value === nextOperator);
+      if (operatorInfo?.noInput) {
+        onChange(field, { [nextOperator]: true });
         return;
       }
 
-      if (op === '$in' || op === '$nin') {
-        if (selected.size === 0) {
+      if (nextOperator === '$in' || nextOperator === '$nin') {
+        if (nextSelectedValues.size === 0) {
           onChange(field, null);
         } else {
-          onChange(field, { [op]: Array.from(selected) });
+          onChange(field, { [nextOperator]: Array.from(nextSelectedValues) });
         }
         return;
       }
 
-      if (!text.trim()) {
+      if (!nextTextValue.trim()) {
         onChange(field, null);
-      } else {
-        onChange(field, { [op]: text.trim() });
+        return;
       }
+
+      onChange(field, { [nextOperator]: nextTextValue.trim() });
     },
     [field, onChange, operators],
   );
 
   const handleOperatorChange = useCallback(
-    (op: FilterOperator) => {
-      setOperator(op);
-      emitChange(op, textValue, selectedValues);
+    (nextOperator: FilterOperator) => {
+      setOperator(nextOperator);
+      emitChange(nextOperator, textValue, selectedValues);
     },
-    [textValue, selectedValues, emitChange],
+    [emitChange, selectedValues, textValue],
   );
 
-  const handleTextChange = useCallback(
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const val = e.target.value;
-      setTextValue(val);
-    },
-    [],
-  );
+  const handleTextChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    setTextValue(event.target.value);
+  }, []);
 
   const handleTextCommit = useCallback(() => {
     emitChange(operator, textValue, selectedValues);
-  }, [operator, textValue, selectedValues, emitChange]);
+  }, [emitChange, operator, selectedValues, textValue]);
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent) => {
-      if (e.key === 'Enter') {
+    (event: React.KeyboardEvent) => {
+      if (event.key === 'Enter') {
         emitChange(operator, textValue, selectedValues);
       }
     },
-    [operator, textValue, selectedValues, emitChange],
+    [emitChange, operator, selectedValues, textValue],
   );
 
-  const toggleOption = useCallback(
-    (opt: string) => {
-      setSelectedValues((prev) => {
-        const next = new Set(prev);
-        if (next.has(opt)) next.delete(opt);
-        else next.add(opt);
-        emitChange(operator, textValue, next);
-        return next;
-      });
+  const handleSelectedValuesChange = useCallback(
+    (nextValues: string[]) => {
+      const nextSelectedValues = new Set(nextValues);
+      setSelectedValues(nextSelectedValues);
+      emitChange(operator, textValue, nextSelectedValues);
     },
-    [operator, textValue, emitChange],
+    [emitChange, operator, textValue],
   );
 
-  const selectAll = useCallback(() => {
-    const all = new Set(options);
-    setSelectedValues(all);
-    emitChange(operator, textValue, all);
-  }, [options, operator, textValue, emitChange]);
-
-  const clearAll = useCallback(() => {
-    const empty = new Set<string>();
-    setSelectedValues(empty);
-    emitChange(operator, textValue, empty);
-  }, [operator, textValue, emitChange]);
-
-  // Dropdown mode
   if (widget === 'dropdown' && (operator === '$in' || operator === '$nin')) {
     return (
       <div className="wcdv-filter wcdv-filter-string-dropdown flex flex-col gap-1">
@@ -168,10 +139,8 @@ export function StringFilter({
           />
           <MultiSelectDropdown
             options={options}
-            selected={selectedValues}
-            onToggle={toggleOption}
-            onSelectAll={selectAll}
-            onClearAll={clearAll}
+            selectedValues={Array.from(selectedValues)}
+            onSelectedValuesChange={handleSelectedValuesChange}
             label={label}
           />
         </div>
@@ -179,7 +148,6 @@ export function StringFilter({
     );
   }
 
-  // Textbox mode or $exists/$notexists
   return (
     <div className="wcdv-filter wcdv-filter-string flex items-center gap-1">
       <FilterOperatorSelect
@@ -205,154 +173,75 @@ export function StringFilter({
         </div>
       )}
       {isNoInput && (
-        <span className="text-xs text-gray-400 italic px-1" role="status">
-          {t(operators.find((o) => o.value === operator)?.label ?? '')}
+        <span className="px-1 text-xs italic text-gray-400" role="status">
+          {t(operators.find((operatorInfo) => operatorInfo.value === operator)?.label ?? '')}
         </span>
       )}
     </div>
   );
 }
 
-// ───────────────────────────────────────────────────────────
-// Multi-select dropdown (replaces SumoSelect)
-// ───────────────────────────────────────────────────────────
-
 interface MultiSelectDropdownProps {
   options: string[];
-  selected: Set<string>;
-  onToggle: (opt: string) => void;
-  onSelectAll: () => void;
-  onClearAll: () => void;
+  selectedValues: string[];
+  onSelectedValuesChange: (values: string[]) => void;
   label: string;
 }
 
 function MultiSelectDropdown({
   options,
-  selected,
-  onToggle,
-  onSelectAll,
-  onClearAll,
+  selectedValues,
+  onSelectedValuesChange,
   label,
 }: MultiSelectDropdownProps) {
   const { t } = useTranslation();
-  const [open, setOpen] = useState(false);
-  const [search, setSearch] = useState('');
-  const containerRef = useRef<HTMLDivElement>(null);
-  const triggerRef = useRef<HTMLButtonElement>(null);
-
-  // Close on click outside
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [open]);
-
-  // Close on Escape key
-  useEffect(() => {
-    if (!open) return;
-    const handler = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        e.stopPropagation();
-        setOpen(false);
-        triggerRef.current?.focus();
-      }
-    };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
-  }, [open]);
-
-  const filtered = search
-    ? options.filter((o) => o.toLowerCase().includes(search.toLowerCase()))
-    : options;
 
   const summary =
-    selected.size === 0
+    selectedValues.length === 0
       ? t('FILTER.SELECT_VALUES') || 'Select…'
-      : selected.size === options.length
+      : selectedValues.length === options.length
         ? t('FILTER.ALL_SELECTED') || 'All selected'
-        : `${selected.size} selected`;
+        : `${selectedValues.length} selected`;
 
   return (
-    <div className="wcdv-multiselect relative flex-1" ref={containerRef}>
-      <Button
-        ref={triggerRef}
-        size="sm"
-        variant="outline"
-        onClick={() => setOpen((p) => !p)}
-        className="w-full justify-between text-xs font-normal"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-label={`${label}: ${summary}`}
-      >
-        <span className="truncate">{summary}</span>
-        <span className="ml-1 text-gray-400" aria-hidden="true"><ChevronGlyphIcon className="h-3.5 w-3.5" direction="down" /></span>
-      </Button>
-
-      {open && (
-        <div
-          className="absolute z-50 top-full left-0 mt-0.5 w-full min-w-[180px] max-h-56 bg-white border border-gray-200 rounded shadow-lg flex flex-col"
-          role="listbox"
-          aria-label={`${label} options`}
-        >
-          {/* Search */}
-          <div className="p-1 border-b border-gray-100">
-            <Input
-              size="sm"
-              hideLabel
-              label={t('FILTER.SEARCH_OPTIONS') || 'Search options'}
-              type="text"
-              className="text-xs"
-              placeholder={t('FILTER.SEARCH') || 'Search…'}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              aria-label={t('FILTER.SEARCH_OPTIONS') || 'Search options'}
-            />
-          </div>
-
-          {/* Select All / Clear All */}
-          <div className="flex gap-1 px-2 py-1 border-b border-gray-100 text-xs">
-            <InlineActionButton
-              type="button"
-              className="text-blue-600 hover:underline"
-              onClick={onSelectAll}
-            >
-              {t('FILTER.SELECT_ALL') || 'All'}
-            </InlineActionButton>
-            <span className="text-gray-300">|</span>
-            <InlineActionButton
-              type="button"
-              className="text-blue-600 hover:underline"
-              onClick={onClearAll}
-            >
-              {t('FILTER.CLEAR_ALL') || 'None'}
-            </InlineActionButton>
-          </div>
-
-          {/* Options */}
-          <div className="overflow-y-auto flex-1 p-1">
-            {filtered.length === 0 && (
-              <div className="text-xs text-gray-400 px-2 py-1 italic">
-                {t('FILTER.NO_RESULTS') || 'No results'}
-              </div>
-            )}
-            {filtered.map((opt) => (
-              <Checkbox
-                key={opt}
-                size="sm"
-                label={opt || `(${t('FILTER.EMPTY') || 'empty'})`}
-                checked={selected.has(opt)}
-                onChange={() => onToggle(opt)}
-                className="px-1 py-0.5"
-              />
-            ))}
-          </div>
+    <Dropdown
+      placement="bottom-start"
+      width="trigger"
+      searchable
+      multiSelect
+      showSelectAll
+      selectedValues={selectedValues}
+      onSelectedValuesChange={onSelectedValuesChange}
+      searchPlaceholder={t('FILTER.SEARCH') || 'Search…'}
+      searchAriaLabel={t('FILTER.SEARCH_OPTIONS') || 'Search options'}
+      searchEmptyState={(
+        <div className="px-3 py-2 text-xs italic text-gray-400">
+          {t('FILTER.NO_RESULTS') || 'No results'}
         </div>
       )}
-    </div>
+      selectAllLabel={t('FILTER.SELECT_ALL') || 'Select all'}
+      className="max-h-56"
+      trigger={(
+        <Button
+          size="sm"
+          variant="outline"
+          className="w-full justify-between text-xs font-normal"
+          aria-label={`${label}: ${summary}`}
+        >
+          <span className="truncate">{summary}</span>
+          <span className="ml-1 text-gray-400" aria-hidden="true">
+            <ChevronGlyphIcon className="h-3.5 w-3.5" direction="down" />
+          </span>
+        </Button>
+      )}
+    >
+      <DropdownContent className="max-h-56 overflow-auto py-1">
+        {options.map((option) => (
+          <DropdownItem key={option} value={option} searchText={option}>
+            {option || `(${t('FILTER.EMPTY') || 'empty'})`}
+          </DropdownItem>
+        ))}
+      </DropdownContent>
+    </Dropdown>
   );
 }

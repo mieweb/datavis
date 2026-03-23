@@ -6,17 +6,17 @@
  * added fields (FieldPill instances).
  */
 
-import { useCallback, type ReactNode } from 'react';
+import { useCallback, useState, type ReactNode } from 'react';
 import {
   SortableContext,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { Select } from '@mieweb/ui/components/Select';
 import { Button } from '@mieweb/ui/components/Button';
+import { Dropdown, DropdownContent } from '@mieweb/ui/components/Dropdown';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 import { useTranslation } from 'react-i18next';
 import { FieldPill } from './FieldPill';
-import { CloseGlyphIcon } from '../ui';
+import { ChevronGlyphIcon, CloseGlyphIcon, MenuAction } from '../ui';
 
 export interface ControlFieldItem {
   /** Field name (key in data) */
@@ -71,19 +71,18 @@ export function ControlSection({
   showFunctionButton = false,
 }: ControlSectionProps) {
   const { t } = useTranslation();
+  const [addOpen, setAddOpen] = useState(false);
   // Filter out already-added fields from dropdown options
   const addedFieldNames = new Set(fields.map((f) => f.field));
-  const dropdownOptions = availableFields
-    .filter((f) => !addedFieldNames.has(f.field))
-    .map((f) => ({
-      value: f.field,
-      label: f.displayName,
-      disabled: f.disabled,
-    }));
+  const dropdownOptions = availableFields.filter(
+    (f) => !addedFieldNames.has(f.field),
+  );
 
   const handleAdd = useCallback(
     (value: string) => {
-      if (value) onAdd(value);
+      if (!value) return;
+      onAdd(value);
+      setAddOpen(false);
     },
     [onAdd],
   );
@@ -123,15 +122,50 @@ export function ControlSection({
 
       {/* Add field dropdown */}
       {dropdownOptions.length > 0 && (
-        <Select
-          size="sm"
-          hideLabel
-          label={`${t('CONTROL.ADD_FIELD') || 'Add field'} — ${title}`}
-          placeholder={t('CONTROL.ADD_FIELD') || '+ Add field…'}
-          options={dropdownOptions}
-          searchable={dropdownOptions.length > 8}
-          onValueChange={handleAdd}
-        />
+        <Dropdown
+          open={addOpen}
+          onOpenChange={setAddOpen}
+          placement="bottom-start"
+          width="trigger"
+          searchable
+          searchPlaceholder={t('FILTER.SEARCH', { defaultValue: 'Search…' })}
+          searchAriaLabel={t('CONTROL.SEARCH_FIELDS', { defaultValue: `Search ${title} fields` })}
+          searchEmptyState={(
+            <div className="px-3 py-2 text-xs italic text-gray-400">
+              {t('CONTROL.NO_FIELDS', { defaultValue: 'No fields found' })}
+            </div>
+          )}
+          trigger={(
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="w-full justify-between gap-2 text-xs font-normal"
+              aria-label={`${t('CONTROL.ADD_FIELD') || 'Add field'} — ${title}`}
+            >
+              <span className="truncate">{t('CONTROL.ADD_FIELD') || '+ Add field…'}</span>
+              <ChevronGlyphIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" direction="down" />
+            </Button>
+          )}
+        >
+          <DropdownContent className="max-h-60 overflow-auto py-1">
+            {dropdownOptions.map((fieldOption) => (
+              <MenuAction
+                key={fieldOption.field}
+                disabled={fieldOption.disabled}
+                searchText={`${fieldOption.displayName} ${fieldOption.field}`}
+                onClick={() => handleAdd(fieldOption.field)}
+              >
+                <span className="flex min-w-0 items-center justify-between gap-2">
+                  <span className="truncate">{fieldOption.displayName}</span>
+                  <span className="shrink-0 text-[10px] uppercase tracking-wide text-gray-400">
+                    {fieldOption.field}
+                  </span>
+                </span>
+              </MenuAction>
+            ))}
+          </DropdownContent>
+        </Dropdown>
       )}
 
       {/* Sortable field list */}

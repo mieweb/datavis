@@ -188,6 +188,14 @@ export function FilterBar({
               onOpenChange={setAddOpen}
               placement="bottom-start"
               width="trigger"
+              searchable
+              searchPlaceholder={t('FILTER.SEARCH', { defaultValue: 'Search…' })}
+              searchAriaLabel={t('FILTER.SEARCH_FIELDS', { defaultValue: 'Search fields' })}
+              searchEmptyState={(
+                <div className="px-3 py-2 text-xs italic text-gray-400">
+                  {t('FILTER.NO_FIELDS', { defaultValue: 'No fields found' })}
+                </div>
+              )}
               trigger={(
                 <Button
                   type="button"
@@ -205,13 +213,19 @@ export function FilterBar({
                 {addableFields.map((f) => (
                   <MenuAction
                     key={f.field}
+                    searchText={`${f.displayName} ${f.field}`}
                     onClick={() => {
                       setPendingFocusField(f.field);
                       onAddColumn(f.field);
                       setAddOpen(false);
                     }}
                   >
-                    {f.displayName}
+                    <span className="flex min-w-0 items-center justify-between gap-2">
+                      <span className="truncate">{f.displayName}</span>
+                      <span className="shrink-0 text-[10px] uppercase tracking-wide text-gray-400">
+                        {f.field}
+                      </span>
+                    </span>
                   </MenuAction>
                 ))}
               </DropdownContent>
