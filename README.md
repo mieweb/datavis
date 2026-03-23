@@ -2,7 +2,8 @@
 
 A React + Tailwind + [`@mieweb/ui`](https://ui.mieweb.org) UI built on top of the [DataVis ACE](https://github.com/mieweb/wcdatavis) data acquisition and computation engine.
 
-[**Live Demo**](https://verbose-disco-y7k1zoq.pages.github.io/) · [**Storybook**](https://verbose-disco-y7k1zoq.pages.github.io/storybook/) · [**Rewrite Plan**](v0-rewrite-plan.md)
+[**Live Demo**](https://mieweb.github.io/datavis/) · [**Storybook**](https://verbose-disco-y7k1zoq.pages.github.io/storybook/) · [**Rewrite Plan**](v0-rewrite-plan.md)
+
 
 **DataVis** is a set of tools for exploring, manipulating, and visualizing data. It features, among other things:
 
