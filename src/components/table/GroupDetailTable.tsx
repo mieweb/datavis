@@ -7,6 +7,7 @@
  */
 
 import { useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
+import { Button } from '@mieweb/ui/components/Button';
 
 import type {
   BaseTableProps,
@@ -18,6 +19,7 @@ import type {
 } from './types';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '../../i18n';
+import { IconButton, TableActionButton } from '../ui';
 import { formatCellValue, formatAggregateNumber, getAggregateValueForField } from './format-cell';
 
 /**
@@ -260,9 +262,10 @@ export function GroupDetailTable({
                 className="wcdv-group-toggle-all w-8 border-b border-r border-gray-200 bg-gray-50 px-1 py-2 text-center"
                 rowSpan={hasAggSubCols ? 2 : 1}
               >
-                <button
+                <IconButton
                   type="button"
-                  className="inline-flex items-center justify-center bg-transparent border-none p-0 cursor-pointer text-gray-500 hover:text-gray-800 transition-colors"
+                  variant="ghost"
+                  className="h-5 w-5 text-gray-500 shadow-none hover:bg-transparent hover:text-gray-800"
                   onClick={toggleAll}
                   aria-label={t('TABLE.TOGGLE_ALL_GROUPS') || (allExpanded ? 'Collapse all groups' : 'Expand all groups')}
                 >
@@ -273,7 +276,7 @@ export function GroupDetailTable({
                   >
                     ▶
                   </span>
-                </button>
+                </IconButton>
               </th>
               {columnLayout.map((col) => (
                 <th
@@ -296,9 +299,11 @@ export function GroupDetailTable({
                       : 'none'
                   }
                 >
-                  <button
+                  <Button
                     type="button"
-                    className={`flex w-full items-center gap-0.5 bg-transparent border-none p-0 text-left text-inherit font-inherit cursor-pointer ${
+                    size="sm"
+                    variant="ghost"
+                    className={`flex h-auto w-full items-center gap-0.5 bg-transparent p-0 text-left text-inherit font-inherit uppercase tracking-wider shadow-none hover:bg-transparent ${
                       col.aggFns.length > 0 ? 'justify-center' : ''
                     }`}
                     onClick={() =>
@@ -317,7 +322,7 @@ export function GroupDetailTable({
                         {sort.direction === 'asc' ? '↑' : '↓'}
                       </span>
                     )}
-                  </button>
+                  </Button>
                 </th>
               ))}
             </tr>
@@ -403,20 +408,22 @@ export function GroupDetailTable({
             Object.values(groupedRows).reduce((s, r) => s + r.length, 0) <
               totalRows && (
               <div className="flex gap-2">
-                <button
+                <TableActionButton
                   type="button"
-                  className="rounded px-2 py-0.5 text-xs text-blue-600 hover:bg-blue-50"
+                  variant="ghost"
+                  className="h-auto px-2 py-0.5 text-blue-600 hover:bg-blue-50"
                   onClick={onShowMore}
                 >
                   {t('TABLE.SHOW_MORE') || 'Show More'}
-                </button>
-                <button
+                </TableActionButton>
+                <TableActionButton
                   type="button"
-                  className="rounded px-2 py-0.5 text-xs text-blue-600 hover:bg-blue-50"
+                  variant="ghost"
+                  className="h-auto px-2 py-0.5 text-blue-600 hover:bg-blue-50"
                   onClick={onShowAll}
                 >
                   {t('TABLE.SHOW_ALL') || 'Show All'}
-                </button>
+                </TableActionButton>
               </div>
             )}
         </div>
@@ -606,7 +613,7 @@ function GroupSection({
                   role="gridcell"
                 >
                   {formatCell
-                    ? formatCell(row.data[col.field], row.data, col as any)
+                    ? formatCell(row.data[col.field], row.data, col as TableColumn)
                     : formatCellValue(row.data[col.field], col.typeInfo, locale)}
                 </td>
               ))}

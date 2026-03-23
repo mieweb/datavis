@@ -8,7 +8,7 @@
  * and complements the inline PrefsToolbar controls.
  */
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 
 import { Modal, ModalHeader, ModalTitle, ModalClose, ModalBody, ModalFooter } from '@mieweb/ui/components/Modal';
 import { Button } from '@mieweb/ui/components/Button';
@@ -66,6 +66,7 @@ export function PerspectiveManagerDialog({
   const [newName, setNewName] = useState('');
   const [renameId, setRenameId] = useState<string | null>(null);
   const [renameName, setRenameName] = useState('');
+  const renameInputRef = useRef<HTMLInputElement | null>(null);
 
   // Reset form state when dialog opens
   useEffect(() => {
@@ -75,6 +76,19 @@ export function PerspectiveManagerDialog({
       setRenameName('');
     }
   }, [open]);
+
+  useEffect(() => {
+    if (!renameId) {
+      return;
+    }
+
+    const frame = requestAnimationFrame(() => {
+      renameInputRef.current?.focus();
+      renameInputRef.current?.select();
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, [renameId]);
 
   const configJson = useMemo(() => {
     try {
@@ -169,11 +183,11 @@ export function PerspectiveManagerDialog({
                   /* Rename inline */
                   <div className="flex items-center gap-2 flex-1">
                     <Input
+                      ref={renameInputRef}
                       value={renameName}
                       onChange={(e) => setRenameName(e.target.value)}
                       size="sm"
                       className="flex-1"
-                      autoFocus
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') handleConfirmRename();
                         if (e.key === 'Escape') handleCancelRename();

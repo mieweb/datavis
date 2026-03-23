@@ -8,6 +8,7 @@
  */
 
 import { useState, useCallback, useRef } from 'react';
+import { Input } from '@mieweb/ui/components/Input';
 import { Select } from '@mieweb/ui/components/Select';
 import { useTranslation } from 'react-i18next';
 import { FilterOperatorSelect } from './FilterOperatorSelect';
@@ -35,7 +36,7 @@ export interface DateFilterProps {
   /** Change handler */
   onChange: (field: string, spec: FieldFilterSpec | null) => void;
   /** Auto-focus the operator select on mount */
-  autoFocus?: boolean;
+  autoFocusOperator?: boolean;
 }
 
 /** Period options for $this / $last operators */
@@ -61,7 +62,7 @@ export function DateFilter({
   excludeOperators,
   value,
   onChange,
-  autoFocus,
+  autoFocusOperator,
 }: DateFilterProps) {
   const { t } = useTranslation();
   const operators = DATE_OPERATORS.filter((op) => {
@@ -183,14 +184,17 @@ export function DateFilter({
         value={operator}
         onChange={handleOperatorChange}
         aria-label={`${label} ${t('FILTER.OPERATOR')}`}
-        autoFocus={autoFocus}
+        autoFocusOnMount={autoFocusOperator}
       />
 
       {/* Single date: On / Before / After */}
       {(operator === '$eq' || operator === '$lte' || operator === '$gte') && (
-        <input
+        <Input
+          size="sm"
+          hideLabel
+          label={t('FILTER.DATE_VALUE', { param0: label })}
           type={inputType}
-          className="flex-1 min-w-0 h-7 rounded border border-gray-300 bg-white text-xs px-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
+          className="min-w-0 flex-1"
           value={dateValue}
           onChange={(e) => {
             setDateValue(e.target.value);
@@ -203,9 +207,11 @@ export function DateFilter({
       {/* Between: two date inputs */}
       {operator === '$bet' && (
         <>
-          <input
+          <Input
+            size="sm"
+            hideLabel
+            label={`${label} ${t('FILTER.DATE_FROM') || 'from'}`}
             type={inputType}
-            className="h-7 rounded border border-gray-300 bg-white text-xs px-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
             value={rangeStart}
             onChange={(e) => {
               setRangeStart(e.target.value);
@@ -224,10 +230,12 @@ export function DateFilter({
             aria-label={`${label} ${t('FILTER.DATE_FROM') || 'from'}`}
           />
           <span className="text-xs text-gray-400">–</span>
-          <input
+          <Input
+            size="sm"
+            hideLabel
+            label={`${label} ${t('FILTER.DATE_TO') || 'to'}`}
             ref={endDateRef}
             type={inputType}
-            className="h-7 rounded border border-gray-300 bg-white text-xs px-2 focus:outline-none focus:ring-1 focus:ring-blue-400"
             value={rangeEnd}
             onChange={(e) => {
               setRangeEnd(e.target.value);

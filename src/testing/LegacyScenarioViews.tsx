@@ -1,4 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { Button } from '@mieweb/ui/components/Button';
+import { Checkbox } from '@mieweb/ui/components/Checkbox';
+import { Input } from '@mieweb/ui/components/Input';
+import { Select } from '@mieweb/ui/components/Select';
 
 import { SIMPLE_DATA } from '../demo/data';
 
@@ -37,12 +41,13 @@ export function AutoLimitScenario() {
   return (
     <div className="min-h-screen bg-slate-100 p-6 space-y-4">
       <h1 className="text-xl font-semibold">Auto Limit Scenario</h1>
-      <input
+      <Input
+        hideLabel
+        label="Auto limit filter"
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder="Filter rows"
         aria-label="Auto limit filter"
-        className="rounded border px-3 py-2"
       />
       {filteredRows.length > limit && (
         <div data-testid="auto-limit-warning" className="rounded border border-amber-300 bg-amber-50 px-3 py-2 text-amber-800">
@@ -71,12 +76,14 @@ export function OmnifilterScenario() {
   return (
     <div className="min-h-screen bg-slate-100 p-6 space-y-4">
       <h1 className="text-xl font-semibold">Omnifilter Scenario</h1>
-      <button type="button" onClick={() => setOpen((value) => !value)} className="rounded border bg-white px-3 py-2">
+      <Button type="button" variant="outline" onClick={() => setOpen((value) => !value)}>
         Toggle Omnifilter
-      </button>
+      </Button>
       {open && (
         <div className="flex items-center gap-2">
-          <input
+          <Input
+            hideLabel
+            label="Omnifilter input"
             ref={inputRef}
             value={query}
             onChange={(event) => setQuery(event.target.value)}
@@ -87,12 +94,11 @@ export function OmnifilterScenario() {
               }
             }}
             aria-label="Omnifilter input"
-            className="rounded border px-3 py-2"
           />
           {query && (
-            <button type="button" onClick={() => setQuery('')} aria-label="Clear omnifilter" className="rounded border bg-white px-2 py-2">
+            <Button type="button" size="sm" variant="outline" onClick={() => setQuery('')} aria-label="Clear omnifilter">
               Clear
-            </button>
+            </Button>
           )}
         </div>
       )}
@@ -113,15 +119,17 @@ export function PaginationScenario() {
       <h1 className="text-xl font-semibold">Pagination Scenario</h1>
       <div role="navigation" aria-label="Pagination">
         {Array.from({ length: pageCount }, (_, index) => index + 1).map((pageNumber) => (
-          <button
+          <Button
             key={pageNumber}
             type="button"
             onClick={() => setPage(pageNumber)}
-            className={`mr-2 rounded border px-3 py-1 ${page === pageNumber ? 'bg-blue-600 text-white' : 'bg-white'}`}
+            size="sm"
+            variant={page === pageNumber ? 'primary' : 'outline'}
+            className="mr-2"
             aria-current={page === pageNumber ? 'page' : undefined}
           >
             {pageNumber}
-          </button>
+          </Button>
         ))}
       </div>
       <SimpleTable rows={rows} />
@@ -174,53 +182,50 @@ function PrefsScenarioInner({ autoSave }: { autoSave: boolean }) {
     <div className="min-h-screen bg-slate-100 p-6 space-y-4">
       <h1 className="text-xl font-semibold">{autoSave ? 'Prefs Scenario' : 'No Auto Save Scenario'}</h1>
       <div className="flex items-center gap-2">
-        <button type="button" onClick={() => {
+        <Button type="button" size="sm" variant="outline" onClick={() => {
           const name = `Perspective ${perspectives.length}`;
           setPerspectives((currentPerspectives) => [...currentPerspectives, name]);
           setConfigs((currentConfigs) => ({ ...currentConfigs, [name]: { groupByDepartment: false } }));
           setCurrentPerspective(name);
-        }} className="rounded border bg-white px-3 py-2">New</button>
-        <button type="button" onClick={persistDraft} className="rounded border bg-white px-3 py-2">Save</button>
-        <button type="button" onClick={() => {
+        }}>New</Button>
+        <Button type="button" size="sm" variant="outline" onClick={persistDraft}>Save</Button>
+        <Button type="button" size="sm" variant="outline" onClick={() => {
           if (current === 'Main Perspective') return;
           const nextPerspectives = perspectives.filter((name) => name !== current);
           const nextCurrent = nextPerspectives[0];
           setPerspectives(nextPerspectives);
           setCurrent(nextCurrent);
           setDraft(configs[nextCurrent] ?? { groupByDepartment: false });
-        }} className="rounded border bg-white px-3 py-2">Delete</button>
-        <button type="button" onClick={() => {
+        }}>Delete</Button>
+        <Button type="button" size="sm" variant="outline" onClick={() => {
           if (historyIndex === 0) return;
           const nextIndex = historyIndex - 1;
           setHistoryIndex(nextIndex);
           const nextName = history[nextIndex];
           setCurrent(nextName);
           setDraft(configs[nextName] ?? { groupByDepartment: false });
-        }} className="rounded border bg-white px-3 py-2">Back</button>
-        <button type="button" onClick={() => {
+        }}>Back</Button>
+        <Button type="button" size="sm" variant="outline" onClick={() => {
           if (historyIndex >= history.length - 1) return;
           const nextIndex = historyIndex + 1;
           setHistoryIndex(nextIndex);
           const nextName = history[nextIndex];
           setCurrent(nextName);
           setDraft(configs[nextName] ?? { groupByDepartment: false });
-        }} className="rounded border bg-white px-3 py-2">Forward</button>
+        }}>Forward</Button>
       </div>
       <div data-testid="current-perspective">{current}{unsaved ? ' [*]' : ''}</div>
-      <label className="flex items-center gap-2">
-        <input
-          type="checkbox"
-          checked={draft.groupByDepartment}
-          onChange={(event) => {
-            const nextDraft = { groupByDepartment: event.target.checked };
-            setDraft(nextDraft);
-            if (autoSave) {
-              setConfigs((currentConfigs) => ({ ...currentConfigs, [current]: nextDraft }));
-            }
-          }}
-        />
-        Group by department
-      </label>
+      <Checkbox
+        label="Group by department"
+        checked={draft.groupByDepartment}
+        onChange={(event) => {
+          const nextDraft = { groupByDepartment: event.target.checked };
+          setDraft(nextDraft);
+          if (autoSave) {
+            setConfigs((currentConfigs) => ({ ...currentConfigs, [current]: nextDraft }));
+          }
+        }}
+      />
     </div>
   );
 }
@@ -246,17 +251,20 @@ export function SourceParamsScenario() {
     <div className="min-h-screen bg-slate-100 p-6 space-y-4">
       <h1 className="text-xl font-semibold">Source Params Scenario</h1>
       <div className="flex gap-4">
-        <select aria-label="Department source param" value={department} onChange={(event) => setDepartment(event.target.value)} className="rounded border px-3 py-2">
-          <option value="">All departments</option>
-          <option value="Engineering">Engineering</option>
-          <option value="Marketing">Marketing</option>
-          <option value="Design">Design</option>
-          <option value="Finance">Finance</option>
-        </select>
-        <label className="flex items-center gap-2">
-          <input type="checkbox" checked={activeOnly} onChange={(event) => setActiveOnly(event.target.checked)} />
-          Active only
-        </label>
+        <Select
+          hideLabel
+          label="Department source param"
+          value={department}
+          onValueChange={setDepartment}
+          options={[
+            { value: '', label: 'All departments' },
+            { value: 'Engineering', label: 'Engineering' },
+            { value: 'Marketing', label: 'Marketing' },
+            { value: 'Design', label: 'Design' },
+            { value: 'Finance', label: 'Finance' },
+          ]}
+        />
+        <Checkbox label="Active only" checked={activeOnly} onChange={(event) => setActiveOnly(event.target.checked)} />
       </div>
       <div data-testid="source-param-count">{rows.length}</div>
       <SimpleTable rows={rows} />
@@ -293,8 +301,8 @@ export function CancelScenario() {
     <div className="min-h-screen bg-slate-100 p-6 space-y-4">
       <h1 className="text-xl font-semibold">Cancel Scenario</h1>
       <div className="flex gap-2">
-        <button type="button" onClick={startLoad} className="rounded border bg-white px-3 py-2">Load</button>
-        {loading && <button type="button" onClick={cancel} className="rounded border bg-white px-3 py-2">Cancel</button>}
+        <Button type="button" size="sm" variant="outline" onClick={startLoad}>Load</Button>
+        {loading && <Button type="button" size="sm" variant="outline" onClick={cancel}>Cancel</Button>}
       </div>
       <div data-testid="cancel-status">{status}</div>
     </div>
@@ -311,7 +319,7 @@ export function GoogleChartScenario() {
   return (
     <div className="min-h-screen bg-slate-100 p-6 space-y-4">
       <h1 className="text-xl font-semibold">Department Totals</h1>
-      <button type="button" onClick={() => setStacked((value) => !value)} className="rounded border bg-white px-3 py-2">Toggle Stacked</button>
+      <Button type="button" size="sm" variant="outline" onClick={() => setStacked((value) => !value)}>Toggle Stacked</Button>
       <div role="img" aria-label="Department Totals chart" className="rounded border bg-white p-4">
         {bars.map((bar) => (
           <div
@@ -335,9 +343,9 @@ export function DrilldownScenario() {
   return (
     <div className="min-h-screen bg-slate-100 p-6 space-y-4">
       <h1 className="text-xl font-semibold">Drilldown Scenario</h1>
-      <button type="button" onClick={() => setOpen(true)} className="rounded border bg-white px-3 py-2">
+      <Button type="button" size="sm" variant="outline" onClick={() => setOpen(true)}>
         Canada / Engineering / Count 1
-      </button>
+      </Button>
       {open && (
         <div data-testid="drilldown-panel" className="rounded border bg-white p-4">
           <div>Rows: 1</div>

@@ -309,20 +309,21 @@ export function useView(view: ViewInstance, autoFetch = true): UseViewReturn {
   const clearAggregate = useCallback(() => view.clearAggregate(), [view]);
   const clearSort = useCallback(() => view.clearSort(), [view]);
 
-  let rowCount = 0;
-  let totalRowCount = 0;
+  const rowCount = (() => {
+    try {
+      return view.getRowCount?.() ?? 0;
+    } catch {
+      return 0;
+    }
+  })();
 
-  try {
-    rowCount = view.getRowCount?.() ?? 0;
-  } catch {
-    rowCount = 0;
-  }
-
-  try {
-    totalRowCount = view.getTotalRowCount?.() ?? 0;
-  } catch {
-    totalRowCount = 0;
-  }
+  const totalRowCount = (() => {
+    try {
+      return view.getTotalRowCount?.() ?? 0;
+    } catch {
+      return 0;
+    }
+  })();
 
   return {
     ...state,

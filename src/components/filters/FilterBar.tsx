@@ -6,10 +6,12 @@
  * can be passed to `view.setFilter()`.
  */
 
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { Button } from '@mieweb/ui/components/Button';
+import { Dropdown, DropdownContent } from '@mieweb/ui/components/Dropdown';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 import { useTranslation } from 'react-i18next';
+import { IconButton, MenuAction } from '../ui';
 import { StringFilter } from './StringFilter';
 import { NumberFilter } from './NumberFilter';
 import { DateFilter } from './DateFilter';
@@ -102,21 +104,8 @@ export function FilterBar({
 
   // "Add field" dropdown open state
   const [addOpen, setAddOpen] = useState(false);
-  const addRef = useRef<HTMLDivElement>(null);
   // Track which field was just added so we can auto-focus its operator select
   const [pendingFocusField, setPendingFocusField] = useState<string | null>(null);
-
-  // Close dropdown on outside click
-  useEffect(() => {
-    if (!addOpen) return;
-    const handler = (e: MouseEvent) => {
-      if (addRef.current && !addRef.current.contains(e.target as Node)) {
-        setAddOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
-  }, [addOpen]);
 
   // Clear pending focus after the newly-added filter has mounted
   useEffect(() => {
@@ -167,9 +156,10 @@ export function FilterBar({
                 {col.displayName}
               </label>
               {onRemoveColumn && (
-                <button
+                <IconButton
                   type="button"
-                  className="wcdv-filter-remove shrink-0 w-4 h-4 flex items-center justify-center rounded-full text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors text-[10px] leading-none"
+                  variant="ghost"
+                  className="wcdv-filter-remove h-4 w-4 shrink-0 rounded-full text-[10px] leading-none text-gray-400 hover:bg-red-50 hover:text-red-500"
                   onClick={() => {
                     handleFieldChange(col.field, null);
                     onRemoveColumn(col.field);
@@ -178,45 +168,43 @@ export function FilterBar({
                   title={t('FILTER.REMOVE') || 'Remove filter'}
                 >
                   ✕
-                </button>
+                </IconButton>
               )}
             </div>
             <FilterWidget
               column={col}
               value={specs[col.field] ?? undefined}
               onChange={handleFieldChange}
-              autoFocus={pendingFocusField === col.field}
+              autoFocusOperator={pendingFocusField === col.field}
             />
           </div>
         ))}
 
         {/* Add field button */}
         {onAddColumn && addableFields.length > 0 && (
-          <div className="wcdv-filter-add relative flex items-end" ref={addRef}>
-            <button
-              type="button"
-              className="w-full h-[30px] flex items-center gap-1 px-2 rounded border border-dashed border-gray-300 text-xs text-gray-500 hover:border-blue-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-              onClick={() => setAddOpen((o) => !o)}
-              aria-haspopup="menu"
-              aria-expanded={addOpen}
-              aria-label={t('FILTER.ADD_FIELD') || 'Add filter field'}
+          <div className="wcdv-filter-add relative flex items-end">
+            <Dropdown
+              open={addOpen}
+              onOpenChange={setAddOpen}
+              placement="bottom-start"
+              width="trigger"
+              trigger={(
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="h-[30px] w-full justify-start gap-1 border-dashed text-xs text-gray-500 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+                  aria-label={t('FILTER.ADD_FIELD') || 'Add filter field'}
+                >
+                  <span className="text-sm leading-none">+</span>
+                  <span className="truncate">{t('FILTER.ADD_FIELD') || 'Add field…'}</span>
+                </Button>
+              )}
             >
-              <span className="text-sm leading-none">+</span>
-              <span className="truncate">{t('FILTER.ADD_FIELD') || 'Add field…'}</span>
-            </button>
-
-            {addOpen && (
-              <div
-                className="absolute top-full left-0 z-50 mt-1 w-48 max-h-60 overflow-auto rounded border border-gray-200 bg-white shadow-lg"
-                role="menu"
-                aria-label={t('FILTER.ADD_FIELD') || 'Add filter field'}
-              >
+              <DropdownContent className="max-h-60 overflow-auto py-1">
                 {addableFields.map((f) => (
-                  <button
+                  <MenuAction
                     key={f.field}
-                    type="button"
-                    role="menuitem"
-                    className="w-full text-left px-3 py-1.5 text-xs hover:bg-blue-50 hover:text-blue-700 transition-colors"
                     onClick={() => {
                       setPendingFocusField(f.field);
                       onAddColumn(f.field);
@@ -224,10 +212,10 @@ export function FilterBar({
                     }}
                   >
                     {f.displayName}
-                  </button>
+                  </MenuAction>
                 ))}
-              </div>
-            )}
+              </DropdownContent>
+            </Dropdown>
           </div>
         )}
       </div>
@@ -243,10 +231,10 @@ interface FilterWidgetProps {
   column: ColumnFilterConfig;
   value?: FieldFilterSpec;
   onChange: (field: string, spec: FieldFilterSpec | null) => void;
-  autoFocus?: boolean;
+  autoFocusOperator?: boolean;
 }
 
-function FilterWidget({ column, value, onChange, autoFocus }: FilterWidgetProps) {
+function FilterWidget({ column, value, onChange, autoFocusOperator }: FilterWidgetProps) {
   const { field, displayName, filterType, widget, options, includeOperators, excludeOperators } = column;
 
   switch (filterType) {
@@ -261,7 +249,7 @@ function FilterWidget({ column, value, onChange, autoFocus }: FilterWidgetProps)
           excludeOperators={excludeOperators}
           value={value}
           onChange={onChange}
-          autoFocus={autoFocus}
+          autoFocusOperator={autoFocusOperator}
         />
       );
 
@@ -276,7 +264,7 @@ function FilterWidget({ column, value, onChange, autoFocus }: FilterWidgetProps)
           excludeOperators={excludeOperators}
           value={value}
           onChange={onChange}
-          autoFocus={autoFocus}
+          autoFocusOperator={autoFocusOperator}
         />
       );
 
@@ -290,7 +278,7 @@ function FilterWidget({ column, value, onChange, autoFocus }: FilterWidgetProps)
           excludeOperators={excludeOperators}
           value={value}
           onChange={onChange}
-          autoFocus={autoFocus}
+          autoFocusOperator={autoFocusOperator}
         />
       );
 
@@ -304,7 +292,7 @@ function FilterWidget({ column, value, onChange, autoFocus }: FilterWidgetProps)
           excludeOperators={excludeOperators}
           value={value}
           onChange={onChange}
-          autoFocus={autoFocus}
+          autoFocusOperator={autoFocusOperator}
         />
       );
 
@@ -326,7 +314,7 @@ function FilterWidget({ column, value, onChange, autoFocus }: FilterWidgetProps)
           widget="textbox"
           value={value}
           onChange={onChange}
-          autoFocus={autoFocus}
+          autoFocusOperator={autoFocusOperator}
         />
       );
   }

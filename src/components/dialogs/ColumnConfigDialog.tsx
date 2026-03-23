@@ -30,6 +30,7 @@ import { Button } from '@mieweb/ui/components/Button';
 import { Checkbox } from '@mieweb/ui/components/Checkbox';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 import { useTranslation } from 'react-i18next';
+import { IconButton } from '../ui';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -112,13 +113,13 @@ function SortableRow({
       <td className="px-2 py-1.5 text-sm">
         <span className="mr-1">{column.displayText}</span>
         <Tooltip content={t('COL_CONFIG.RENAME') || 'Rename'}>
-          <button
-            className="text-gray-400 hover:text-blue-600 text-xs"
+          <IconButton
+            className="h-6 w-6 text-gray-400 hover:text-blue-600"
             onClick={() => onRename(column.field)}
             aria-label={t('COL_CONFIG.RENAME')}
           >
             ✏
-          </button>
+          </IconButton>
         </Tooltip>
       </td>
 
@@ -170,22 +171,22 @@ function SortableRow({
       {/* Move buttons */}
       <td className="px-2 py-1.5 text-center whitespace-nowrap">
         <Tooltip content={t('COL_CONFIG.MOVE_TOP') || 'Move to top'}>
-          <button
-            className="text-gray-400 hover:text-gray-700 px-0.5"
+          <IconButton
+            className="h-6 w-6 text-gray-400 hover:text-gray-700"
             onClick={() => onMoveToTop(column.field)}
             aria-label={t('COL_CONFIG.MOVE_TOP')}
           >
             ⇈
-          </button>
+          </IconButton>
         </Tooltip>
         <Tooltip content={t('COL_CONFIG.MOVE_BOTTOM') || 'Move to bottom'}>
-          <button
-            className="text-gray-400 hover:text-gray-700 px-0.5"
+          <IconButton
+            className="h-6 w-6 text-gray-400 hover:text-gray-700"
             onClick={() => onMoveToBottom(column.field)}
             aria-label={t('COL_CONFIG.MOVE_BOTTOM')}
           >
             ⇊
-          </button>
+          </IconButton>
         </Tooltip>
       </td>
     </tr>

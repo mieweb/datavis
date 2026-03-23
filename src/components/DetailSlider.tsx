@@ -7,6 +7,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
+import { IconButton } from './ui';
 
 export interface DetailSliderProps {
   /** Whether the slider is open */
@@ -66,13 +67,13 @@ export function DetailSlider({
       {/* Header */}
       <div className="wcdv-slider-header flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
         <h2 className="text-sm font-semibold truncate">{header}</h2>
-        <button
-          className="wcdv-slider-close text-gray-400 hover:text-gray-700 text-xl leading-none p-1"
+        <IconButton
+          className="wcdv-slider-close text-gray-400 hover:text-gray-700"
           onClick={onClose}
           aria-label={t('SLIDER.CLOSE') || 'Close detail panel'}
         >
           ×
-        </button>
+        </IconButton>
       </div>
 
       {/* Body */}

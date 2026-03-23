@@ -4,6 +4,7 @@
 
 import { useState } from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
+import { Button } from '@mieweb/ui/components/Button';
 import { PlainTable } from './table/PlainTable';
 import { GroupDetailTable } from './table/GroupDetailTable';
 import { GroupSummaryTable } from './table/GroupSummaryTable';
@@ -255,18 +256,12 @@ export const ProgressBar: StoryFn = () => {
         </div>
       </div>
       <div className="flex gap-2">
-        <button
-          className="px-3 py-1 text-sm border rounded hover:bg-gray-50"
-          onClick={() => setLoaded((l) => Math.min(l + 10, 100))}
-        >
+        <Button size="sm" variant="outline" onClick={() => setLoaded((l) => Math.min(l + 10, 100))}>
           +10 rows
-        </button>
-        <button
-          className="px-3 py-1 text-sm border rounded hover:bg-gray-50"
-          onClick={() => setLoaded(0)}
-        >
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => setLoaded(0)}>
           Reset
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -32,6 +32,7 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { Button } from '@mieweb/ui/components/Button';
 
 import type {
   BaseTableProps,
@@ -49,6 +50,7 @@ import { useFilterContext } from '../filters/FilterContext';
 import { useColumnConfig } from './ColumnConfigContext';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '../../i18n';
+import { IconButton, TableActionButton } from '../ui';
 import { formatCellValue, formatAggregateNumber, DATE_FORMAT_PRESETS, type DateFormatPreset } from './format-cell';
 
 // ───────────────────────────────────────────────────────────
@@ -192,22 +194,25 @@ function SortableHeaderCell({
       {...listeners}
     >
       <div className="flex items-center w-full gap-0.5">
-        <button
+        <Button
           type="button"
-          className="flex flex-1 items-center gap-0.5 min-w-0 bg-transparent border-none p-0 text-left text-inherit font-inherit cursor-pointer"
+          size="sm"
+          variant="ghost"
+          className="flex h-auto flex-1 min-w-0 items-center justify-start gap-0.5 bg-transparent p-0 text-left text-inherit font-inherit uppercase tracking-wider shadow-none hover:bg-transparent"
           onClick={handleClick}
           tabIndex={-1}
           aria-label={t('TABLE.SORT_BY', { param0: column.header }) || `Sort by ${column.header}`}
         >
           <span className="truncate">{column.header}</span>
           {(column.sortable !== false) && <SortIcon direction={sortDir} />}
-        </button>
+        </Button>
 
         {/* Filter icon — adds this column to the filter bar */}
         {onFilterClick && (
-          <button
+          <IconButton
             type="button"
-            className="flex-shrink-0 p-0 border-none bg-transparent cursor-pointer"
+            variant="ghost"
+            className="h-5 w-5 flex-shrink-0 p-0 shadow-none hover:bg-transparent"
             onClick={(e) => {
               e.stopPropagation();
               onFilterClick();
@@ -217,7 +222,7 @@ function SortableHeaderCell({
             title={filterActive ? (t('TABLE.FILTER_ACTIVE') || 'Filter active') : (t('TABLE.ADD_FILTER') || 'Add filter')}
           >
             <FilterIcon active={filterActive} />
-          </button>
+          </IconButton>
         )}
       </div>
 
@@ -822,22 +827,24 @@ export function PlainTable({
 
           {isLimited && (
             <div className="flex gap-2">
-              <button
+              <TableActionButton
                 type="button"
-                className="rounded px-2 py-0.5 text-xs text-blue-600 hover:bg-blue-50"
+                variant="ghost"
+                className="h-auto px-2 py-0.5 text-blue-600 hover:bg-blue-50"
                 onClick={onShowMore}
                 aria-label={t('TABLE.SHOW_MORE') || 'Show more rows'}
               >
                 {t('TABLE.SHOW_MORE') || 'Show More'}
-              </button>
-              <button
+              </TableActionButton>
+              <TableActionButton
                 type="button"
-                className="rounded px-2 py-0.5 text-xs text-blue-600 hover:bg-blue-50"
+                variant="ghost"
+                className="h-auto px-2 py-0.5 text-blue-600 hover:bg-blue-50"
                 onClick={onShowAll}
                 aria-label={t('TABLE.SHOW_ALL') || 'Show all rows'}
               >
                 {t('TABLE.SHOW_ALL') || 'Show All'}
-              </button>
+              </TableActionButton>
             </div>
           )}
         </div>

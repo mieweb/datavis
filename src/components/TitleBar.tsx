@@ -10,6 +10,7 @@ import { Spinner } from '@mieweb/ui/components/Spinner';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 
 import { useTranslation } from 'react-i18next';
+import { InlineActionButton } from './ui';
 import { PrefsToolbar } from './toolbars/PrefsToolbar';
 import type { PrefsInstance } from '../adapters/use-prefs';
 
@@ -84,13 +85,13 @@ export function TitleBar({
         )}
 
         {hasActiveFilter && (
-          <button
-            className="text-blue-600 hover:text-blue-800 underline cursor-pointer"
+          <InlineActionButton
+            className="text-blue-600 hover:text-blue-800"
             onClick={onClearFilter}
             aria-label={t('GRID.TITLEBAR.CLEAR_FILTER')}
           >
             {t('GRID.TITLEBAR.CLEAR_FILTER') || 'Clear Filter'}
-          </button>
+          </InlineActionButton>
         )}
 
         {cancellable && loading && (

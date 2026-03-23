@@ -10,6 +10,7 @@ import { Input } from '@mieweb/ui/components/Input';
 import { Checkbox } from '@mieweb/ui/components/Checkbox';
 import { Button } from '@mieweb/ui/components/Button';
 import { useTranslation } from 'react-i18next';
+import { InlineActionButton } from '../ui';
 import { FilterOperatorSelect } from './FilterOperatorSelect';
 import {
   STRING_OPERATORS,
@@ -35,7 +36,7 @@ export interface StringFilterProps {
   /** Change handler */
   onChange: (field: string, spec: FieldFilterSpec | null) => void;
   /** Auto-focus the operator select on mount */
-  autoFocus?: boolean;
+  autoFocusOperator?: boolean;
 }
 
 export function StringFilter({
@@ -47,7 +48,7 @@ export function StringFilter({
   excludeOperators,
   value,
   onChange,
-  autoFocus,
+  autoFocusOperator,
 }: StringFilterProps) {
   const { t } = useTranslation();
   // Determine which operators to show
@@ -163,7 +164,7 @@ export function StringFilter({
             value={operator}
             onChange={handleOperatorChange}
             aria-label={`${label} ${t('FILTER.OPERATOR')}`}
-            autoFocus={autoFocus}
+            autoFocusOnMount={autoFocusOperator}
           />
           <MultiSelectDropdown
             options={options}
@@ -186,7 +187,7 @@ export function StringFilter({
         value={operator}
         onChange={handleOperatorChange}
         aria-label={`${label} ${t('FILTER.OPERATOR')}`}
-        autoFocus={autoFocus}
+        autoFocusOnMount={autoFocusOperator}
       />
       {!isNoInput && (
         <div className="flex-1 min-w-0">
@@ -300,9 +301,12 @@ function MultiSelectDropdown({
         >
           {/* Search */}
           <div className="p-1 border-b border-gray-100">
-            <input
+            <Input
+              size="sm"
+              hideLabel
+              label={t('FILTER.SEARCH_OPTIONS') || 'Search options'}
               type="text"
-              className="w-full text-xs px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400"
+              className="text-xs"
               placeholder={t('FILTER.SEARCH') || 'Search…'}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -312,21 +316,21 @@ function MultiSelectDropdown({
 
           {/* Select All / Clear All */}
           <div className="flex gap-1 px-2 py-1 border-b border-gray-100 text-xs">
-            <button
+            <InlineActionButton
               type="button"
               className="text-blue-600 hover:underline"
               onClick={onSelectAll}
             >
               {t('FILTER.SELECT_ALL') || 'All'}
-            </button>
+            </InlineActionButton>
             <span className="text-gray-300">|</span>
-            <button
+            <InlineActionButton
               type="button"
               className="text-blue-600 hover:underline"
               onClick={onClearAll}
             >
               {t('FILTER.CLEAR_ALL') || 'None'}
-            </button>
+            </InlineActionButton>
           </div>
 
           {/* Options */}

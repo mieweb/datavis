@@ -4,6 +4,7 @@
 
 import { useState } from 'react';
 import type { Meta, StoryFn } from '@storybook/react';
+import { Button } from '@mieweb/ui/components/Button';
 import { DetailSlider } from '../components/DetailSlider';
 
 const meta = {
@@ -21,12 +22,9 @@ export const Default: StoryFn = () => {
     const [open, setOpen] = useState(false);
     return (
       <div className="p-8 min-h-screen">
-        <button
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-          onClick={() => setOpen(true)}
-        >
+        <Button onClick={() => setOpen(true)}>
           Open Detail Slider
-        </button>
+        </Button>
 
         <DetailSlider
           open={open}

@@ -10,6 +10,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import type { ContextMenuItem } from './types';
 import { useTranslation } from 'react-i18next';
+import { DisclosureButton, MenuAction } from '../ui';
 
 export interface HeaderContextMenuProps {
   /** Whether the menu is visible */
@@ -99,17 +100,17 @@ export function HeaderContextMenu({
               onMouseEnter={() => setOpenSub(item.label)}
               onMouseLeave={() => setOpenSub(null)}
             >
-              <button
-                className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100"
+              <DisclosureButton
+                className="rounded-none px-3 py-1.5 text-gray-700 hover:bg-gray-100"
                 role="menuitem"
                 aria-haspopup="menu"
                 aria-expanded={subOpen}
                 onClick={() => setOpenSub(subOpen ? null : item.label)}
+                indicator={item.icon ? <span className="w-4 text-center">{item.icon}</span> : undefined}
               >
-                {item.icon && <span className="w-4 text-center">{item.icon}</span>}
                 <span className="flex-1 text-left">{item.label}</span>
                 <span className="text-xs text-gray-400">▸</span>
-              </button>
+              </DisclosureButton>
               {subOpen && (
                 <div
                   className="absolute left-full top-0 z-50 min-w-[180px] rounded-md border border-gray-200 bg-white py-1 shadow-lg"
@@ -121,10 +122,13 @@ export function HeaderContextMenu({
                       return <div key={`sub-sep-${child.label}`} className="my-1 h-px bg-gray-200" role="separator" />;
                     }
                     return (
-                      <button
+                      <MenuAction
                         key={child.label}
-                        className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+                        className="rounded-none px-3 py-1.5 text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
                         role="menuitemradio"
+                        checked={child.checked ?? false}
+                        icon={child.icon as never}
+                        shortcut={child.shortcut}
                         aria-checked={child.checked ?? false}
                         disabled={child.disabled}
                         onClick={() => {
@@ -132,14 +136,8 @@ export function HeaderContextMenu({
                           onClose();
                         }}
                       >
-                        <span className="w-4 text-center text-xs">
-                          {child.checked ? '✓' : ''}
-                        </span>
-                        <span className="flex-1 text-left">{child.label}</span>
-                        {child.shortcut && (
-                          <span className="text-xs text-gray-400 ml-2">{child.shortcut}</span>
-                        )}
-                      </button>
+                        {child.label}
+                      </MenuAction>
                     );
                   })}
                 </div>
@@ -150,24 +148,20 @@ export function HeaderContextMenu({
 
         // ── Plain item ──
         return (
-          <button
+          <MenuAction
             key={item.label}
-            className="flex w-full items-center gap-2 px-3 py-1.5 text-sm text-gray-700 hover:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed"
+            className="rounded-none px-3 py-1.5 text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
             role="menuitem"
+            icon={item.icon as never}
+            shortcut={item.shortcut}
             disabled={item.disabled}
             onClick={() => {
               item.onClick?.();
               onClose();
             }}
           >
-            {item.icon && (
-              <span className="w-4 text-center">{item.icon}</span>
-            )}
-            <span className="flex-1 text-left">{item.label}</span>
-            {item.shortcut && (
-              <span className="text-xs text-gray-400">{item.shortcut}</span>
-            )}
-          </button>
+            {item.label}
+          </MenuAction>
         );
       })}
     </div>

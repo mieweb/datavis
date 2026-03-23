@@ -7,6 +7,7 @@
 
 import { useMemo } from 'react';
 import { Button } from '@mieweb/ui/components/Button';
+import { Select } from '@mieweb/ui/components/Select';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 
 import { useTranslation } from 'react-i18next';
@@ -119,23 +120,26 @@ export function PrefsToolbar({ prefs }: PrefsToolbarProps) {
 
       {/* Perspective dropdown */}
       {perspectives.length > 0 && (
-        <select
-          className="text-xs border border-gray-300 rounded px-1.5 py-0.5 bg-white"
-          value={currentPerspectiveId ?? ''}
-          onChange={(e) => handlePerspectiveChange(e.target.value)}
-          aria-label={t('GRID_TOOLBAR.PREFS.PERSPECTIVE') || 'Perspective'}
-        >
-          <option value="__NEW__">
-            {t('GRID_TOOLBAR.PREFS.NEW_PERSPECTIVE') || '+ New Perspective'}
-          </option>
-          {perspectives.map((p) => (
-            <option key={p.id} value={p.id}>
-              {isUnsaved && p.id === currentPerspectiveId
+        <Select
+          size="sm"
+          hideLabel
+          label={t('GRID_TOOLBAR.PREFS.PERSPECTIVE') || 'Perspective'}
+          className="min-w-[12rem]"
+          options={[
+            {
+              value: '__NEW__',
+              label: t('GRID_TOOLBAR.PREFS.NEW_PERSPECTIVE') || '+ New Perspective',
+            },
+            ...perspectives.map((p) => ({
+              value: p.id,
+              label: isUnsaved && p.id === currentPerspectiveId
                 ? `[*] ${p.name}`
-                : p.name}
-            </option>
-          ))}
-        </select>
+                : p.name,
+            })),
+          ]}
+          value={currentPerspectiveId ?? ''}
+          onValueChange={handlePerspectiveChange}
+        />
       )}
 
       {/* Save As (for temporary perspectives) */}

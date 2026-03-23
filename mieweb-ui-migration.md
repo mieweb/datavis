@@ -34,35 +34,50 @@ This checklist does not assume that every current native element has a one-to-on
 
 ## Phase 1: Establish Target Mappings
 
-- [ ] Confirm the canonical `@mieweb/ui` replacements for these native elements:
-  - `button`
-  - `select`
-  - `input`
-  - contextual menu / dropdown menu items
-  - tab triggers
-  - disclosure / accordion triggers
-- [ ] Document any missing primitives from `@mieweb/ui` and decide whether to:
+- [x] Confirm the canonical `@mieweb/ui` replacements for these native elements:
+  - `button` -> `@mieweb/ui/components/Button`
+  - `select` -> `@mieweb/ui/components/Select`
+  - text-like `input` -> `@mieweb/ui/components/Input`
+  - date entry -> prefer native date-capable input styling via `Input`; use `DateInput` only where `MM/DD/YYYY` formatting is acceptable
+  - contextual menu / dropdown menu items -> `@mieweb/ui/components/Dropdown` + `DropdownItem`
+  - tab triggers -> `@mieweb/ui/components/Tabs`
+  - sortable table primitives -> `@mieweb/ui/components/Table`
+- [x] Document any missing primitives from `@mieweb/ui` and decide whether to:
   - add a local wrapper in a shared UI layer, or
   - keep a native element with an explicit exception note
-- [ ] Define consistent variants for icon-only actions, inline text actions, menu items, and compact table controls.
+  - Result: no dedicated accordion or disclosure primitive was found, so disclosure-style interactions should use a local wrapper built on `Button` until the library grows a first-class component.
+- [x] Define consistent variants for icon-only actions, inline text actions, menu items, and compact table controls.
+  - Implemented shared wrappers in `src/components/ui/`:
+    - `IconButton`
+    - `InlineActionButton`
+    - `TableActionButton`
+    - `DisclosureButton`
+    - `MenuAction`
+
+### Confirmed Phase 1 Decisions
+
+- [x] Use `Dropdown` and `DropdownItem` as the standard target for custom action menus.
+- [x] Use `Tabs`, `TabsList`, and `TabsTrigger` as the standard target for tab bars such as the demo shell.
+- [x] Do not use `DateInput` for current filter date fields unless the UX is intentionally changed to `MM/DD/YYYY`; keep native picker semantics for filter date and datetime controls.
+- [x] Prefer local wrappers in `src/components/ui/` when the same compact action pattern appears in multiple migration targets.
 
 ## Phase 2: Migrate Standalone Production Controls
 
 ### Detail Panel
 
-- [ ] [src/components/DetailSlider.tsx](src/components/DetailSlider.tsx)
+- [x] [src/components/DetailSlider.tsx](src/components/DetailSlider.tsx)
   - Replace the native close button with an `@mieweb/ui` button variant appropriate for icon-only dismissal.
   - Preserve first-focus and Escape-close behavior.
 
 ### Title Bar
 
-- [ ] [src/components/TitleBar.tsx](src/components/TitleBar.tsx)
+- [x] [src/components/TitleBar.tsx](src/components/TitleBar.tsx)
   - Replace the native `Clear Filter` action with an `@mieweb/ui` button or text-link styled action.
   - Keep the current inline status layout and ARIA label.
 
 ### Preferences Toolbar
 
-- [ ] [src/components/toolbars/PrefsToolbar.tsx](src/components/toolbars/PrefsToolbar.tsx)
+- [x] [src/components/toolbars/PrefsToolbar.tsx](src/components/toolbars/PrefsToolbar.tsx)
   - Replace the native perspective `<select>` with an `@mieweb/ui` select.
   - Preserve the `__NEW__` option flow for creating perspectives.
   - Verify unsaved indicators such as `[*]` remain visible or get a better design-system representation.
@@ -77,7 +92,7 @@ This checklist does not assume that every current native element has a one-to-on
 
 ### Operator Select
 
-- [ ] [src/components/filters/FilterOperatorSelect.tsx](src/components/filters/FilterOperatorSelect.tsx)
+- [x] [src/components/filters/FilterOperatorSelect.tsx](src/components/filters/FilterOperatorSelect.tsx)
   - Replace the native `<select>` with an `@mieweb/ui` select.
   - Preserve auto-focus behavior.
   - Preserve the current "focus next value element" behavior after selection.
@@ -85,7 +100,7 @@ This checklist does not assume that every current native element has a one-to-on
 
 ### Date Filter Inputs
 
-- [ ] [src/components/filters/DateFilter.tsx](src/components/filters/DateFilter.tsx)
+- [x] [src/components/filters/DateFilter.tsx](src/components/filters/DateFilter.tsx)
   - Replace native date and datetime inputs with `@mieweb/ui` input components if they support those types.
   - If `@mieweb/ui` input does not support date or datetime behavior well enough, create a thin wrapper using the library input styling while preserving native picker behavior.
   - Re-test auto-focus from start date to end date.
@@ -93,7 +108,7 @@ This checklist does not assume that every current native element has a one-to-on
 
 ### String Filter Multiselect Surface
 
-- [ ] [src/components/filters/StringFilter.tsx](src/components/filters/StringFilter.tsx)
+- [x] [src/components/filters/StringFilter.tsx](src/components/filters/StringFilter.tsx)
   - Replace the internal search input with an `@mieweb/ui` input.
   - Replace the `All` and `None` native buttons with compact `@mieweb/ui` buttons or text-action variants.
   - Keep the custom multiselect listbox behavior unless `@mieweb/ui` provides a suitable multiselect primitive.
@@ -101,7 +116,7 @@ This checklist does not assume that every current native element has a one-to-on
 
 ### Filter Bar Micro-Actions
 
-- [ ] [src/components/filters/FilterBar.tsx](src/components/filters/FilterBar.tsx)
+- [x] [src/components/filters/FilterBar.tsx](src/components/filters/FilterBar.tsx)
   - Replace the remove-filter button with an `@mieweb/ui` icon button.
   - Replace the `Add field…` trigger with an `@mieweb/ui` button or dropdown trigger.
   - Replace addable-field menu item buttons with `@mieweb/ui` menu actions if available.
@@ -111,7 +126,7 @@ This checklist does not assume that every current native element has a one-to-on
 
 ### Plain Table Header And Footer Actions
 
-- [ ] [src/components/table/PlainTable.tsx](src/components/table/PlainTable.tsx)
+- [x] [src/components/table/PlainTable.tsx](src/components/table/PlainTable.tsx)
   - Replace the sortable header button with an `@mieweb/ui` button pattern that still feels like a table header control.
   - Replace the filter icon button with an `@mieweb/ui` icon button.
   - Replace footer `Show More` and `Show All` buttons with `@mieweb/ui` buttons.
@@ -120,7 +135,7 @@ This checklist does not assume that every current native element has a one-to-on
 
 ### Group Detail Table
 
-- [ ] [src/components/table/GroupDetailTable.tsx](src/components/table/GroupDetailTable.tsx)
+- [x] [src/components/table/GroupDetailTable.tsx](src/components/table/GroupDetailTable.tsx)
   - Replace the expand/collapse-all button with an `@mieweb/ui` icon button.
   - Replace sortable group header buttons with `@mieweb/ui` button patterns suitable for table headers.
   - Replace footer `Show More` and `Show All` buttons with `@mieweb/ui` buttons.
@@ -128,7 +143,7 @@ This checklist does not assume that every current native element has a one-to-on
 
 ### Header Context Menu
 
-- [ ] [src/components/table/HeaderContextMenu.tsx](src/components/table/HeaderContextMenu.tsx)
+- [x] [src/components/table/HeaderContextMenu.tsx](src/components/table/HeaderContextMenu.tsx)
   - Replace native menu item buttons with `@mieweb/ui` menu primitives if they exist.
   - If no menu primitive exists, create a shared wrapper aligned with `@mieweb/ui` styling and interaction conventions.
   - Preserve submenu behavior, checked states, disabled states, and close-on-select behavior.
@@ -138,7 +153,7 @@ This checklist does not assume that every current native element has a one-to-on
 
 ### Column Config Dialog
 
-- [ ] [src/components/dialogs/ColumnConfigDialog.tsx](src/components/dialogs/ColumnConfigDialog.tsx)
+- [x] [src/components/dialogs/ColumnConfigDialog.tsx](src/components/dialogs/ColumnConfigDialog.tsx)
   - Replace rename, move-to-top, and move-to-bottom native buttons with compact `@mieweb/ui` icon buttons.
   - Keep tooltip behavior intact.
   - Preserve row layout density so the dialog remains usable for many columns.
@@ -191,10 +206,10 @@ These files are lower priority than production UI, but migrating them will keep 
 
 ## Suggested Execution Plan
 
-- [ ] Batch 1: `DetailSlider`, `TitleBar`, `PrefsToolbar`, `ColumnConfigDialog`
-- [ ] Batch 2: `FilterOperatorSelect`, `DateFilter`, `StringFilter`, `FilterBar`
-- [ ] Batch 3: `PlainTable`, `GroupDetailTable`, `HeaderContextMenu`
-- [ ] Batch 4: `DebugDialog`, `src/main.tsx`, stories, and `LegacyScenarioViews`
+- [x] Batch 1: `DetailSlider`, `TitleBar`, `PrefsToolbar`, `ColumnConfigDialog`
+- [x] Batch 2: `FilterOperatorSelect`, `DateFilter`, `StringFilter`, `FilterBar`
+- [x] Batch 3: `PlainTable`, `GroupDetailTable`, `HeaderContextMenu`
+- [x] Batch 4: `DebugDialog`, `src/main.tsx`, stories, and `LegacyScenarioViews`
 
 ## Notes
 
