@@ -97,15 +97,17 @@ test.describe('Legacy Scenario Ports', () => {
   test('row-customization.js: customized group headers render labels and colors', async ({ page }) => {
     await page.goto('/?e2e=row-customization');
 
-    await expect(page.getByTestId('group-header-fruit')).toContainText('🍎 Fruit');
-    await expect(page.getByTestId('group-header-vegetables')).toContainText('🥬 Vegetables');
+    await expect(page.getByTestId('group-header-fruit')).toContainText('Fruit');
+    await expect(page.getByTestId('group-header-vegetables')).toContainText('Vegetables');
     await expect(page.getByTestId('group-header-fruit')).toHaveCSS('color', 'rgb(220, 38, 38)');
+    await expect(page.getByTestId('group-header-vegetables')).toHaveCSS('color', 'rgb(22, 163, 74)');
   });
 
   test('sourceParams.js: form inputs narrow the displayed dataset', async ({ page }) => {
     await page.goto('/?e2e=source-params');
 
-    await page.getByLabel('Department source param').selectOption('Engineering');
+    await page.getByLabel('Department source param').click();
+    await page.getByRole('option', { name: 'Engineering' }).click();
     await page.getByLabel('Active only').check();
     await expect(page.getByTestId('source-param-count')).toHaveText('2');
   });

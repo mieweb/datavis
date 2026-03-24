@@ -12,6 +12,52 @@ function compareDates(value: unknown) {
   return new Date(String(value)).getTime();
 }
 
+function parseDateOnly(value: unknown) {
+  const [year, month, day] = String(value).split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function sameCalendarDay(left: Date, right: Date) {
+  return left.getFullYear() === right.getFullYear()
+    && left.getMonth() === right.getMonth()
+    && left.getDate() === right.getDate();
+}
+
+function sameIsoWeek(left: Date, right: Date) {
+  return left.getFullYear() === right.getFullYear() && isoWeek(left) === isoWeek(right);
+}
+
+function quarterOf(date: Date) {
+  return Math.floor(date.getMonth() / 3);
+}
+
+function previousPeriodReference(period: 'day' | 'week' | 'month' | 'quarter' | 'year', now: Date) {
+  const previous = new Date(now);
+
+  if (period === 'day') {
+    previous.setDate(previous.getDate() - 1);
+    return previous;
+  }
+
+  if (period === 'week') {
+    previous.setDate(previous.getDate() - 7);
+    return previous;
+  }
+
+  if (period === 'month') {
+    previous.setMonth(previous.getMonth() - 1);
+    return previous;
+  }
+
+  if (period === 'quarter') {
+    previous.setMonth(previous.getMonth() - 3);
+    return previous;
+  }
+
+  previous.setFullYear(previous.getFullYear() - 1);
+  return previous;
+}
+
 function isoWeek(date: Date) {
   const utc = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
   const day = utc.getUTCDay() || 7;
@@ -21,38 +67,26 @@ function isoWeek(date: Date) {
 }
 
 function expectedCurrentPeriodCount(period: 'day' | 'week' | 'month' | 'quarter' | 'year') {
-  const now = new Date('2026-03-11T12:00:00');
+  const now = new Date();
   return LEGACY_MATRIX_ROWS.filter((row) => {
-    const date = new Date(String(row.date1));
-    if (period === 'day') return date.toISOString().slice(0, 10) === now.toISOString().slice(0, 10);
-    if (period === 'week') return date.getFullYear() === now.getFullYear() && isoWeek(date) === isoWeek(now);
+    const date = parseDateOnly(row.date1);
+    if (period === 'day') return sameCalendarDay(date, now);
+    if (period === 'week') return sameIsoWeek(date, now);
     if (period === 'month') return date.getFullYear() === now.getFullYear() && date.getMonth() === now.getMonth();
-    if (period === 'quarter') return date.getFullYear() === now.getFullYear() && Math.floor(date.getMonth() / 3) === Math.floor(now.getMonth() / 3);
+    if (period === 'quarter') return date.getFullYear() === now.getFullYear() && quarterOf(date) === quarterOf(now);
     return date.getFullYear() === now.getFullYear();
   }).length;
 }
 
 function expectedLastPeriodCount(period: 'day' | 'week' | 'month' | 'quarter' | 'year') {
-  const now = new Date('2026-03-11T12:00:00');
+  const reference = previousPeriodReference(period, new Date());
   return LEGACY_MATRIX_ROWS.filter((row) => {
-    const date = new Date(String(row.date1));
-    if (period === 'day') {
-      const last = new Date(now);
-      last.setDate(now.getDate() - 1);
-      return date.toISOString().slice(0, 10) === last.toISOString().slice(0, 10);
-    }
-    if (period === 'week') {
-      const last = new Date(now);
-      last.setDate(now.getDate() - 7);
-      return date.getFullYear() === last.getFullYear() && isoWeek(date) === isoWeek(last);
-    }
-    if (period === 'month') {
-      return date.getFullYear() === 2026 && date.getMonth() === 1;
-    }
-    if (period === 'quarter') {
-      return date.getFullYear() === 2025 && Math.floor(date.getMonth() / 3) === 3;
-    }
-    return date.getFullYear() === 2025;
+    const date = parseDateOnly(row.date1);
+    if (period === 'day') return sameCalendarDay(date, reference);
+    if (period === 'week') return sameIsoWeek(date, reference);
+    if (period === 'month') return date.getFullYear() === reference.getFullYear() && date.getMonth() === reference.getMonth();
+    if (period === 'quarter') return date.getFullYear() === reference.getFullYear() && quarterOf(date) === quarterOf(reference);
+    return date.getFullYear() === reference.getFullYear();
   }).length;
 }
 
