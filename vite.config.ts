@@ -8,7 +8,6 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
-      'wcdatavis': path.resolve(__dirname, './wcdatavis-lib'),
     },
   },
   build: {
@@ -18,7 +17,7 @@ export default defineConfig({
       fileName: 'datavis-react',
     },
     rollupOptions: {
-      external: ['react', 'react-dom', 'react/jsx-runtime'],
+      external: ['react', 'react-dom', 'react/jsx-runtime', 'datavis-ace'],
       output: {
         globals: {
           react: 'React',

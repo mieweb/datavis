@@ -35,6 +35,6 @@ export default tseslint.config(
     },
   },
   {
-    ignores: ['dist/', 'node_modules/', 'wcdatavis-lib/', '*.config.*'],
+    ignores: ['dist/', 'node_modules/', '*.config.*'],
   },
 );

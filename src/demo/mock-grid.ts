@@ -1,4 +1,4 @@
-import { ComputedView, Source } from '../../wcdatavis-lib/index.js';
+import { ComputedView, Source } from 'datavis-ace';
 
 import type { ViewInstance, SourceInstance } from '../adapters/use-data';
 import type { AggregateFunction } from '../components/controls/AggregateSection';

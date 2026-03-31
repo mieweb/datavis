@@ -1,4 +1,4 @@
-import { AGGREGATE_REGISTRY, AggregateInfo, Source } from '../../wcdatavis-lib/index.js';
+import { AGGREGATE_REGISTRY, AggregateInfo, Source } from 'datavis-ace';
 
 export interface NormalizedViewData {
   isPlain: boolean;
