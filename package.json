@@ -22,7 +22,7 @@
     "@dnd-kit/core": "^6.3.1",
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
-    "@mieweb/ui": "mieweb/ui.git#2cba6cefa29769277bd07c1559458c4e11c393a0",
+    "@mieweb/ui": "mieweb/ui.git#f000c7aac2ce0cc840ab74c3528ac740ebb46d2d",
     "datavis-ace": "=4.0.0-PRE.2",
     "i18next": "^26.0.3",
     "react": "^19.2.4",
