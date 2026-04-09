@@ -175,7 +175,7 @@ function NumberTextboxFilter({
         </div>
       )}
       {isNoInput && (
-        <span className="text-xs text-gray-400 italic px-1" role="status">
+        <span className="text-xs text-gray-400 dark:text-neutral-500 italic px-1" role="status">
           {t(operators.find((o) => o.value === operator)?.label ?? '')}
         </span>
       )}

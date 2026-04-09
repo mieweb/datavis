@@ -111,7 +111,7 @@ export function GroupToolbar({
       </RadioGroup>
 
       {/* Separator */}
-      <div className="w-px h-5 bg-gray-200 mx-1" role="separator" />
+      <div className="w-px h-5 bg-gray-200 dark:bg-neutral-700 mx-1" role="separator" />
 
       {/* Show Total Row — enabled in both modes */}
       <div className="wcdv-toolbar-item flex items-center gap-1.5">
@@ -120,7 +120,7 @@ export function GroupToolbar({
           onCheckedChange={handleShowTotalRow}
           aria-label={t('GRID_TOOLBAR.GROUP.TOTAL_ROW')}
         />
-        <label className="text-xs text-gray-600 select-none">
+        <label className="text-xs text-gray-600 dark:text-neutral-400 select-none">
           {t('GRID_TOOLBAR.GROUP.TOTAL_ROW') || 'Total Row'}
         </label>
       </div>
@@ -133,7 +133,7 @@ export function GroupToolbar({
             onCheckedChange={handleExpandAll}
             aria-label={t('GRID_TOOLBAR.GROUP.EXPAND_ALL')}
           />
-          <label className="text-xs text-gray-600 select-none">
+          <label className="text-xs text-gray-600 dark:text-neutral-400 select-none">
             {t('GRID_TOOLBAR.GROUP.EXPAND_ALL') || 'Expand All'}
           </label>
         </div>
@@ -147,14 +147,14 @@ export function GroupToolbar({
             onCheckedChange={handlePinGroups}
             aria-label={t('GRID_TOOLBAR.GROUP.PIN_GROUPS')}
           />
-          <label className="text-xs text-gray-600 select-none">
+          <label className="text-xs text-gray-600 dark:text-neutral-400 select-none">
             {t('GRID_TOOLBAR.GROUP.PIN_GROUPS') || 'Pin Groups'}
           </label>
         </div>
       )}
 
       {/* Separator */}
-      <div className="w-px h-5 bg-gray-200 mx-1" role="separator" />
+      <div className="w-px h-5 bg-gray-200 dark:bg-neutral-700 mx-1" role="separator" />
 
       {/* Columns — only in detail mode */}
       {!isSummary && (

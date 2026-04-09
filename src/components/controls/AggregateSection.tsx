@@ -123,12 +123,12 @@ export function AggregateSection({
     >
       {/* Header */}
       <div className="flex items-center gap-1">
-        <span className="text-sm text-gray-500" aria-hidden="true"><ClipboardIcon className="h-4 w-4" /></span>
-        <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+        <span className="text-sm text-gray-500 dark:text-neutral-400" aria-hidden="true"><ClipboardIcon className="h-4 w-4" /></span>
+        <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300 uppercase tracking-wide">
           {t('CONTROL.AGGREGATE') || 'Aggregate'}
         </span>
         {entries.length > 0 && (
-          <span className="text-[10px] text-gray-400">({entries.length})</span>
+          <span className="text-[10px] text-gray-400 dark:text-neutral-500">({entries.length})</span>
         )}
         <div className="flex-1" />
         {entries.length > 0 && (
@@ -136,7 +136,7 @@ export function AggregateSection({
             <Button
               size="sm"
               variant="ghost"
-              className="!h-5 !px-1 text-xs text-gray-400 hover:text-red-500"
+              className="!h-5 !px-1 text-xs text-gray-400 dark:text-neutral-500 hover:text-red-500 dark:hover:text-red-400"
               onClick={handleClear}
               aria-label={`${t('CONTROL.CLEAR')} aggregate`}
             >
@@ -163,7 +163,7 @@ export function AggregateSection({
         return (
           <div
             key={entry.id}
-            className="wcdv-aggregate-entry flex items-center gap-1 bg-white border border-gray-200 rounded px-2 py-1"
+            className="wcdv-aggregate-entry flex items-center gap-1 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded px-2 py-1"
           >
             <Switch
               size="sm"
@@ -174,7 +174,7 @@ export function AggregateSection({
               label={t('CONTROL.VISIBLE') || 'Visible'}
               aria-label={t('CONTROL.VISIBLE') || 'Visible'}
             />
-            <span className="text-xs font-medium text-gray-600 min-w-[50px]">
+            <span className="text-xs font-medium text-gray-600 dark:text-neutral-400 min-w-[50px]">
               {fn ? t(fn.label) : entry.functionName}
             </span>
             {entry.fields.map((fieldVal, idx) => (
@@ -195,7 +195,7 @@ export function AggregateSection({
               <Button
                 size="sm"
                 variant="ghost"
-                className="!p-0 !min-w-0 !h-4 !w-4 text-gray-400 hover:text-red-500"
+                className="!p-0 !min-w-0 !h-4 !w-4 text-gray-400 dark:text-neutral-500 hover:text-red-500 dark:hover:text-red-400"
                 onClick={() => handleRemove(entry.id)}
                 aria-label={`${t('CONTROL.REMOVE')} ${fn ? t(fn.label) : entry.functionName}`}
               >

@@ -783,7 +783,7 @@ export function DataGrid({
   return (
     <LocaleProvider value={locale}>
     <div
-      className={`wcdv-grid flex flex-col border border-gray-200 rounded-lg bg-white shadow-sm ${className}`}
+      className={`wcdv-grid flex flex-col border border-gray-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 shadow-sm dark:shadow-none ${className}`}
       style={height ? { height } : undefined}
       role="region"
       aria-label={title || t('GRID.TITLEBAR.TITLE')}
@@ -791,7 +791,7 @@ export function DataGrid({
       {/* Skip to data table */}
       <a
         href={`#${gridTableId}`}
-        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white focus:px-4 focus:py-2 focus:text-blue-700 focus:shadow-lg focus:rounded"
+        className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:bg-white dark:focus:bg-neutral-800 focus:px-4 focus:py-2 focus:text-blue-700 dark:focus:text-blue-400 focus:shadow-lg focus:rounded"
       >
         {t('GRID.SKIP_TO_TABLE') || 'Skip to data table'}
       </a>

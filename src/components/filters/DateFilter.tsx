@@ -391,7 +391,7 @@ export function DateFilter({
             }}
             aria-label={`${label} ${t('FILTER.DATE_FROM') || 'from'}`}
           />
-          <span className="text-xs text-gray-400">–</span>
+          <span className="text-xs text-gray-400 dark:text-neutral-500">–</span>
           <DateInput
             size="sm"
             hideLabel
@@ -459,7 +459,7 @@ export function DateFilter({
 
       {/* No-input operators ($exists / $notexists) */}
       {isNoInput && (
-        <span className="text-xs text-gray-400 italic px-1" role="status">
+        <span className="text-xs text-gray-400 dark:text-neutral-500 italic px-1" role="status">
           {t(operators.find((o) => o.value === operator)?.label ?? '')}
         </span>
       )}

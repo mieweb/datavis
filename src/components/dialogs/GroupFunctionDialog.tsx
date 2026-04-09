@@ -112,7 +112,7 @@ export function GroupFunctionDialog({
         <div className="flex flex-wrap gap-6">
           {categories.map((cat) => (
             <div key={cat.key} className="min-w-[140px]">
-              <h3 className="text-sm font-semibold text-gray-600 mb-2 border-b border-gray-200 pb-1">
+              <h3 className="text-sm font-semibold text-gray-600 dark:text-neutral-400 mb-2 border-b border-gray-200 dark:border-neutral-700 pb-1">
                 {t(cat.labelKey) || cat.fallback}
               </h3>
               <div className="flex flex-col gap-1.5">
@@ -135,7 +135,7 @@ export function GroupFunctionDialog({
         </div>
 
         {/* None button */}
-        <div className="mt-6 pt-4 border-t border-gray-200">
+        <div className="mt-6 pt-4 border-t border-gray-200 dark:border-neutral-700">
           <Button
             variant="outline"
             onClick={() => handleSelect('none')}

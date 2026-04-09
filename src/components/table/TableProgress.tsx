@@ -29,7 +29,7 @@ export function TableProgress({
 
   return (
     <div
-      className="wcdv-table-progress flex items-center gap-2 px-3 py-1 bg-blue-50 border-b border-blue-100"
+      className="wcdv-table-progress flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/30 border-b border-blue-100 dark:border-blue-800"
       role="status"
       aria-label={`${t('TABLE.LOADING') || 'Loading'}: ${percent}%`}
     >

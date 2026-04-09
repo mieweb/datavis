@@ -74,16 +74,16 @@ function CollapsibleSection({ title, children, defaultOpen = false }: Collapsibl
   const [open, setOpen] = useState(defaultOpen);
 
   return (
-    <div className="border border-gray-200 rounded mb-2">
+    <div className="border border-gray-200 dark:border-neutral-700 rounded mb-2">
       <DisclosureButton
-        className="rounded-none px-3 py-2 text-gray-700 hover:bg-gray-50"
+        className="rounded-none px-3 py-2 text-gray-700 dark:text-neutral-300 hover:bg-gray-50 dark:hover:bg-neutral-800"
         onClick={() => setOpen((prev) => !prev)}
         aria-expanded={open}
         indicator={<DisclosureGlyphIcon className="h-3.5 w-3.5" expanded={open} />}
       >
         {title}
       </DisclosureButton>
-      {open && <div className="px-3 pb-3 border-t border-gray-100">{children}</div>}
+      {open && <div className="px-3 pb-3 border-t border-gray-100 dark:border-neutral-700">{children}</div>}
     </div>
   );
 }
@@ -102,7 +102,7 @@ function JsonView({ data }: { data: unknown }) {
   }, [data]);
 
   return (
-    <pre className="text-xs font-mono bg-gray-50 p-2 rounded overflow-auto max-h-60 whitespace-pre-wrap break-words">
+    <pre className="text-xs font-mono bg-gray-50 dark:bg-neutral-800 p-2 rounded overflow-auto max-h-60 whitespace-pre-wrap break-words">
       {text}
     </pre>
   );
@@ -117,8 +117,8 @@ function DefList({ items }: { items: [string, React.ReactNode][] }) {
     <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1 text-sm py-2">
       {items.map(([label, value]) => (
         <div key={label} className="contents">
-          <dt className="font-medium text-gray-600">{label}</dt>
-          <dd className="text-gray-800">{typeof value === 'string' ? value : value}</dd>
+          <dt className="font-medium text-gray-600 dark:text-neutral-400">{label}</dt>
+          <dd className="text-gray-800 dark:text-neutral-200">{typeof value === 'string' ? value : value}</dd>
         </div>
       ))}
     </dl>
@@ -210,19 +210,19 @@ export function DebugDialog({
               />
               <div className="mt-2 space-y-2">
                 <div>
-                  <span className="text-xs font-medium text-gray-500">{t('DEBUG.VIEW_FILTER') || 'Filter Config'}</span>
+                  <span className="text-xs font-medium text-gray-500 dark:text-neutral-400">{t('DEBUG.VIEW_FILTER') || 'Filter Config'}</span>
                   <JsonView data={view.filter ?? null} />
                 </div>
                 <div>
-                  <span className="text-xs font-medium text-gray-500">{t('DEBUG.VIEW_GROUP') || 'Group Config'}</span>
+                  <span className="text-xs font-medium text-gray-500 dark:text-neutral-400">{t('DEBUG.VIEW_GROUP') || 'Group Config'}</span>
                   <JsonView data={view.group ?? null} />
                 </div>
                 <div>
-                  <span className="text-xs font-medium text-gray-500">{t('DEBUG.VIEW_PIVOT') || 'Pivot Config'}</span>
+                  <span className="text-xs font-medium text-gray-500 dark:text-neutral-400">{t('DEBUG.VIEW_PIVOT') || 'Pivot Config'}</span>
                   <JsonView data={view.pivot ?? null} />
                 </div>
                 <div>
-                  <span className="text-xs font-medium text-gray-500">{t('DEBUG.VIEW_AGGREGATE') || 'Aggregate Config'}</span>
+                  <span className="text-xs font-medium text-gray-500 dark:text-neutral-400">{t('DEBUG.VIEW_AGGREGATE') || 'Aggregate Config'}</span>
                   <JsonView data={view.aggregate ?? null} />
                 </div>
               </div>
@@ -255,7 +255,7 @@ export function DebugDialog({
                   />
                   {prefs.bardo != null && (
                     <div className="mt-2">
-                      <span className="text-xs font-medium text-gray-500">{t('DEBUG.PREFS_BARDO') || 'Bardo'}</span>
+                      <span className="text-xs font-medium text-gray-500 dark:text-neutral-400">{t('DEBUG.PREFS_BARDO') || 'Bardo'}</span>
                       <JsonView data={prefs.bardo} />
                     </div>
                   )}
@@ -265,10 +265,10 @@ export function DebugDialog({
                   {prefs.perspectives ? (
                     <div className="space-y-2">
                       {Object.entries(prefs.perspectives).map(([id, p]) => (
-                        <div key={id} className="border border-gray-100 rounded p-2">
+                        <div key={id} className="border border-gray-100 dark:border-neutral-700 rounded p-2">
                           <div className="flex items-center gap-2 text-sm mb-1">
                             <span className="font-medium">{p.name}</span>
-                            <span className="text-xs text-gray-400">({id})</span>
+                            <span className="text-xs text-gray-400 dark:text-neutral-500">({id})</span>
                             <span
                               className={`text-xs px-1.5 py-0.5 rounded ${
                                 p.isUnsaved
@@ -284,12 +284,12 @@ export function DebugDialog({
                       ))}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-400 italic">{t('DEBUG.NO_PERSPECTIVES') || 'No perspectives'}</p>
+                    <p className="text-sm text-gray-400 dark:text-neutral-500 italic">{t('DEBUG.NO_PERSPECTIVES') || 'No perspectives'}</p>
                   )}
                 </CollapsibleSection>
               </>
             ) : (
-              <p className="text-sm text-gray-400 italic py-4">
+              <p className="text-sm text-gray-400 dark:text-neutral-500 italic py-4">
                 {t('DEBUG.NO_PREFS') || 'Prefs module not configured.'}
               </p>
             )}

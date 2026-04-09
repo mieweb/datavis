@@ -54,7 +54,7 @@ export function DetailSlider({
       ref={panelRef}
       className={`
         wcdv-slider fixed top-0 right-0 h-full w-96 max-w-full
-        bg-white shadow-lg border-l border-gray-200
+        bg-white dark:bg-neutral-900 shadow-lg border-l border-gray-200 dark:border-neutral-700
         transform transition-transform duration-300 ease-in-out
         z-50 flex flex-col
         ${open ? 'translate-x-0' : 'translate-x-full'}
@@ -65,10 +65,10 @@ export function DetailSlider({
       aria-hidden={!open}
     >
       {/* Header */}
-      <div className="wcdv-slider-header flex items-center justify-between px-4 py-3 border-b border-gray-200 bg-gray-50">
+      <div className="wcdv-slider-header flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800">
         <h2 className="text-sm font-semibold truncate">{header}</h2>
         <IconButton
-          className="wcdv-slider-close text-gray-400 hover:text-gray-700"
+          className="wcdv-slider-close text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300"
           onClick={onClose}
           aria-label={t('SLIDER.CLOSE') || 'Close detail panel'}
         >

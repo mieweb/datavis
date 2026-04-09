@@ -98,12 +98,12 @@ export function ControlSection({
     >
       {/* Section header */}
       <div className="flex items-center gap-1">
-        {icon ? <span className="text-sm text-gray-500" aria-hidden="true">{icon}</span> : null}
-        <span className="text-xs font-semibold text-gray-700 uppercase tracking-wide">
+        {icon ? <span className="text-sm text-gray-500 dark:text-neutral-400" aria-hidden="true">{icon}</span> : null}
+        <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300 uppercase tracking-wide">
           {title}
         </span>
         {fields.length > 0 && (
-          <span className="text-[10px] text-gray-400">({fields.length})</span>
+          <span className="text-[10px] text-gray-400 dark:text-neutral-500">({fields.length})</span>
         )}
         <div className="flex-1" />
         {fields.length > 0 && (
@@ -111,7 +111,7 @@ export function ControlSection({
             <Button
               size="sm"
               variant="ghost"
-              className="!h-5 !px-1 text-xs text-gray-400 hover:text-red-500"
+              className="!h-5 !px-1 text-xs text-gray-400 dark:text-neutral-500 hover:text-red-500 dark:hover:text-red-400"
               onClick={onClear}
               aria-label={`${t('CONTROL.CLEAR')} ${title}`}
             >

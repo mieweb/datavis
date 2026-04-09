@@ -63,12 +63,12 @@ export function OperationsPalette({
 
   return (
     <div
-      className="wcdv-operations-palette border-b border-gray-100 px-3 py-1.5 bg-white"
+      className="wcdv-operations-palette border-b border-gray-100 dark:border-neutral-700 px-3 py-1.5 bg-white dark:bg-neutral-900"
       role="toolbar"
       aria-label={t('GRID_CONTROL.OPERATIONS.TITLE') || 'Operations'}
     >
       <div className="flex items-center gap-1 overflow-x-auto whitespace-nowrap">
-        <span className="text-xs font-medium text-gray-500 mr-1">
+        <span className="text-xs font-medium text-gray-500 dark:text-neutral-400 mr-1">
           {t('GRID_CONTROL.OPERATIONS.TITLE') || 'Operations'}
         </span>
 
@@ -76,7 +76,7 @@ export function OperationsPalette({
           <React.Fragment key={category || gi}>
             {/* Category separator (except first) */}
             {gi > 0 && (
-              <div className="w-px h-5 bg-gray-200 mx-0.5" role="separator" />
+              <div className="w-px h-5 bg-gray-200 dark:bg-neutral-700 mx-0.5" role="separator" />
             )}
 
             {ops.map((op, i) => {

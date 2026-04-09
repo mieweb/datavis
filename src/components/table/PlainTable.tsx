@@ -62,19 +62,19 @@ function SortIcon({ direction }: { direction?: SortDirection }) {
   if (!direction) {
     return (
       <span
-        className="ml-1 inline-block text-gray-300 text-xs"
+        className="ml-1 inline-block text-gray-300 dark:text-neutral-600 text-xs"
         aria-hidden="true"
       >
-        <SortGlyphIcon className="text-gray-300" />
+        <SortGlyphIcon className="text-gray-300 dark:text-neutral-600" />
       </span>
     );
   }
   return (
     <span
-      className="ml-1 inline-block text-blue-500 text-xs"
+      className="ml-1 inline-block text-blue-500 dark:text-blue-400 text-xs"
       aria-label={direction === 'asc' ? (t('TABLE.SORTED_ASC') || 'Sorted ascending') : (t('TABLE.SORTED_DESC') || 'Sorted descending')}
     >
-      <SortGlyphIcon className="text-blue-500" direction={direction} />
+      <SortGlyphIcon className="text-blue-500 dark:text-blue-400" direction={direction} />
     </span>
   );
 }
@@ -85,7 +85,7 @@ function FilterIcon({ active }: { active?: boolean }) {
     <svg
       viewBox="0 0 16 16"
       className={`w-3 h-3 flex-shrink-0 ${
-        active ? 'text-blue-500' : 'text-gray-300 hover:text-gray-500'
+        active ? 'text-blue-500 dark:text-blue-400' : 'text-gray-300 dark:text-neutral-600 hover:text-gray-500 dark:hover:text-neutral-400'
       }`}
       fill="currentColor"
       aria-hidden="true"
@@ -177,7 +177,7 @@ function SortableHeaderCell({
     <th
       ref={mergedRef}
       style={style}
-      className={`wcdv-th relative select-none border-b border-r border-gray-200 bg-gray-50 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 ${
+      className={`wcdv-th relative select-none border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 ${
         isDragging ? 'z-10 shadow-lg' : ''
       }`}
       aria-sort={
@@ -229,7 +229,7 @@ function SortableHeaderCell({
       {/* Resize handle */}
       {resizable && (
         <div
-          className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-400 active:bg-blue-500"
+          className="absolute right-0 top-0 bottom-0 w-1 cursor-col-resize hover:bg-blue-400 dark:hover:bg-blue-500 active:bg-blue-500 dark:active:bg-blue-400"
           onPointerDown={(e) => e.stopPropagation()}
           onMouseDown={(e) => {
             const offsetW = thRef.current?.offsetWidth;
@@ -277,7 +277,7 @@ function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale }: Ag
   }
 
   return (
-    <tfoot className="wcdv-agg-footer sticky bottom-0 bg-gray-100 border-t-2 border-gray-300 font-semibold text-sm">
+    <tfoot className="wcdv-agg-footer sticky bottom-0 bg-gray-100 dark:bg-neutral-800 border-t-2 border-gray-300 dark:border-neutral-600 font-semibold text-sm">
       {[...byFn.entries()].map(([fn, entries]) => {
         const rawLabel = aggFnLabels?.[fn] ?? fn;
         const label = t(rawLabel);
@@ -287,7 +287,7 @@ function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale }: Ag
         );
 
         return (
-          <tr key={fn} className="border-t border-gray-200">
+          <tr key={fn} className="border-t border-gray-200 dark:border-neutral-700">
             {visibleColumns.map((col, idx) => {
               const val = fieldMap.get(col.field);
               if (val !== undefined) {
@@ -295,10 +295,10 @@ function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale }: Ag
                 return (
                   <td
                     key={col.field}
-                    className="px-3 py-1.5 text-right border-r border-gray-200"
+                    className="px-3 py-1.5 text-right border-r border-gray-200 dark:border-neutral-700"
                     title={`${label}: ${formatted}`}
                   >
-                    <span className="text-gray-500 text-xs mr-1">{label}</span>
+                    <span className="text-gray-500 dark:text-neutral-400 text-xs mr-1">{label}</span>
                     {formatted}
                   </td>
                 );
@@ -308,14 +308,14 @@ function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale }: Ag
                 return (
                   <td
                     key={col.field}
-                    className="px-3 py-1.5 border-r border-gray-200 text-gray-500 text-xs uppercase tracking-wider"
+                    className="px-3 py-1.5 border-r border-gray-200 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs uppercase tracking-wider"
                   >
                     {label}
                   </td>
                 );
               }
               return (
-                <td key={col.field} className="px-3 py-1.5 border-r border-gray-200" />
+                <td key={col.field} className="px-3 py-1.5 border-r border-gray-200 dark:border-neutral-700" />
               );
             })}
           </tr>
@@ -689,7 +689,7 @@ export function PlainTable({
             <thead
               className={
                 features.stickyHeaders !== false
-                  ? 'sticky top-0 z-10 bg-gray-50'
+                  ? 'sticky top-0 z-10 bg-gray-50 dark:bg-neutral-800'
                   : ''
               }
             >
@@ -738,7 +738,7 @@ export function PlainTable({
                 <tr>
                   <td
                     colSpan={visibleColumns.length}
-                    className="px-4 py-8 text-center text-sm text-gray-400"
+                    className="px-4 py-8 text-center text-sm text-gray-400 dark:text-neutral-500"
                   >
                     {t('TABLE.NO_DATA') || 'No data to display'}
                   </td>
@@ -749,18 +749,18 @@ export function PlainTable({
                   const isSelected = selection.selectedRows.has(row.rowNum);
                   const zebraClass =
                     features.zebraStripe !== false && rowIdx % 2 === 1
-                      ? 'bg-gray-50/50'
+                      ? 'bg-gray-50/50 dark:bg-neutral-800/50'
                       : '';
 
                   return (
                     <tr
                       key={row.rowId ?? row.rowNum}
                       data-row-num={row.rowNum}
-                      className={`wcdv-tr border-b border-gray-100 transition-colors
+                      className={`wcdv-tr border-b border-gray-100 dark:border-neutral-700 transition-colors
                         ${zebraClass}
-                        ${isActive ? 'bg-blue-50 ring-1 ring-inset ring-blue-200' : ''}
-                        ${isSelected && !isActive ? 'bg-blue-50/50' : ''}
-                        ${!isActive && !isSelected ? 'hover:bg-gray-50' : ''}
+                        ${isActive ? 'bg-blue-50 dark:bg-blue-900/30 ring-1 ring-inset ring-blue-200 dark:ring-blue-700' : ''}
+                        ${isSelected && !isActive ? 'bg-blue-50/50 dark:bg-blue-900/20' : ''}
+                        ${!isActive && !isSelected ? 'hover:bg-gray-50 dark:hover:bg-neutral-800' : ''}
                         ${features.rowMode === 'clipped' ? '' : ''}
                       `}
                       role="row"
@@ -776,7 +776,7 @@ export function PlainTable({
                       {visibleColumns.map((col) => (
                         <td
                           key={col.field}
-                          className={`wcdv-td border-r border-gray-100 px-3 py-1.5 text-sm ${getCellAlign(col)} ${
+                          className={`wcdv-td border-r border-gray-100 dark:border-neutral-700 px-3 py-1.5 text-sm ${getCellAlign(col)} ${
                             features.rowMode === 'clipped'
                               ? 'truncate max-w-0'
                               : ''
@@ -812,7 +812,7 @@ export function PlainTable({
 
       {/* ── Footer: show more / row count ── */}
       {(isLimited || totalRows != null) && (
-        <div className="wcdv-table-footer flex items-center justify-between border-t border-gray-200 bg-gray-50 px-3 py-1.5 text-xs text-gray-500">
+        <div className="wcdv-table-footer flex items-center justify-between border-t border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-3 py-1.5 text-xs text-gray-500 dark:text-neutral-400">
           <span>
             {t('TABLE.SHOWING') || 'Showing'} {rows.length}
             {totalRows != null && totalRows > rows.length && (
@@ -830,7 +830,7 @@ export function PlainTable({
               <TableActionButton
                 type="button"
                 variant="ghost"
-                className="h-auto px-2 py-0.5 text-blue-600 hover:bg-blue-50"
+                className="h-auto px-2 py-0.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30"
                 onClick={onShowMore}
                 aria-label={t('TABLE.SHOW_MORE') || 'Show more rows'}
               >
@@ -839,7 +839,7 @@ export function PlainTable({
               <TableActionButton
                 type="button"
                 variant="ghost"
-                className="h-auto px-2 py-0.5 text-blue-600 hover:bg-blue-50"
+                className="h-auto px-2 py-0.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30"
                 onClick={onShowAll}
                 aria-label={t('TABLE.SHOW_ALL') || 'Show all rows'}
               >

@@ -205,7 +205,7 @@ export function StringFilter({
         </div>
       )}
       {isNoInput && (
-        <span className="text-xs text-gray-400 italic px-1" role="status">
+        <span className="text-xs text-gray-400 dark:text-neutral-500 italic px-1" role="status">
           {t(operators.find((o) => o.value === operator)?.label ?? '')}
         </span>
       )}
@@ -290,17 +290,17 @@ function MultiSelectDropdown({
         aria-label={`${label}: ${summary}`}
       >
         <span className="truncate">{summary}</span>
-        <span className="ml-1 text-gray-400" aria-hidden="true"><ChevronGlyphIcon className="h-3.5 w-3.5" direction="down" /></span>
+        <span className="ml-1 text-gray-400 dark:text-neutral-500" aria-hidden="true"><ChevronGlyphIcon className="h-3.5 w-3.5" direction="down" /></span>
       </Button>
 
       {open && (
         <div
-          className="absolute z-50 top-full left-0 mt-0.5 w-full min-w-[180px] max-h-56 bg-white border border-gray-200 rounded shadow-lg flex flex-col"
+          className="absolute z-50 top-full left-0 mt-0.5 w-full min-w-[180px] max-h-56 bg-white dark:bg-neutral-800 border border-gray-200 dark:border-neutral-700 rounded shadow-lg flex flex-col"
           role="listbox"
           aria-label={`${label} options`}
         >
           {/* Search */}
-          <div className="p-1 border-b border-gray-100">
+          <div className="p-1 border-b border-gray-100 dark:border-neutral-700">
             <Input
               size="sm"
               hideLabel
@@ -315,18 +315,18 @@ function MultiSelectDropdown({
           </div>
 
           {/* Select All / Clear All */}
-          <div className="flex gap-1 px-2 py-1 border-b border-gray-100 text-xs">
+          <div className="flex gap-1 px-2 py-1 border-b border-gray-100 dark:border-neutral-700 text-xs">
             <InlineActionButton
               type="button"
-              className="text-blue-600 hover:underline"
+              className="text-blue-600 dark:text-blue-400 hover:underline"
               onClick={onSelectAll}
             >
               {t('FILTER.SELECT_ALL') || 'All'}
             </InlineActionButton>
-            <span className="text-gray-300">|</span>
+            <span className="text-gray-300 dark:text-neutral-600">|</span>
             <InlineActionButton
               type="button"
-              className="text-blue-600 hover:underline"
+              className="text-blue-600 dark:text-blue-400 hover:underline"
               onClick={onClearAll}
             >
               {t('FILTER.CLEAR_ALL') || 'None'}
@@ -336,7 +336,7 @@ function MultiSelectDropdown({
           {/* Options */}
           <div className="overflow-y-auto flex-1 p-1">
             {filtered.length === 0 && (
-              <div className="text-xs text-gray-400 px-2 py-1 italic">
+              <div className="text-xs text-gray-400 dark:text-neutral-500 px-2 py-1 italic">
                 {t('FILTER.NO_RESULTS') || 'No results'}
               </div>
             )}

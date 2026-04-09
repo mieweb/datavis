@@ -118,16 +118,16 @@ export function FilterBar({
 
   return (
     <div
-      className="wcdv-filter-bar border-b border-gray-200 bg-gray-50 px-2 py-1.5"
+      className="wcdv-filter-bar border-b border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-2 py-1.5"
       role="toolbar"
       aria-label={t('FILTER.TOOLBAR') || 'Filters'}
     >
       {/* Header row */}
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs font-medium text-gray-600">
+        <span className="text-xs font-medium text-gray-600 dark:text-neutral-400">
           {t('FILTER.TITLE') || 'Filters'}
           {activeCount > 0 && (
-            <span className="ml-1 text-blue-600">({activeCount})</span>
+            <span className="ml-1 text-blue-600 dark:text-blue-400">({activeCount})</span>
           )}
         </span>
         {activeCount > 0 && (
@@ -152,14 +152,14 @@ export function FilterBar({
             className="wcdv-filter-cell flex flex-col gap-0.5"
           >
             <div className="flex items-center justify-between gap-1">
-              <label className="text-[10px] font-medium text-gray-500 uppercase tracking-wide truncate">
+              <label className="text-[10px] font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wide truncate">
                 {col.displayName}
               </label>
               {onRemoveColumn && (
                 <IconButton
                   type="button"
                   variant="ghost"
-                  className="wcdv-filter-remove h-4 w-4 shrink-0 rounded-full text-[10px] leading-none text-gray-400 hover:bg-red-50 hover:text-red-500"
+                  className="wcdv-filter-remove h-4 w-4 shrink-0 rounded-full text-[10px] leading-none text-gray-400 dark:text-neutral-500 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-500 dark:hover:text-red-400"
                   onClick={() => {
                     handleFieldChange(col.field, null);
                     onRemoveColumn(col.field);
@@ -193,7 +193,7 @@ export function FilterBar({
                   type="button"
                   size="sm"
                   variant="outline"
-                  className="h-[30px] w-full justify-start gap-1 border-dashed text-xs text-gray-500 hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600"
+                  className="h-[30px] w-full justify-start gap-1 border-dashed text-xs text-gray-500 dark:text-neutral-400 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400"
                   aria-label={t('FILTER.ADD_FIELD') || 'Add filter field'}
                 >
                   <span className="text-sm leading-none">+</span>

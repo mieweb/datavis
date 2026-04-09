@@ -24,7 +24,7 @@ export function LoadingOverlay({
 
   return (
     <div
-      className="wcdv-loading-overlay absolute inset-0 z-10 flex items-center justify-center bg-white/70"
+      className="wcdv-loading-overlay absolute inset-0 z-10 flex items-center justify-center bg-white/70 dark:bg-neutral-900/70"
       role="status"
       aria-live="polite"
       aria-label={
@@ -35,7 +35,7 @@ export function LoadingOverlay({
     >
       <div className="flex flex-col items-center gap-2">
         <Spinner size="lg" />
-        <span className="text-sm text-gray-500">
+        <span className="text-sm text-gray-500 dark:text-neutral-400">
           {fetching
             ? t('GRID.LOADING.FETCHING') || 'Fetching data…'
             : t('GRID.LOADING.PROCESSING') || 'Processing…'}

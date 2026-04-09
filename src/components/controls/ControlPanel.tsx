@@ -207,7 +207,7 @@ export function ControlPanel({
 
   return (
     <div
-      className="wcdv-control-panel border-b border-gray-200 bg-gray-50"
+      className="wcdv-control-panel border-b border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800"
       role="region"
       aria-label={t('CONTROL.TITLE') || 'Controls'}
     >

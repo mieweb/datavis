@@ -82,7 +82,7 @@ export function PivotToolbar({
           onCheckedChange={handleShowTotals}
           aria-label={t('GRID_TOOLBAR.PIVOT.TOTAL_ROW_COLUMN')}
         />
-        <label className="text-xs text-gray-600 select-none">
+        <label className="text-xs text-gray-600 dark:text-neutral-400 select-none">
           {t('GRID_TOOLBAR.PIVOT.TOTAL_ROW_COLUMN') || 'Show Totals'}
         </label>
       </div>
@@ -94,7 +94,7 @@ export function PivotToolbar({
           onCheckedChange={handlePinGroups}
           aria-label={t('GRID_TOOLBAR.GROUP.PIN_GROUPS')}
         />
-        <label className="text-xs text-gray-600 select-none">
+        <label className="text-xs text-gray-600 dark:text-neutral-400 select-none">
           {t('GRID_TOOLBAR.GROUP.PIN_GROUPS') || 'Pin Groups'}
         </label>
       </div>
@@ -106,13 +106,13 @@ export function PivotToolbar({
           onCheckedChange={handleHideZeroValues}
           aria-label={t('GRID_TOOLBAR.PIVOT.HIDE_ZERO_VALUES')}
         />
-        <label className="text-xs text-gray-600 select-none">
+        <label className="text-xs text-gray-600 dark:text-neutral-400 select-none">
           {t('GRID_TOOLBAR.PIVOT.HIDE_ZERO_VALUES') || 'Hide Zero Values'}
         </label>
       </div>
 
       {/* Separator */}
-      <div className="w-px h-5 bg-gray-200 mx-1" role="separator" />
+      <div className="w-px h-5 bg-gray-200 dark:bg-neutral-700 mx-1" role="separator" />
 
       {/* Columns */}
       <Tooltip content={t('GRID_TOOLBAR.PLAIN.COLUMNS') || 'Columns'}>

@@ -74,7 +74,7 @@ export function HeaderContextMenu({
   return (
     <div
       ref={menuRef}
-      className="fixed z-50 min-w-[180px] rounded-md border border-gray-200 bg-white py-1 shadow-lg"
+      className="fixed z-50 min-w-[180px] rounded-md border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 py-1 shadow-lg"
       style={{ left: adjusted.x, top: adjusted.y }}
       role="menu"
       aria-label={t('TABLE.COLUMN_OPTIONS') || 'Column options'}
@@ -84,7 +84,7 @@ export function HeaderContextMenu({
           return (
             <div
               key={`sep-${idx}`}
-              className="my-1 h-px bg-gray-200"
+              className="my-1 h-px bg-gray-200 dark:bg-neutral-700"
               role="separator"
             />
           );
@@ -101,7 +101,7 @@ export function HeaderContextMenu({
               onMouseLeave={() => setOpenSub(null)}
             >
               <DisclosureButton
-                className="rounded-none px-3 py-1.5 text-gray-700 hover:bg-gray-100"
+                className="rounded-none px-3 py-1.5 text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-700"
                 role="menuitem"
                 aria-haspopup="menu"
                 aria-expanded={subOpen}
@@ -109,22 +109,22 @@ export function HeaderContextMenu({
                 indicator={item.icon ? <span className="w-4 text-center">{item.icon}</span> : undefined}
               >
                 <span className="flex-1 text-left">{item.label}</span>
-                <ChevronGlyphIcon className="h-3.5 w-3.5 text-gray-400" direction="right" />
+                <ChevronGlyphIcon className="h-3.5 w-3.5 text-gray-400 dark:text-neutral-500" direction="right" />
               </DisclosureButton>
               {subOpen && (
                 <div
-                  className="absolute left-full top-0 z-50 min-w-[180px] rounded-md border border-gray-200 bg-white py-1 shadow-lg"
+                  className="absolute left-full top-0 z-50 min-w-[180px] rounded-md border border-gray-200 dark:border-neutral-700 bg-white dark:bg-neutral-800 py-1 shadow-lg"
                   role="menu"
                   aria-label={item.label}
                 >
                   {item.children.map((child) => {
                     if (child.separator) {
-                      return <div key={`sub-sep-${child.label}`} className="my-1 h-px bg-gray-200" role="separator" />;
+                      return <div key={`sub-sep-${child.label}`} className="my-1 h-px bg-gray-200 dark:bg-neutral-700" role="separator" />;
                     }
                     return (
                       <MenuAction
                         key={child.label}
-                        className="rounded-none px-3 py-1.5 text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+                        className="rounded-none px-3 py-1.5 text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-700 disabled:cursor-not-allowed disabled:text-gray-400 dark:disabled:text-neutral-600"
                         role="menuitemradio"
                         checked={child.checked ?? false}
                         icon={child.icon as never}
@@ -150,7 +150,7 @@ export function HeaderContextMenu({
         return (
           <MenuAction
             key={item.label}
-            className="rounded-none px-3 py-1.5 text-gray-700 hover:bg-gray-100 disabled:cursor-not-allowed disabled:text-gray-400"
+            className="rounded-none px-3 py-1.5 text-gray-700 dark:text-neutral-300 hover:bg-gray-100 dark:hover:bg-neutral-700 disabled:cursor-not-allowed disabled:text-gray-400 dark:disabled:text-neutral-600"
             role="menuitem"
             icon={item.icon as never}
             shortcut={item.shortcut}

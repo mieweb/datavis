@@ -59,7 +59,7 @@ export function TitleBar({
 
   return (
     <div
-      className="wcdv-title-bar flex items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-200 rounded-t-lg"
+      className="wcdv-title-bar flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700 rounded-t-lg"
       role="banner"
     >
       {/* Spinner */}
@@ -73,14 +73,14 @@ export function TitleBar({
       </strong>
 
       {/* Status info */}
-      <span className="wcdv-status-info flex items-center gap-2 text-xs text-gray-500 ml-1">
+      <span className="wcdv-status-info flex items-center gap-2 text-xs text-gray-500 dark:text-neutral-400 ml-1">
         {rowCountText && (
           <span aria-live="polite">{rowCountText}</span>
         )}
 
         {hasActiveFilter && (
           <InlineActionButton
-            className="text-blue-600 hover:text-blue-800"
+            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
             onClick={onClearFilter}
             aria-label={t('GRID.TITLEBAR.CLEAR_FILTER')}
           >
@@ -104,7 +104,7 @@ export function TitleBar({
       {helpText && (
         <Tooltip content={helpText}>
           <span
-            className="text-gray-400 cursor-help"
+            className="text-gray-400 dark:text-neutral-500 cursor-help"
             role="img"
             aria-label={t('GRID.TITLEBAR.HELP')}
           >

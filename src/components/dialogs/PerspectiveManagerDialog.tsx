@@ -169,7 +169,7 @@ export function PerspectiveManagerDialog({
 
         {/* Perspective list */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-neutral-300 mb-2">
             {t('PERSPECTIVE.LIST_HEADING') || 'Perspectives'}
           </h3>
           <div className="border rounded divide-y divide-gray-100">
@@ -177,7 +177,7 @@ export function PerspectiveManagerDialog({
               <div
                 key={p.id}
                 className={`flex items-center gap-2 px-3 py-2 text-sm ${
-                  p.id === currentPerspective?.id ? 'bg-blue-50' : 'hover:bg-gray-50'
+                  p.id === currentPerspective?.id ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-50 dark:hover:bg-neutral-800'
                 }`}
               >
                 {renameId === p.id ? (
@@ -260,7 +260,7 @@ export function PerspectiveManagerDialog({
 
         {/* Create new perspective */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-700 mb-2">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-neutral-300 mb-2">
             {t('PERSPECTIVE.NEW_HEADING') || 'Create New Perspective'}
           </h3>
           <div className="flex items-center gap-2">
@@ -284,7 +284,7 @@ export function PerspectiveManagerDialog({
         {/* Current perspective JSON config */}
         {currentPerspective && (
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 mb-2">
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-neutral-300 mb-2">
               {t('PERSPECTIVE.CONFIG_HEADING') || 'Current Config (read-only)'}
             </h3>
             <Textarea
