@@ -220,7 +220,6 @@ function MultiSelectDropdown({
         </div>
       )}
       selectAllLabel={t('FILTER.SELECT_ALL') || 'Select all'}
-      className="max-h-56"
       trigger={(
         <Button
           size="sm"
