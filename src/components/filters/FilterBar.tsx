@@ -34,6 +34,8 @@ export interface FilterBarProps {
   columns: ColumnFilterConfig[];
   /** Initial / restored filter spec (e.g. from prefs) */
   initialSpec?: FilterSpec;
+  /** Raw row data for deriving unique filter options */
+  rowData?: unknown[];
   /** Called when any filter changes; receives full combined spec */
   onFilterChange: (spec: FilterSpec) => void;
   /** Called when the user removes a filter column via its remove button */
@@ -47,6 +49,7 @@ export interface FilterBarProps {
 export function FilterBar({
   columns,
   initialSpec,
+  rowData,
   onFilterChange,
   onRemoveColumn,
   availableFields = [],
@@ -70,6 +73,25 @@ export function FilterBar({
     () => columns.filter((c) => c.visible !== false),
     [columns],
   );
+
+  // Derive unique values per string field from rowData (for $in/$nin dropdowns)
+  const derivedOptions = useMemo(() => {
+    if (!rowData?.length) return {};
+    const result: Record<string, string[]> = {};
+    for (const col of visibleColumns) {
+      if ((col.filterType === 'string') && !col.options?.length) {
+        const unique = new Set<string>();
+        for (const row of rowData) {
+          const val = (row as Record<string, unknown>)?.[col.field];
+          if (val != null && val !== '') unique.add(String(val));
+        }
+        if (unique.size > 0) {
+          result[col.field] = Array.from(unique).sort();
+        }
+      }
+    }
+    return result;
+  }, [rowData, visibleColumns]);
 
   const handleFieldChange = useCallback(
     (field: string, fieldSpec: FieldFilterSpec | null) => {
@@ -173,6 +195,7 @@ export function FilterBar({
             </div>
             <FilterWidget
               column={col}
+              derivedOptions={derivedOptions[col.field]}
               value={specs[col.field] ?? undefined}
               onChange={handleFieldChange}
               autoFocusOperator={pendingFocusField === col.field}
@@ -243,13 +266,15 @@ export function FilterBar({
 
 interface FilterWidgetProps {
   column: ColumnFilterConfig;
+  derivedOptions?: string[];
   value?: FieldFilterSpec;
   onChange: (field: string, spec: FieldFilterSpec | null) => void;
   autoFocusOperator?: boolean;
 }
 
-function FilterWidget({ column, value, onChange, autoFocusOperator }: FilterWidgetProps) {
+function FilterWidget({ column, derivedOptions, value, onChange, autoFocusOperator }: FilterWidgetProps) {
   const { field, displayName, filterType, widget, options, includeOperators, excludeOperators } = column;
+  const effectiveOptions = options?.length ? options : derivedOptions;
 
   switch (filterType) {
     case 'string':
@@ -258,7 +283,7 @@ function FilterWidget({ column, value, onChange, autoFocusOperator }: FilterWidg
           field={field}
           label={displayName}
           widget={widget as 'textbox' | 'dropdown' | undefined}
-          options={options}
+          options={effectiveOptions}
           includeOperators={includeOperators}
           excludeOperators={excludeOperators}
           value={value}

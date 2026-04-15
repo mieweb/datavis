@@ -36,6 +36,8 @@ export interface ControlPanelProps {
   filterColumns: ColumnFilterConfig[];
   /** All columns available for adding to the filter bar */
   allFilterableFields?: { field: string; displayName: string }[];
+  /** Raw row data for deriving unique filter options */
+  rowData?: unknown[];
   /** Available fields for group/pivot */
   availableFields: AvailableField[];
   /** Available fields for aggregate */
@@ -73,6 +75,7 @@ export interface ControlPanelProps {
 export function ControlPanel({
   filterColumns,
   allFilterableFields,
+  rowData,
   availableFields,
   aggregateFields,
   groupFields,
@@ -216,6 +219,7 @@ export function ControlPanel({
         <FilterBar
           columns={filterColumns}
           initialSpec={initialFilterSpec}
+          rowData={rowData}
           onFilterChange={onFilterChange}
           onRemoveColumn={onRemoveFilterColumn}
           availableFields={allFilterableFields}

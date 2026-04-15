@@ -840,6 +840,7 @@ export function DataGrid({
             <ControlPanel
               filterColumns={mergedFilterColumns}
               allFilterableFields={allColumns.map((c) => ({ field: c.field, displayName: c.header ?? c.field }))}
+              rowData={viewState.data?.data}
               availableFields={controlFields}
               aggregateFields={aggregateFields}
               groupFields={enrichedGroupFields}

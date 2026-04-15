@@ -126,7 +126,7 @@ export function StringFilter({
     [emitChange, operator, textValue],
   );
 
-  if (widget === 'dropdown' && (operator === '$in' || operator === '$nin')) {
+  if (operator === '$in' || operator === '$nin') {
     return (
       <div className="wcdv-filter wcdv-filter-string-dropdown flex flex-col gap-1">
         <div className="flex items-center gap-1">
