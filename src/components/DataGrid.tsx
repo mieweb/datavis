@@ -300,6 +300,8 @@ export function DataGrid({
   const [groupFields, setGroupFields] = useState<ControlFieldItem[]>([]);
   const [pivotFields, setPivotFields] = useState<ControlFieldItem[]>([]);
   const [aggregateEntries, setAggregateEntries] = useState<AggregateEntry[]>([]);
+  /** When true, pivot fields were set without group — group was set implicitly */
+  const [syntheticPivot, setSyntheticPivot] = useState(false);
 
   // ── Sort state ─────────────────────────────────
   const [sort, setSort] = useState<SortSpec | null>(null);
@@ -404,9 +406,10 @@ export function DataGrid({
   const dataMode = useMemo(() => {
     if (!viewState.data) return 'plain';
     if (viewState.data.isPivot) return 'pivot';
+    if (syntheticPivot && viewState.data.isGroup) return 'pivot';
     if (viewState.data.isGroup) return 'group';
     return 'plain';
-  }, [viewState.data]);
+  }, [viewState.data, syntheticPivot]);
 
   // ── Handlers ───────────────────────────────────
   const handleToggle = useCallback(() => {
@@ -479,6 +482,7 @@ export function DataGrid({
         showTotalRow: childProps.showTotalRow ?? effectiveTableDef.whenGroup?.showTotalRow,
         showTotalCol: childProps.showTotalCol ?? effectiveTableDef.whenPivot?.showTotalCol,
         groupsExpanded: childProps.groupsExpanded ?? effectiveTableDef.whenGroup?.showExpandedGroups,
+        syntheticPivot,
         onShowMore: childProps.onShowMore ?? handleShowMoreRows,
         onShowAll: childProps.onShowAll ?? handleShowAllRows,
       });
@@ -491,6 +495,7 @@ export function DataGrid({
       preserveChildViewData,
       effectiveTableDef,
       tableDefVersion,
+      syntheticPivot,
       handleShowMoreRows,
       handleShowAllRows,
     ],
@@ -542,8 +547,20 @@ export function DataGrid({
       });
 
       if (fields.length === 0) {
-        viewState.clearGroup();
+        // If pivot fields exist, switch to synthetic pivot:
+        // clear the real pivot, then group by the pivot fields behind the scenes
+        if (pivotFields.length > 0) {
+          viewState.clearPivot();
+          const pivotSpec = pivotFields.map((f) => ({ field: f.field, fun: pivotFunMap[f.field] }));
+          viewState.setGroup(buildGroupSpec(pivotSpec));
+          setSyntheticPivot(true);
+        } else {
+          viewState.clearGroup();
+          setSyntheticPivot(false);
+        }
       } else {
+        // User explicitly set group fields — exit synthetic mode
+        setSyntheticPivot(false);
         // Build spec with function assignments
         const specFields = fields.map((f) => ({ field: f, fun: groupFunMap[f] }));
         viewState.setGroup(buildGroupSpec(specFields));
@@ -562,7 +579,7 @@ export function DataGrid({
         }
       }
     },
-    [controlFields, viewState, groupFunMap, groupFields.length],
+    [controlFields, viewState, groupFunMap, groupFields.length, pivotFields, pivotFunMap],
   );
 
   const handlePivotChange = useCallback(
@@ -583,8 +600,20 @@ export function DataGrid({
       });
 
       if (fields.length === 0) {
+        // Pivot cleared — remove synthetic group if it was in place
+        if (syntheticPivot) {
+          viewState.clearGroup();
+          setSyntheticPivot(false);
+        }
         viewState.clearPivot();
+      } else if (groupFields.length === 0) {
+        // Pivot without group — use pivot fields as an implicit group
+        const specFields = fields.map((f) => ({ field: f, fun: pivotFunMap[f] }));
+        viewState.setGroup(buildGroupSpec(specFields));
+        setSyntheticPivot(true);
       } else {
+        // Real pivot with existing group
+        setSyntheticPivot(false);
         const specFields = fields.map((f) => ({ field: f, fun: pivotFunMap[f] }));
         viewState.setPivot(buildGroupSpec(specFields));
       }
@@ -602,7 +631,7 @@ export function DataGrid({
         }
       }
     },
-    [controlFields, viewState, pivotFunMap, pivotFields.length],
+    [controlFields, viewState, pivotFunMap, pivotFields.length, groupFields.length, syntheticPivot],
   );
 
   const handleAggregateChange = useCallback(

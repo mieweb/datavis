@@ -68,6 +68,8 @@ export interface TableRendererProps {
   aggFnLabels?: Record<string, string>;
   /** Custom className */
   className?: string;
+  /** When true, group data should be displayed as a pivot (pivot without explicit grouping) */
+  syntheticPivot?: boolean;
 
   // ── Callbacks ──
   /** Sort requested */
@@ -110,6 +112,7 @@ export function TableRenderer({
   groupsExpanded = true,
   aggFnLabels,
   className = '',
+  syntheticPivot = false,
   onSort,
   onRowClick,
   onRowDoubleClick,
@@ -233,6 +236,61 @@ export function TableRenderer({
     };
   }, [viewData]);
 
+  // ── Synthetic pivot: transform group data into pivot format ──
+  // When pivot fields were set without a group, the library groups by
+  // those fields. We transpose the groups into pivot columns.
+  const syntheticPivotData = useMemo<PivotData | null>(() => {
+    if (!syntheticPivot || !groupData) return null;
+
+    const { groups, groupOrder, groupFields: gf } = groupData;
+
+    // Each group becomes a column value
+    const colVals = groupOrder.map((key) => {
+      const vals = groups[key].groupValues;
+      // Join multi-field group values for display
+      return gf.length === 1
+        ? vals[gf[0]]
+        : gf.map((f) => String(vals[f] ?? '')).join(' / ');
+    });
+
+    // Derive aggregate function keys from the first group's aggregates
+    const sampleAgg = groups[groupOrder[0]]?.aggregates ?? {};
+    const aggFunctions = Object.keys(sampleAgg).length > 0
+      ? Object.keys(sampleAgg)
+      : ['count'];
+
+    // Build a single-row matrix: one row, with each column being a group's aggregates
+    const matrix: Record<string, unknown>[][] = [
+      groupOrder.map((key) => {
+        const agg = groups[key].aggregates ?? {};
+        // If no aggregates, fall back to count
+        return Object.keys(agg).length > 0 ? agg : { count: groups[key].count };
+      }),
+    ];
+
+    // Total column: aggregate across all groups (sum of counts, etc.)
+    const totalAgg: Record<string, unknown> = {};
+    for (const fn of aggFunctions) {
+      const vals = groupOrder.map((key) => {
+        const agg = groups[key].aggregates ?? {};
+        return (agg[fn] ?? groups[key].count) as number;
+      });
+      totalAgg[fn] = vals.reduce((a, b) => (typeof a === 'number' && typeof b === 'number' ? a + b : a), 0);
+    }
+
+    return {
+      rowFields: [],
+      colFields: gf,
+      rowVals: [{}],
+      colVals,
+      matrix,
+      aggFunctions,
+      totalCol: [totalAgg],
+      totalRow: [],
+      grandTotal: totalAgg,
+    };
+  }, [syntheticPivot, groupData]);
+
   // No data yet
   if (!viewData) {
     return (
@@ -280,8 +338,8 @@ export function TableRenderer({
         />
       )}
 
-      {/* Group mode */}
-      {viewData.isGroup && groupData && (
+      {/* Group mode (not in synthetic pivot) */}
+      {viewData.isGroup && groupData && !syntheticPivot && (
         groupMode === 'summary' ? (
           <GroupSummaryTable
             columns={columns}
@@ -329,6 +387,18 @@ export function TableRenderer({
         <PivotTable
           columns={columns}
           pivotData={pivotData}
+          sort={effectiveSort}
+          features={features}
+          showTotalCol={showTotalCol}
+          onSort={effectiveOnSort}
+        />
+      )}
+
+      {/* Synthetic pivot: group data displayed as pivot */}
+      {syntheticPivot && syntheticPivotData && viewData.isGroup && (
+        <PivotTable
+          columns={columns}
+          pivotData={syntheticPivotData}
           sort={effectiveSort}
           features={features}
           showTotalCol={showTotalCol}
