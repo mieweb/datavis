@@ -40,6 +40,7 @@
 - **Never close the browser** after running MCP browser commands unless explicitly asked
 - Let the user interact with the browser after navigation or testing
 - Only use `browser_close` when the user specifically requests it
+- Unless otherwise asked, use the page at http://localhost:5173/ to test changes.
 
 ### 🔥 Dev Server Management
 - **Never restart Vite** (or similar HMR dev servers) after code changes — HMR picks them up automatically

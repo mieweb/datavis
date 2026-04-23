@@ -245,6 +245,7 @@ export function ControlPanel({
             onClear={handleGroupClear}
             onFunctionClick={onGroupFunctionClick}
             showFunctionButton={true}
+            dropZone="group"
           />
 
           {/* Pivot */}
@@ -258,6 +259,7 @@ export function ControlPanel({
             onClear={handlePivotClear}
             onFunctionClick={onPivotFunctionClick}
             showFunctionButton={true}
+            dropZone="pivot"
           />
 
           {/* Aggregate */}

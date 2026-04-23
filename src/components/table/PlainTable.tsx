@@ -18,20 +18,6 @@
  */
 
 import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
-import {
-  DndContext,
-  closestCenter,
-  MouseSensor,
-  PointerSensor,
-  useSensor,
-  useSensors,
-} from '@dnd-kit/core';
-import {
-  SortableContext,
-  horizontalListSortingStrategy,
-  useSortable,
-} from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@mieweb/ui/components/Button';
 
 import type {
@@ -43,8 +29,8 @@ import type {
   ContextMenuItem,
 } from './types';
 import { useColumnResize } from './useColumnResize';
-import { useColumnReorder } from './useColumnReorder';
 import { useKeyboardNav } from './useKeyboardNav';
+import { useColumnDrop } from './ColumnDropContext';
 import { HeaderContextMenu } from './HeaderContextMenu';
 import { useFilterContext } from '../filters/FilterContext';
 import { useColumnConfig } from './ColumnConfigContext';
@@ -52,6 +38,7 @@ import { useTranslation } from 'react-i18next';
 import { useLocale } from '../../i18n';
 import { CalendarIcon, ChevronGlyphIcon, IconButton, SearchIcon, SortGlyphIcon, TableActionButton } from '../ui';
 import { formatCellValue, formatAggregateNumber, DATE_FORMAT_PRESETS, type DateFormatPreset } from './format-cell';
+import { COLUMN_DRAG_MIME } from '../controls/column-drag';
 
 // ───────────────────────────────────────────────────────────
 // Sort icon
@@ -96,16 +83,17 @@ function FilterIcon({ active }: { active?: boolean }) {
 }
 
 // ───────────────────────────────────────────────────────────
-// Sortable Header Cell
+// Header Cell (native HTML5 drag)
 // ───────────────────────────────────────────────────────────
 
-interface SortableHeaderProps {
+/** Which side of a target header the dragged column would be inserted */
+type InsertSide = 'before' | 'after';
+
+interface HeaderCellProps {
   column: TableColumn;
   sortDir?: SortDirection;
   resizable: boolean;
-  /** Whether this column currently has an active filter */
   filterActive?: boolean;
-  /** Called when the filter icon is clicked */
   onFilterClick?: () => void;
   onSort?: (field: string, direction: SortDirection) => void;
   onResizeStart?: (
@@ -114,11 +102,16 @@ interface SortableHeaderProps {
     event: React.MouseEvent,
   ) => void;
   onContextMenu?: (field: string, event: React.MouseEvent) => void;
-  onReorderStart?: (field: string, event: React.MouseEvent) => void;
-  onReorderEnter?: (field: string, event: React.MouseEvent) => void;
+  /** Which side to show the insertion indicator on, if any */
+  insertIndicator?: InsertSide | null;
+  onHeaderDragStart?: (field: string, e: React.DragEvent) => void;
+  onHeaderDragOver?: (field: string, e: React.DragEvent) => void;
+  onHeaderDragLeave?: (e: React.DragEvent) => void;
+  onHeaderDrop?: (field: string, e: React.DragEvent) => void;
+  onHeaderDragEnd?: () => void;
 }
 
-function SortableHeaderCell({
+function HeaderCell({
   column,
   sortDir,
   resizable,
@@ -127,36 +120,20 @@ function SortableHeaderCell({
   onSort,
   onResizeStart,
   onContextMenu,
-  onReorderStart,
-  onReorderEnter,
-}: SortableHeaderProps) {
+  insertIndicator,
+  onHeaderDragStart,
+  onHeaderDragOver,
+  onHeaderDragLeave,
+  onHeaderDrop,
+  onHeaderDragEnd,
+}: HeaderCellProps) {
   const { t } = useTranslation();
   const thRef = useRef<HTMLTableCellElement>(null);
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ id: column.field });
-
-  // Merge dnd-kit ref with our local ref so we can read offsetWidth
-  const mergedRef = useCallback(
-    (node: HTMLTableCellElement | null) => {
-      (thRef as React.MutableRefObject<HTMLTableCellElement | null>).current = node;
-      setNodeRef(node);
-    },
-    [setNodeRef],
-  );
 
   const style: React.CSSProperties = {
-    transform: CSS.Translate.toString(transform),
-    transition,
     width: column.width,
     minWidth: column.minWidth ?? 50,
     maxWidth: column.maxWidth,
-    opacity: isDragging ? 0.5 : 1,
   };
 
   const handleClick = useCallback(() => {
@@ -175,11 +152,15 @@ function SortableHeaderCell({
 
   return (
     <th
-      ref={mergedRef}
+      ref={thRef}
       style={style}
-      className={`wcdv-th relative select-none border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 ${
-        isDragging ? 'z-10 shadow-lg' : ''
-      }`}
+      draggable
+      onDragStart={(e) => onHeaderDragStart?.(column.field, e)}
+      onDragOver={(e) => onHeaderDragOver?.(column.field, e)}
+      onDragLeave={(e) => onHeaderDragLeave?.(e)}
+      onDrop={(e) => onHeaderDrop?.(column.field, e)}
+      onDragEnd={() => onHeaderDragEnd?.()}
+      className={`wcdv-th relative select-none border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 cursor-grab active:cursor-grabbing`}
       aria-sort={
         sortDir === 'asc'
           ? 'ascending'
@@ -188,11 +169,15 @@ function SortableHeaderCell({
           : 'none'
       }
       onContextMenu={handleContextMenu}
-      onMouseDown={(event) => onReorderStart?.(column.field, event)}
-      onMouseEnter={(event) => onReorderEnter?.(column.field, event)}
-      {...attributes}
-      {...listeners}
     >
+      {/* Insertion indicator — left edge */}
+      {insertIndicator === 'before' && (
+        <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-blue-500 dark:bg-blue-400 z-20" />
+      )}
+      {/* Insertion indicator — right edge */}
+      {insertIndicator === 'after' && (
+        <div className="absolute right-0 top-0 bottom-0 w-0.5 bg-blue-500 dark:bg-blue-400 z-20" />
+      )}
       <div className="flex items-center w-full gap-0.5">
         <Button
           type="button"
@@ -384,13 +369,11 @@ export function PlainTable({
   const tableRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pendingAutoShowRef = useRef(false);
-  const dragStateRef = useRef<{
-    sourceField: string;
-    targetField: string;
-    startX: number;
-    startY: number;
-    active: boolean;
-  } | null>(null);
+  const columnDropCtx = useColumnDrop();
+
+  /** Native drag state: source field, target field, and insertion side */
+  const dragSourceRef = useRef<string | null>(null);
+  const [dragTarget, setDragTarget] = useState<{ field: string; side: InsertSide } | null>(null);
 
   // ── Visible columns (filtered + ordered by column config) ──
   const visibleColumns = useMemo(() => {
@@ -433,71 +416,81 @@ export function PlainTable({
     [visibleColumns, colConfigCtx, onColumnReorder],
   );
 
-  const { handleDragEnd, columnIds } = useColumnReorder(
-    visibleColumns,
-    useCallback(
-      (fromIndex: number, toIndex: number) => {
-        commitColumnReorder(fromIndex, toIndex);
-      },
-      [commitColumnReorder],
-    ),
-  );
+  // ── Native drag handlers for column headers ──
+  // Support both in-table column reorder and cross-zone drops
+  // into the control panel (filter, group, pivot).
 
-  const handleHeaderReorderStart = useCallback(
-    (field: string, event: React.MouseEvent) => {
-      if (features.columnReorder === false || event.button !== 0) return;
-      const target = event.target as HTMLElement | null;
-      if (target?.closest('[role="separator"]')) return;
-
-      dragStateRef.current = {
-        sourceField: field,
-        targetField: field,
-        startX: event.clientX,
-        startY: event.clientY,
-        active: false,
-      };
+  const handleHeaderDragStart = useCallback(
+    (field: string, e: React.DragEvent) => {
+      dragSourceRef.current = field;
+      e.dataTransfer.setData(COLUMN_DRAG_MIME, field);
+      e.dataTransfer.effectAllowed = 'copyMove';
+      // Set a semi-transparent drag image from the <th>
+      const th = (e.target as HTMLElement).closest('th');
+      if (th) e.dataTransfer.setDragImage(th, th.offsetWidth / 2, th.offsetHeight / 2);
+      columnDropCtx.onColumnDragStart?.();
     },
-    [features.columnReorder],
+    [columnDropCtx],
   );
 
-  const handleHeaderReorderEnter = useCallback((field: string, event: React.MouseEvent) => {
-    if (event.buttons !== 1) return;
-    const dragState = dragStateRef.current;
-    if (!dragState) return;
-    dragState.targetField = field;
+  const handleHeaderDragOver = useCallback(
+    (field: string, e: React.DragEvent) => {
+      if (!e.dataTransfer.types.includes(COLUMN_DRAG_MIME)) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      // Determine insertion side based on cursor position within the <th>
+      const th = (e.currentTarget as HTMLElement).closest('th');
+      if (!th) return;
+      const rect = th.getBoundingClientRect();
+      const midX = rect.left + rect.width / 2;
+      const side: InsertSide = e.clientX < midX ? 'before' : 'after';
+      setDragTarget((prev) =>
+        prev?.field === field && prev?.side === side ? prev : { field, side },
+      );
+    },
+    [],
+  );
+
+  const handleHeaderDragLeave = useCallback((e: React.DragEvent) => {
+    // Only clear if we're actually leaving the <th> (not entering a child)
+    const th = (e.currentTarget as HTMLElement).closest('th');
+    if (th && !th.contains(e.relatedTarget as Node)) {
+      setDragTarget(null);
+    }
   }, []);
 
-  useEffect(() => {
-    const handleMouseMove = (event: MouseEvent) => {
-      const dragState = dragStateRef.current;
-      if (!dragState || dragState.active) return;
+  const handleHeaderDrop = useCallback(
+    (targetField: string, e: React.DragEvent) => {
+      e.preventDefault();
+      setDragTarget(null);
+      const sourceField = e.dataTransfer.getData(COLUMN_DRAG_MIME);
+      if (!sourceField || sourceField === targetField) return;
 
-      const deltaX = Math.abs(event.clientX - dragState.startX);
-      const deltaY = Math.abs(event.clientY - dragState.startY);
-      if (deltaX >= 8 || deltaY >= 8) {
-        dragState.active = true;
-      }
-    };
+      // Determine insertion side
+      const th = (e.currentTarget as HTMLElement).closest('th');
+      const rect = th?.getBoundingClientRect();
+      const side: InsertSide = rect && e.clientX < rect.left + rect.width / 2 ? 'before' : 'after';
 
-    const handleMouseUp = () => {
-      const dragState = dragStateRef.current;
-      dragStateRef.current = null;
-      if (!dragState?.active || dragState.sourceField === dragState.targetField) return;
+      const fields = visibleColumns.map((c) => c.field);
+      const fromIndex = fields.indexOf(sourceField);
+      let toIndex = fields.indexOf(targetField);
+      if (fromIndex === -1 || toIndex === -1) return;
 
-      const fromIndex = visibleColumns.findIndex((column) => column.field === dragState.sourceField);
-      const toIndex = visibleColumns.findIndex((column) => column.field === dragState.targetField);
-      if (fromIndex === -1 || toIndex === -1 || fromIndex === toIndex) return;
+      // Adjust toIndex based on insertion side
+      if (side === 'after') toIndex += 1;
+      // Account for the source being removed first
+      if (fromIndex < toIndex) toIndex -= 1;
+      if (fromIndex === toIndex) return;
 
       commitColumnReorder(fromIndex, toIndex);
-    };
+    },
+    [visibleColumns, commitColumnReorder],
+  );
 
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [commitColumnReorder, visibleColumns]);
+  const handleHeaderDragEnd = useCallback(() => {
+    dragSourceRef.current = null;
+    setDragTarget(null);
+  }, []);
 
   // ── Keyboard nav ──────────────────────────────
   const { handleKeyDown } = useKeyboardNav(
@@ -516,12 +509,6 @@ export function PlainTable({
       },
       [onRowClick],
     ),
-  );
-
-  // ── DnD sensors ───────────────────────────────
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
   );
 
   // ── Row click handler ─────────────────────────
@@ -679,11 +666,6 @@ export function PlainTable({
         data-testid="plain-table-scroll"
         onScroll={handleScroll}
       >
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={features.columnReorder !== false ? handleDragEnd : undefined}
-        >
           <table className="min-w-full border-collapse" role="grid">
             {/* ── Header ── */}
             <thead
@@ -694,12 +676,8 @@ export function PlainTable({
               }
             >
               <tr>
-                <SortableContext
-                  items={columnIds}
-                  strategy={horizontalListSortingStrategy}
-                >
                   {visibleColumns.map((col) => (
-                    <SortableHeaderCell
+                    <HeaderCell
                       key={col.field}
                       column={col}
                       sortDir={
@@ -724,11 +702,16 @@ export function PlainTable({
                       onSort={onSort}
                       onResizeStart={handleResizeMouseDown}
                       onContextMenu={handleHeaderContextMenu}
-                      onReorderStart={handleHeaderReorderStart}
-                      onReorderEnter={handleHeaderReorderEnter}
+                      insertIndicator={
+                        dragTarget?.field === col.field ? dragTarget.side : null
+                      }
+                      onHeaderDragStart={handleHeaderDragStart}
+                      onHeaderDragOver={handleHeaderDragOver}
+                      onHeaderDragLeave={handleHeaderDragLeave}
+                      onHeaderDrop={handleHeaderDrop}
+                      onHeaderDragEnd={handleHeaderDragEnd}
                     />
                   ))}
-                </SortableContext>
               </tr>
             </thead>
 
@@ -807,7 +790,6 @@ export function PlainTable({
               />
             )}
           </table>
-        </DndContext>
       </div>
 
       {/* ── Footer: show more / row count ── */}

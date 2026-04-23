@@ -32,6 +32,7 @@ export { HeaderContextMenu, type HeaderContextMenuProps } from './HeaderContextM
 export { TableProgress, type TableProgressProps } from './TableProgress';
 export { SortContext, useSortContext, type SortContextValue } from './SortContext';
 export { ColumnConfigContext, useColumnConfig, type ColumnConfigContextValue } from './ColumnConfigContext';
+export { ColumnDropProvider, useColumnDrop, type ColumnDropContextValue } from './ColumnDropContext';
 
 // Hooks
 export { useColumnResize } from './useColumnResize';

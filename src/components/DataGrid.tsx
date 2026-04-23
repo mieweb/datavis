@@ -26,6 +26,7 @@ import {
 import { toLegacyAggregateSpec } from '../adapters/wcdatavis-interop';
 import { useTranslation } from 'react-i18next';
 import { LocaleProvider } from '../i18n';
+import { COLUMN_DRAG_MIME } from './controls/column-drag';
 import { TitleBar } from './TitleBar';
 import { GridToolbar } from './GridToolbar';
 import { ControlPanel } from './controls/ControlPanel';
@@ -36,6 +37,7 @@ import { FilterContext, columnToFilterConfig, type FilterContextValue } from './
 import type { TableColumn, SortSpec, SortDirection } from './table/types';
 import { SortContext, type SortContextValue } from './table/SortContext';
 import { ColumnConfigContext, type ColumnConfigContextValue } from './table/ColumnConfigContext';
+import { ColumnDropProvider, type ColumnDropContextValue } from './table/ColumnDropContext';
 import { OperationsPalette, type Operation } from './OperationsPalette';
 import { DetailSlider } from './DetailSlider';
 import { LoadingOverlay } from './LoadingOverlay';
@@ -777,6 +779,24 @@ export function DataGrid({
     viewState.clearFilter();
   }, [viewState]);
 
+  /** Auto-open controls when a column header drag starts or enters the grid */
+  const handleColumnDragStart = useCallback(() => {
+    if (!controlsVisible) setControlsVisible(true);
+  }, [controlsVisible]);
+
+  const handleGridDragOver = useCallback(
+    (e: React.DragEvent) => {
+      if (!e.dataTransfer.types.includes(COLUMN_DRAG_MIME)) return;
+      if (!controlsVisible) setControlsVisible(true);
+    },
+    [controlsVisible],
+  );
+
+  const columnDropContextValue = useMemo<ColumnDropContextValue>(
+    () => ({ onColumnDragStart: handleColumnDragStart }),
+    [handleColumnDragStart],
+  );
+
   // ── Render ─────────────────────────────────────
   const gridTableId = `wcdv-grid-table-${title?.replace(/\s+/g, '-') || 'main'}`;
 
@@ -787,6 +807,7 @@ export function DataGrid({
       style={height ? { height } : undefined}
       role="region"
       aria-label={title || t('GRID.TITLEBAR.TITLE')}
+      onDragOver={handleGridDragOver}
     >
       {/* Skip to data table */}
       <a
@@ -879,7 +900,9 @@ export function DataGrid({
             <SortContext.Provider value={sortContextValue}>
             <FilterContext.Provider value={filterContextValue}>
             <ColumnConfigContext.Provider value={columnConfigContextValue}>
+            <ColumnDropProvider value={columnDropContextValue}>
               {renderedChildren}
+            </ColumnDropProvider>
             </ColumnConfigContext.Provider>
             </FilterContext.Provider>
             </SortContext.Provider>

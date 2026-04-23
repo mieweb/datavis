@@ -69,6 +69,7 @@
   "CONTROL.ADD_FIELD": "+ Add field…",
   "CONTROL.AGGREGATE": "Aggregate",
   "CONTROL.CLEAR": "Clear all",
+  "CONTROL.DROP_COLUMN": "Drop column here to add to {{param0}}",
   "CONTROL.GROUP": "Group",
   "CONTROL.GROUP_FUNCTION": "Group function",
   "CONTROL.PIVOT": "Pivot",

@@ -17,6 +17,7 @@ import { Tooltip } from '@mieweb/ui/components/Tooltip';
 import { useTranslation } from 'react-i18next';
 import { FieldPill } from './FieldPill';
 import { ChevronGlyphIcon, CloseGlyphIcon, MenuAction } from '../ui';
+import { COLUMN_DRAG_MIME } from './column-drag';
 
 export interface ControlFieldItem {
   /** Field name (key in data) */
@@ -57,6 +58,8 @@ export interface ControlSectionProps {
   onFunctionClick?: (field: string) => void;
   /** Whether to show the group-function button on pills */
   showFunctionButton?: boolean;
+  /** Drop zone identifier for cross-zone drag detection (e.g. 'group', 'pivot') */
+  dropZone?: string;
 }
 
 export function ControlSection({
@@ -69,9 +72,11 @@ export function ControlSection({
   onClear,
   onFunctionClick,
   showFunctionButton = false,
+  dropZone,
 }: ControlSectionProps) {
   const { t } = useTranslation();
   const [addOpen, setAddOpen] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   // Filter out already-added fields from dropdown options
   const addedFieldNames = new Set(fields.map((f) => f.field));
   const dropdownOptions = availableFields.filter(
@@ -87,13 +92,49 @@ export function ControlSection({
     [onAdd],
   );
 
+  const handleNativeDragOver = useCallback(
+    (e: React.DragEvent) => {
+      if (!e.dataTransfer.types.includes(COLUMN_DRAG_MIME)) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      setDragOver(true);
+    },
+    [],
+  );
+
+  const handleNativeDragLeave = useCallback(() => {
+    setDragOver(false);
+  }, []);
+
+  const handleNativeDrop = useCallback(
+    (e: React.DragEvent) => {
+      setDragOver(false);
+      const field = e.dataTransfer.getData(COLUMN_DRAG_MIME);
+      if (!field) return;
+      e.preventDefault();
+      // Skip if already present
+      if (addedFieldNames.has(field)) return;
+      // Skip if the field isn't in the available list, or is disabled (e.g. already in the other section)
+      const available = availableFields.find((f) => f.field === field);
+      if (!available || available.disabled) return;
+      onAdd(field);
+    },
+    [addedFieldNames, availableFields, onAdd],
+  );
+
   const fieldIds = fields.map((f) => f.field);
 
   return (
     <div
-      className="wcdv-control-section flex flex-col gap-1"
+      className={`wcdv-control-section flex flex-col gap-1 rounded transition-colors ${
+        dragOver ? 'ring-2 ring-blue-400 dark:ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''
+      }`}
       role="region"
       aria-label={title}
+      data-drop-zone={dropZone}
+      onDragOver={handleNativeDragOver}
+      onDragLeave={handleNativeDragLeave}
+      onDrop={handleNativeDrop}
     >
       {/* Section header */}
       <div className="flex items-center gap-1">

@@ -21,6 +21,7 @@ import type {
   FieldFilterSpec,
   FilterSpec,
 } from './types';
+import { COLUMN_DRAG_MIME } from '../controls/column-drag';
 
 export interface FilterFieldOption {
   /** Field name */
@@ -128,6 +129,7 @@ export function FilterBar({
   const [addOpen, setAddOpen] = useState(false);
   // Track which field was just added so we can auto-focus its operator select
   const [pendingFocusField, setPendingFocusField] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
 
   // Clear pending focus after the newly-added filter has mounted
   useEffect(() => {
@@ -136,13 +138,47 @@ export function FilterBar({
     return () => clearTimeout(timer);
   }, [pendingFocusField]);
 
+  const handleNativeDragOver = useCallback(
+    (e: React.DragEvent) => {
+      if (!e.dataTransfer.types.includes(COLUMN_DRAG_MIME)) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'copy';
+      setDragOver(true);
+    },
+    [],
+  );
+
+  const handleNativeDragLeave = useCallback(() => {
+    setDragOver(false);
+  }, []);
+
+  const handleNativeDrop = useCallback(
+    (e: React.DragEvent) => {
+      setDragOver(false);
+      const field = e.dataTransfer.getData(COLUMN_DRAG_MIME);
+      if (!field) return;
+      e.preventDefault();
+      // Skip if already has a filter for this field
+      const currentFields = new Set(columns.map((c) => c.field));
+      if (currentFields.has(field)) return;
+      onAddColumn?.(field);
+    },
+    [columns, onAddColumn],
+  );
+
   if (visibleColumns.length === 0 && addableFields.length === 0) return null;
 
   return (
     <div
-      className="wcdv-filter-bar border-b border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-2 py-1.5"
+      className={`wcdv-filter-bar border-b border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-2 py-1.5 rounded transition-colors ${
+        dragOver ? 'ring-2 ring-blue-400 dark:ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''
+      }`}
       role="toolbar"
       aria-label={t('FILTER.TOOLBAR') || 'Filters'}
+      data-drop-zone="filter"
+      onDragOver={handleNativeDragOver}
+      onDragLeave={handleNativeDragLeave}
+      onDrop={handleNativeDrop}
     >
       {/* Header row */}
       <div className="flex items-center justify-between mb-1">
