@@ -210,11 +210,14 @@ export function TableRenderer({
     const groupFields = viewData.groupFields ?? [];
     const pivotFields = viewData.pivotFields ?? [];
 
-    // Derive aggregate functions from data structure
+    // Derive aggregate function keys matching the format used by buildAggregateRecord:
+    // "fun(field)" for field-based aggregates, or just "fun" for fieldless ones (e.g. count).
     const aggFunctions = viewData.agg
-      ? (
-          (viewData.agg as Array<{ fn: string }>).map((a) => a.fn)
-        )
+      ? (viewData.agg as Array<{ fun?: string; fn?: string; fields?: string[] }>).map((a) => {
+          const fn = a.fun ?? a.fn;
+          const field = a.fields?.[0];
+          return field ? `${fn}(${field})` : fn ?? 'count';
+        })
       : ['count'];
 
     return {
