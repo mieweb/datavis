@@ -17,7 +17,7 @@
  * - Wrapped vs clipped row mode
  */
 
-import { useState, useCallback, useMemo, useRef, useEffect } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect, useLayoutEffect } from 'react';
 import { Button } from '@mieweb/ui/components/Button';
 
 import type {
@@ -94,6 +94,10 @@ interface HeaderCellProps {
   sortDir?: SortDirection;
   resizable: boolean;
   filterActive?: boolean;
+  /** Sticky pin style for pinned columns (position, left, zIndex) */
+  pinStyle?: React.CSSProperties;
+  /** Whether this is the last pinned column (shows separator shadow) */
+  isLastPinned?: boolean;
   onFilterClick?: () => void;
   onSort?: (field: string, direction: SortDirection) => void;
   onResizeStart?: (
@@ -116,6 +120,8 @@ function HeaderCell({
   sortDir,
   resizable,
   filterActive,
+  pinStyle,
+  isLastPinned,
   onFilterClick,
   onSort,
   onResizeStart,
@@ -134,6 +140,9 @@ function HeaderCell({
     width: column.width,
     minWidth: column.minWidth ?? 50,
     maxWidth: column.maxWidth,
+    ...pinStyle,
+    // Pinned header cells are sticky in both axes — boost z above the sticky thead (z-10)
+    ...(pinStyle ? { zIndex: 20 + (pinStyle.zIndex as number) } : {}),
   };
 
   const handleClick = useCallback(() => {
@@ -160,7 +169,7 @@ function HeaderCell({
       onDragLeave={(e) => onHeaderDragLeave?.(e)}
       onDrop={(e) => onHeaderDrop?.(column.field, e)}
       onDragEnd={() => onHeaderDragEnd?.()}
-      className={`wcdv-th relative select-none border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 cursor-grab active:cursor-grabbing`}
+      className={`wcdv-th relative select-none border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 cursor-grab active:cursor-grabbing${isLastPinned ? ' wcdv-pin-separator' : ''}`}
       aria-sort={
         sortDir === 'asc'
           ? 'ascending'
@@ -249,9 +258,11 @@ interface AggregateFooterProps {
   aggFnLabels?: Record<string, string>;
   visibleColumns: TableColumn[];
   locale?: string;
+  pinStyles?: Map<string, React.CSSProperties>;
+  pinnedCount?: number;
 }
 
-function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale }: AggregateFooterProps) {
+function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale, pinStyles, pinnedCount = 0 }: AggregateFooterProps) {
   const { t } = useTranslation();
   // Group aggregate entries by function name so each fn gets its own row
   const byFn = new Map<string, { field: string | null; value: unknown }[]>();
@@ -275,12 +286,16 @@ function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale }: Ag
           <tr key={fn} className="border-t border-gray-200 dark:border-neutral-700">
             {visibleColumns.map((col, idx) => {
               const val = fieldMap.get(col.field);
+              const footPinStyle = pinStyles?.get(col.field);
+              const isLastPin = pinnedCount > 0 && idx === pinnedCount - 1;
+              const pinCls = `${footPinStyle ? ' bg-inherit' : ''}${isLastPin ? ' wcdv-pin-separator' : ''}`;
               if (val !== undefined) {
                 const formatted = formatAggregateNumber(val, locale);
                 return (
                   <td
                     key={col.field}
-                    className="px-3 py-1.5 text-right border-r border-gray-200 dark:border-neutral-700"
+                    className={`px-3 py-1.5 text-right border-r border-gray-200 dark:border-neutral-700${pinCls}`}
+                    style={footPinStyle}
                     title={`${label}: ${formatted}`}
                   >
                     <span className="text-gray-500 dark:text-neutral-400 text-xs mr-1">{label}</span>
@@ -293,14 +308,15 @@ function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale }: Ag
                 return (
                   <td
                     key={col.field}
-                    className="px-3 py-1.5 border-r border-gray-200 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs uppercase tracking-wider"
+                    className={`px-3 py-1.5 border-r border-gray-200 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs uppercase tracking-wider${pinCls}`}
+                    style={footPinStyle}
                   >
                     {label}
                   </td>
                 );
               }
               return (
-                <td key={col.field} className="px-3 py-1.5 border-r border-gray-200 dark:border-neutral-700" />
+                <td key={col.field} className={`px-3 py-1.5 border-r border-gray-200 dark:border-neutral-700${pinCls}`} style={footPinStyle} />
               );
             })}
           </tr>
@@ -390,6 +406,38 @@ export function PlainTable({
     return visible;
   }, [columns, colConfigCtx.hiddenFields, colConfigCtx.columnOrder]);
 
+  // ── Pinned column state ──
+  const pinnedSet = colConfigCtx.pinnedFields;
+  const pinnedCount = useMemo(
+    () => visibleColumns.filter((c) => pinnedSet.has(c.field)).length,
+    [visibleColumns, pinnedSet],
+  );
+  const [pinStyles, setPinStyles] = useState<Map<string, React.CSSProperties>>(new Map());
+
+  // Measure actual <th> widths and compute sticky left offsets after render
+  useLayoutEffect(() => {
+    if (pinnedCount === 0) {
+      setPinStyles(new Map());
+      return;
+    }
+    const thead = scrollContainerRef.current?.querySelector('thead');
+    if (!thead) return;
+    const ths = thead.querySelectorAll('th');
+    const styles = new Map<string, React.CSSProperties>();
+    let cumulativeLeft = 0;
+    for (let i = 0; i < pinnedCount && i < ths.length; i++) {
+      const col = visibleColumns[i];
+      const actualWidth = ths[i].offsetWidth;
+      styles.set(col.field, {
+        position: 'sticky',
+        left: cumulativeLeft,
+        zIndex: pinnedCount - i,
+      });
+      cumulativeLeft += actualWidth;
+    }
+    setPinStyles(styles);
+  }, [pinnedCount, visibleColumns, columns]);
+
   // ── Column resize ─────────────────────────────
   const { handleResizeMouseDown } = useColumnResize(
     useCallback(
@@ -436,6 +484,13 @@ export function PlainTable({
   const handleHeaderDragOver = useCallback(
     (field: string, e: React.DragEvent) => {
       if (!e.dataTransfer.types.includes(COLUMN_DRAG_MIME)) return;
+      // Enforce pin boundary: only allow drop on same-zone columns
+      const sourceField = dragSourceRef.current;
+      if (sourceField) {
+        const sourceIsPinned = pinnedSet.has(sourceField);
+        const targetIsPinned = pinnedSet.has(field);
+        if (sourceIsPinned !== targetIsPinned) return;
+      }
       e.preventDefault();
       e.dataTransfer.dropEffect = 'move';
       // Determine insertion side based on cursor position within the <th>
@@ -448,7 +503,7 @@ export function PlainTable({
         prev?.field === field && prev?.side === side ? prev : { field, side },
       );
     },
-    [],
+    [pinnedSet],
   );
 
   const handleHeaderDragLeave = useCallback((e: React.DragEvent) => {
@@ -465,6 +520,9 @@ export function PlainTable({
       setDragTarget(null);
       const sourceField = e.dataTransfer.getData(COLUMN_DRAG_MIME);
       if (!sourceField || sourceField === targetField) return;
+
+      // Enforce pin boundary: pinned ↔ pinned only, unpinned ↔ unpinned only
+      if (pinnedSet.has(sourceField) !== pinnedSet.has(targetField)) return;
 
       // Determine insertion side
       const th = (e.currentTarget as HTMLElement).closest('th');
@@ -484,7 +542,7 @@ export function PlainTable({
 
       commitColumnReorder(fromIndex, toIndex);
     },
-    [visibleColumns, commitColumnReorder],
+    [visibleColumns, commitColumnReorder, pinnedSet],
   );
 
   const handleHeaderDragEnd = useCallback(() => {
@@ -579,6 +637,14 @@ export function PlainTable({
           );
         },
       },
+      {
+        label: pinnedSet.has(col.field)
+          ? (t('TABLE.UNPIN_COLUMN') || 'Unpin Column')
+          : (t('TABLE.PIN_COLUMN') || 'Pin Column'),
+        onClick: () => {
+          colConfigCtx.setColumnPinned(col.field, !pinnedSet.has(col.field));
+        },
+      },
     ];
 
     // Date / datetime columns get a "Date Format" submenu
@@ -600,7 +666,7 @@ export function PlainTable({
     }
 
     return items;
-  }, [contextMenu.field, columns, t, onSort, dateFormats, setDateFormat, colConfigCtx]);
+  }, [contextMenu.field, columns, t, onSort, dateFormats, setDateFormat, colConfigCtx, pinnedSet]);
 
   // ── Limit / Show More ─────────────────────────
   const isLimited = limit && totalRows && rows.length < totalRows;
@@ -676,7 +742,7 @@ export function PlainTable({
               }
             >
               <tr>
-                  {visibleColumns.map((col) => (
+                  {visibleColumns.map((col, colIdx) => (
                     <HeaderCell
                       key={col.field}
                       column={col}
@@ -688,6 +754,8 @@ export function PlainTable({
                         col.resizable !== false
                       }
                       filterActive={filterCtx?.activeFilterFields.has(col.field)}
+                      pinStyle={pinStyles.get(col.field)}
+                      isLastPinned={pinnedCount > 0 && colIdx === pinnedCount - 1}
                       onFilterClick={
                         filterCtx
                           ? () => {
@@ -756,24 +824,29 @@ export function PlainTable({
                           : undefined
                       }
                     >
-                      {visibleColumns.map((col) => (
+                      {visibleColumns.map((col, colIdx) => {
+                        const bodyPinStyle = pinStyles.get(col.field);
+                        const isLastPin = pinnedCount > 0 && colIdx === pinnedCount - 1;
+                        return (
                         <td
                           key={col.field}
                           className={`wcdv-td border-r border-gray-100 dark:border-neutral-700 px-3 py-1.5 text-sm ${getCellAlign(col)} ${
                             features.rowMode === 'clipped'
                               ? 'truncate max-w-0'
                               : ''
-                          } ${col.className ?? ''}`}
+                          } ${col.className ?? ''}${bodyPinStyle ? ' bg-white dark:bg-neutral-900' : ''}${isLastPin ? ' wcdv-pin-separator' : ''}`}
                           style={{
                             width: col.width,
                             minWidth: col.minWidth ?? 50,
                             maxWidth: col.maxWidth,
+                            ...bodyPinStyle,
                           }}
                           role="gridcell"
                         >
                           {renderCell(row, col)}
                         </td>
-                      ))}
+                        );
+                      })}
                     </tr>
                   );
                 })
@@ -787,6 +860,8 @@ export function PlainTable({
                 aggFnLabels={aggFnLabels}
                 visibleColumns={visibleColumns}
                 locale={locale}
+                pinStyles={pinStyles}
+                pinnedCount={pinnedCount}
               />
             )}
           </table>

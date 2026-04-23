@@ -351,6 +351,8 @@
   "TABLE.FILTER_ACTIVE_ON": "Filter active on {{param0}}",
   "TABLE.GROUPS": "groups",
   "TABLE.HIDE_COLUMN": "Hide Column",
+  "TABLE.PIN_COLUMN": "Pin Column",
+  "TABLE.UNPIN_COLUMN": "Unpin Column",
   "TABLE.LOADING": "Loading…",
   "TABLE.NO_DATA": "No data to display",
   "TABLE.OF": "of",

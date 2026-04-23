@@ -361,9 +361,28 @@ export function DataGrid({
     });
   }, [columnConfigs]);
 
+  /** Set of pinned field names derived from column configs */
+  const pinnedFields = useMemo(
+    () => new Set(columnConfigs.filter((c) => c.isPinned).map((c) => c.field)),
+    [columnConfigs],
+  );
+
+  /** Toggle a column's pinned state and reorder so pinned columns come first */
+  const setColumnPinned = useCallback((field: string, pinned: boolean) => {
+    setSavedColumnConfigs((prev) => {
+      const base = (prev ?? columnConfigs).map((c) =>
+        c.field === field ? { ...c, isPinned: pinned } : { ...c },
+      );
+      // Re-sort: pinned first, preserving relative order within each group
+      const pinnedCols = base.filter((c) => c.isPinned);
+      const unpinnedCols = base.filter((c) => !c.isPinned);
+      return [...pinnedCols, ...unpinnedCols];
+    });
+  }, [columnConfigs]);
+
   const columnConfigContextValue = useMemo<ColumnConfigContextValue>(
-    () => ({ hiddenFields, setColumnHidden, columnOrder, setColumnOrder }),
-    [hiddenFields, setColumnHidden, columnOrder, setColumnOrder],
+    () => ({ hiddenFields, setColumnHidden, columnOrder, setColumnOrder, pinnedFields, setColumnPinned }),
+    [hiddenFields, setColumnHidden, columnOrder, setColumnOrder, pinnedFields, setColumnPinned],
   );
 
   // ── Dialog state ───────────────────────────────

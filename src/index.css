@@ -1,2 +1,7 @@
 @import 'tailwindcss';
 @import '@mieweb/ui/styles.css';
+
+/* Pin separator shadow on the last pinned column */
+.wcdv-pin-separator {
+  box-shadow: 2px 0 4px -1px rgba(0, 0, 0, 0.1);
+}

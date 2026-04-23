@@ -124,6 +124,17 @@ function SortableRow({
         </Tooltip>
       </td>
 
+      {/* Pin */}
+      <td className="px-2 py-1.5 text-center">
+        <Tooltip content={column.isPinned ? (t('TABLE.UNPIN_COLUMN') || 'Unpin Column') : (t('TABLE.PIN_COLUMN') || 'Pin Column')}>
+          <Checkbox
+            checked={column.isPinned}
+            onChange={() => onToggle(column.field, 'isPinned')}
+            aria-label={t('COL_CONFIG.PIN') || 'Pin'}
+          />
+        </Tooltip>
+      </td>
+
       {/* Allow HTML */}
       <td className="px-2 py-1.5 text-center">
         <Tooltip content={t('COL_CONFIG.ALLOW_HTML') || 'Allow HTML'}>
@@ -296,6 +307,9 @@ export function ColumnConfigDialog({
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 dark:text-neutral-400">
                       {t('COL_CONFIG.HIDE') || 'Hide'}
+                    </th>
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 dark:text-neutral-400">
+                      {t('COL_CONFIG.PIN') || 'Pin'}
                     </th>
                     <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 dark:text-neutral-400">
                       {t('COL_CONFIG.HTML') || 'HTML'}

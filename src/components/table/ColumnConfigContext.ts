@@ -16,6 +16,10 @@ export interface ColumnConfigContextValue {
   columnOrder: string[];
   /** Update column order (called by table drag-reorder and dialog save) */
   setColumnOrder: (fields: string[]) => void;
+  /** Set of field names that are currently pinned */
+  pinnedFields: Set<string>;
+  /** Toggle a column's pinned state */
+  setColumnPinned: (field: string, pinned: boolean) => void;
 }
 
 const defaultValue: ColumnConfigContextValue = {
@@ -23,6 +27,8 @@ const defaultValue: ColumnConfigContextValue = {
   setColumnHidden: () => {},
   columnOrder: [],
   setColumnOrder: () => {},
+  pinnedFields: new Set(),
+  setColumnPinned: () => {},
 };
 
 export const ColumnConfigContext = createContext<ColumnConfigContextValue>(defaultValue);
