@@ -71,6 +71,9 @@ export {
   TableRenderer,
   type TableRendererProps,
 } from './table/TableRenderer';
+
+// Export utilities
+export { rowsToCsv, downloadCsv, copyToClipboard, buildCsvFilename } from './export-utils';
 export {
   PlainTable,
 } from './table/PlainTable';

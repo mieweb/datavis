@@ -10,7 +10,7 @@ import { Spinner } from '@mieweb/ui/components/Spinner';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 
 import { useTranslation } from 'react-i18next';
-import { ChevronGlyphIcon, HelpIcon, InlineActionButton, RefreshGlyphIcon, SettingsIcon } from './ui';
+import { ChevronGlyphIcon, ClipboardIcon, DocumentIcon, HelpIcon, InlineActionButton, RefreshGlyphIcon, SettingsIcon } from './ui';
 import { PrefsToolbar } from './toolbars/PrefsToolbar';
 import type { PrefsInstance } from '../adapters/use-prefs';
 
@@ -30,6 +30,8 @@ export interface TitleBarProps {
   onCancel: () => void;
   onClearFilter: () => void;
   onOpenPerspective?: () => void;
+  onExportCsv?: () => void;
+  onCopyClipboard?: () => void;
 }
 
 export function TitleBar({
@@ -48,6 +50,8 @@ export function TitleBar({
   onCancel,
   onClearFilter,
   onOpenPerspective,
+  onExportCsv,
+  onCopyClipboard,
 }: TitleBarProps) {
   const { t } = useTranslation();
   const filtered = totalRowCount > 0 && rowCount !== totalRowCount;
@@ -123,6 +127,32 @@ export function TitleBar({
 
       {/* Action buttons */}
       <div className="wcdv-titlebar-controls flex items-center gap-1" role="toolbar" aria-label={t('GRID.TITLEBAR.ACTIONS')}>
+        {onExportCsv && (
+          <Tooltip content={t('GRID.TITLEBAR.DOWNLOAD_CSV') || 'Download CSV'}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onExportCsv}
+              aria-label={t('GRID.TITLEBAR.DOWNLOAD_CSV')}
+            >
+              <DocumentIcon className="h-4 w-4" />
+            </Button>
+          </Tooltip>
+        )}
+
+        {onCopyClipboard && (
+          <Tooltip content={t('GRID.TITLEBAR.COPY_CLIPBOARD') || 'Copy to Clipboard'}>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onCopyClipboard}
+              aria-label={t('GRID.TITLEBAR.COPY_CLIPBOARD')}
+            >
+              <ClipboardIcon className="h-4 w-4" />
+            </Button>
+          </Tooltip>
+        )}
+
         <Tooltip content={t('GRID.TITLEBAR.REFRESH') || 'Refresh'}>
           <Button
             size="sm"

@@ -28,6 +28,7 @@ import { useTranslation } from 'react-i18next';
 import { LocaleProvider } from '../i18n';
 import { COLUMN_DRAG_MIME } from './controls/column-drag';
 import { TitleBar } from './TitleBar';
+import { rowsToCsv, downloadCsv, copyToClipboard, buildCsvFilename } from './export-utils';
 import { GridToolbar } from './GridToolbar';
 import { ControlPanel } from './controls/ControlPanel';
 import { type ControlFieldItem } from './controls/ControlSection';
@@ -427,6 +428,33 @@ export function DataGrid({
   const handleRefresh = useCallback(() => {
     viewState.refresh();
   }, [viewState]);
+
+  /** Build CSV from full (un-limited) view data and visible columns */
+  const getExportCsv = useCallback(() => {
+    const data = viewState.data;
+    if (!data?.isPlain || !Array.isArray(data.data)) return null;
+    const visibleCols = columnConfigs
+      .filter((c) => !c.isHidden)
+      .map((c) => allColumns.find((col) => col.field === c.field))
+      .filter((col): col is TableColumn => col != null);
+    const rows = data.data.map((row, idx) => ({
+      rowNum: idx,
+      data: row as Record<string, unknown>,
+    }));
+    return { csv: rowsToCsv(rows, visibleCols, locale), visibleCols, rows };
+  }, [viewState.data, columnConfigs, allColumns, locale]);
+
+  const handleExportCsv = useCallback(() => {
+    const result = getExportCsv();
+    if (!result) return;
+    downloadCsv(result.csv, buildCsvFilename(title));
+  }, [getExportCsv, title]);
+
+  const handleCopyClipboard = useCallback(async () => {
+    const result = getExportCsv();
+    if (!result) return;
+    await copyToClipboard(result.csv);
+  }, [getExportCsv]);
 
   const handleToolbarRedraw = useCallback(() => {
     setTableDefVersion((current) => current + 1);
@@ -863,6 +891,8 @@ export function DataGrid({
         onCancel={sourceState.cancel}
         onClearFilter={clearFilter}
         onOpenPerspective={openPerspective}
+        onExportCsv={handleExportCsv}
+        onCopyClipboard={handleCopyClipboard}
       />
 
       {/* Collapsible Content */}

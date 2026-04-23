@@ -5,6 +5,9 @@ import path from 'path';
 
 export default defineConfig({
   plugins: [tailwindcss(), react()],
+  test: {
+    exclude: ['tests/e2e/**', 'node_modules/**'],
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
