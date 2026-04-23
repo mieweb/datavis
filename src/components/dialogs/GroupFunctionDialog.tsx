@@ -44,11 +44,11 @@ export interface GroupFunctionDialogProps {
 // ───────────────────────────────────────────────────────────
 
 const CATEGORY_ORDER: { key: GroupFunction['category']; labelKey: string; fallback: string }[] = [
-  { key: 'repeating', labelKey: 'GROUP_FN.CAT_REPEATING', fallback: 'Repeating' },
-  { key: 'date', labelKey: 'GROUP_FN.CAT_DATE', fallback: 'Date' },
-  { key: 'datetime', labelKey: 'GROUP_FN.CAT_DATETIME', fallback: 'Date/Time' },
-  { key: 'time', labelKey: 'GROUP_FN.CAT_TIME', fallback: 'Time' },
-  { key: 'other', labelKey: 'GROUP_FN.CAT_OTHER', fallback: 'Other' },
+  { key: 'repeating', labelKey: 'GRID.GROUP_FUN.DIALOG.REPEATING', fallback: 'Repeating' },
+  { key: 'date', labelKey: 'GRID.GROUP_FUN.DIALOG.DATE', fallback: 'Date' },
+  { key: 'datetime', labelKey: 'GRID.GROUP_FUN.DIALOG.DATE_TIME', fallback: 'Date/Time' },
+  { key: 'time', labelKey: 'GRID.GROUP_FUN.DIALOG.TIME', fallback: 'Time' },
+  { key: 'other', labelKey: 'GRID.GROUP_FUN.DIALOG.OTHER', fallback: 'Other' },
 ];
 
 // ───────────────────────────────────────────────────────────
@@ -93,8 +93,8 @@ export function GroupFunctionDialog({
   }, [onOpenChange]);
 
   const title = fieldName
-    ? `${t('GROUP_FN.TITLE') || 'Group Function'} — ${fieldName}`
-    : t('GROUP_FN.TITLE') || 'Group Function';
+    ? t('GRID.GROUP_FUN.DIALOG.TITLE', { param0: fieldName }) || `Apply Function to ${fieldName}`
+    : t('GRID.GROUP_FUN.DIALOG.TITLE', { param0: '' }) || 'Apply Function';
 
   return (
     <Modal
@@ -139,9 +139,9 @@ export function GroupFunctionDialog({
           <Button
             variant="outline"
             onClick={() => handleSelect('none')}
-            aria-label={t('GROUP_FN.NONE') || 'None'}
+            aria-label={t('GRID.GROUP_FUN.NONE') || 'None'}
           >
-            {t('GROUP_FN.NONE') || 'None'}
+            {t('GRID.GROUP_FUN.NONE') || 'None'}
           </Button>
         </div>
       </ModalBody>

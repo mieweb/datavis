@@ -319,8 +319,6 @@
   "GRID_TOOLBAR.PREFS.SAVE_AS.HELP": "Esta perspectiva predefinida no puede guardarse con este nombre. Haz clic para guardar con un nuevo nombre. Después de eso, cualquier cambio se guardará bajo el nuevo nombre.",
   "GRID_TOOLBAR.PREFS.SAVE_AS.TOOLTIP": "Guardar como...",
   "GRID_TOOLBAR.RENDERER.DISPLAY_OPTIONS": "Opciones de visualización",
-  "GROUP_FN.NONE": "Ninguno",
-  "GROUP_FN.TITLE": "Función de grupo",
   "LANG.SELECT": "Idioma",
   "PERSPECTIVE.CONFIG_HEADING": "Configuración",
   "PERSPECTIVE.CONFIG_LABEL": "Configuración de perspectiva",

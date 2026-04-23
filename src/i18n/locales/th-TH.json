@@ -319,8 +319,6 @@
   "GRID_TOOLBAR.PREFS.SAVE_AS.HELP": "มุมมองที่กำหนดไว้ล่วงหน้านี้ไม่สามารถบันทึกด้วยชื่อนี้ได้ คลิกเพื่อบันทึกด้วยชื่อใหม่ หลังจากนั้นการเปลี่ยนแปลงจะถูกบันทึกภายใต้ชื่อใหม่",
   "GRID_TOOLBAR.PREFS.SAVE_AS.TOOLTIP": "บันทึกเป็น...",
   "GRID_TOOLBAR.RENDERER.DISPLAY_OPTIONS": "ตัวเลือกการแสดงผล",
-  "GROUP_FN.NONE": "ไม่มี",
-  "GROUP_FN.TITLE": "ฟังก์ชันกลุ่ม",
   "LANG.SELECT": "ภาษา",
   "PERSPECTIVE.CONFIG_HEADING": "การกำหนดค่า",
   "PERSPECTIVE.CONFIG_LABEL": "การตั้งค่ามุมมอง",
