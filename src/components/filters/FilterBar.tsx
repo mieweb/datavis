@@ -6,7 +6,7 @@
  * can be passed to `view.setFilter()`.
  */
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import { Button } from '@mieweb/ui/components/Button';
 import { Dropdown, DropdownContent } from '@mieweb/ui/components/Dropdown';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
@@ -75,20 +75,29 @@ export function FilterBar({
     [columns],
   );
 
-  // Derive unique values per string field from rowData (for $in/$nin dropdowns)
+  // Accumulate unique values per string field from rowData (for $in/$nin dropdowns).
+  // Uses a ref so that options only grow — filtering down the data won't remove
+  // previously-seen values from the dropdown, matching the behavior of columns
+  // with explicit `options`.
+  const accumulatedOptionsRef = useRef<Record<string, Set<string>>>({});
+
   const derivedOptions = useMemo(() => {
     if (!rowData?.length) return {};
-    const result: Record<string, string[]> = {};
+    const accumulated = accumulatedOptionsRef.current;
     for (const col of visibleColumns) {
       if ((col.filterType === 'string') && !col.options?.length) {
-        const unique = new Set<string>();
+        if (!accumulated[col.field]) accumulated[col.field] = new Set();
+        const fieldSet = accumulated[col.field];
         for (const row of rowData) {
           const val = (row as Record<string, unknown>)?.[col.field];
-          if (val != null && val !== '') unique.add(String(val));
+          if (val != null && val !== '') fieldSet.add(String(val));
         }
-        if (unique.size > 0) {
-          result[col.field] = Array.from(unique).sort();
-        }
+      }
+    }
+    const result: Record<string, string[]> = {};
+    for (const [field, valSet] of Object.entries(accumulated)) {
+      if (valSet.size > 0) {
+        result[field] = Array.from(valSet).sort();
       }
     }
     return result;
