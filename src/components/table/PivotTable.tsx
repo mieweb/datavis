@@ -113,11 +113,10 @@ export function PivotTable({
   return (
     <div
       className={`wcdv-pivot-table flex flex-col h-full ${className}`}
-      role="grid"
-      aria-rowcount={rowVals.length + 1}
     >
       <div className="flex-1 overflow-auto min-h-0">
-        <table className="w-full border-collapse" role="grid">
+        <table className="w-full border-collapse" role="grid" aria-colcount={rowColumns.length + pivotHeaders.length + (showTotalCol ? aggFunctions.length : 0)} aria-rowcount={rowVals.length + 1}>
+          <caption className="sr-only">{t('TABLE.CAPTION', { param0: t('CONTROL.PIVOT') }) || 'Data table: Pivot'}</caption>
           {/* Header row 1: column value groups */}
           <thead
             className={
@@ -135,6 +134,7 @@ export function PivotTable({
                   style={{ width: col.width, minWidth: col.minWidth }}
                   rowSpan={aggFunctions.length > 1 ? 2 : 1}
                   role="columnheader"
+                  scope="col"
                   onClick={() => handleSort(col.field)}
                 >
                   <span className="truncate">{col.header}</span>
@@ -221,17 +221,18 @@ export function PivotTable({
                   >
                     {/* Row value cells */}
                     {rowColumns.map((col) => (
-                      <td
+                      <th
                         key={col.field}
-                        className="border-r border-gray-100 dark:border-neutral-700 px-3 py-1.5 text-sm font-medium"
+                        className="border-r border-gray-100 dark:border-neutral-700 px-3 py-1.5 text-sm font-medium text-left"
                         style={{
                           width: col.width,
                           minWidth: col.minWidth,
                         }}
                         role="rowheader"
+                        scope="row"
                       >
                         {String(rowVal[col.field] ?? '')}
-                      </td>
+                      </th>
                     ))}
 
                     {/* Data cells: matrix[rowIdx][colIdx][aggFn] */}

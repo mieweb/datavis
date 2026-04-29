@@ -170,6 +170,7 @@ function HeaderCell({
       onDrop={(e) => onHeaderDrop?.(column.field, e)}
       onDragEnd={() => onHeaderDragEnd?.()}
       className={`wcdv-th relative select-none border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 cursor-grab active:cursor-grabbing${isLastPinned ? ' wcdv-pin-separator' : ''}`}
+      scope="col"
       aria-sort={
         sortDir === 'asc'
           ? 'ascending'
@@ -235,6 +236,8 @@ function HeaderCell({
           role="separator"
           tabIndex={0}
           aria-orientation="vertical"
+          aria-valuenow={column.width ?? 100}
+          aria-valuemin={column.minWidth ?? 50}
           aria-label={t('TABLE.RESIZE_COLUMN', { param0: column.header }) || `Resize column ${column.header}`}
         />
       )}
@@ -723,8 +726,6 @@ export function PlainTable({
       className={`wcdv-plain-table flex flex-col h-full ${className}`}
       onKeyDown={features.keyboardNav !== false ? handleKeyDown : undefined}
       tabIndex={features.keyboardNav !== false ? 0 : undefined}
-      role="grid"
-      aria-rowcount={totalRows ?? rows.length}
     >
       <div
         ref={scrollContainerRef}
@@ -732,7 +733,8 @@ export function PlainTable({
         data-testid="plain-table-scroll"
         onScroll={handleScroll}
       >
-          <table className="min-w-full border-collapse" role="grid">
+          <table className="min-w-full border-collapse" role="grid" aria-colcount={visibleColumns.length} aria-rowcount={totalRows ?? rows.length}>
+            <caption className="sr-only">{t('TABLE.CAPTION', { param0: t('GRID_TOOLBAR.PLAIN.ROW_MODE') }) || 'Data table: Plain'}</caption>
             {/* ── Header ── */}
             <thead
               className={

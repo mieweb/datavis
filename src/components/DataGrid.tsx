@@ -972,7 +972,6 @@ export function DataGrid({
           <div
             id={gridTableId}
             className="wcdv-grid-table flex-1 min-h-0 overflow-auto relative"
-            role="grid"
             aria-busy={viewState.loading}
           >
             <SortContext.Provider value={sortContextValue}>

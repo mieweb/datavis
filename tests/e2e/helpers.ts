@@ -1,4 +1,5 @@
 import { expect, type Page } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 
 export type HarnessState = {
   scenario: string;
@@ -79,4 +80,16 @@ export async function runActionWithArg<T>(page: Page, arg: T, action: (value: T)
 
 export async function expectRowCount(page: Page, expected: number) {
   await expect.poll(async () => (await getState(page)).rowCount).toBe(expected);
+}
+
+/**
+ * Run axe-core accessibility scan on the page targeting WCAG 2.1 AA.
+ * Returns the violations array so tests can assert on it.
+ */
+export async function checkA11y(page: Page, disableRules: string[] = []) {
+  const results = await new AxeBuilder({ page })
+    .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
+    .disableRules(disableRules)
+    .analyze();
+  return results.violations;
 }

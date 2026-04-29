@@ -178,13 +178,14 @@ export function FilterBar({
   if (visibleColumns.length === 0 && addableFields.length === 0) return null;
 
   return (
-    <div
+    <form
       className={`wcdv-filter-bar border-b border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-2 py-1.5 rounded transition-colors ${
         dragOver ? 'ring-2 ring-blue-400 dark:ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''
       }`}
-      role="toolbar"
-      aria-label={t('FILTER.TOOLBAR') || 'Filters'}
+      role="search"
+      aria-label={t('FILTER.FORM_LABEL') || 'Data filters'}
       data-drop-zone="filter"
+      onSubmit={(e) => e.preventDefault()}
       onDragOver={handleNativeDragOver}
       onDragLeave={handleNativeDragLeave}
       onDrop={handleNativeDrop}
@@ -219,7 +220,7 @@ export function FilterBar({
             className="wcdv-filter-cell flex flex-col gap-0.5"
           >
             <div className="flex items-center justify-between gap-1">
-              <label className="text-[10px] font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wide truncate">
+              <label htmlFor={`filter-${col.field}`} className="text-[10px] font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wide truncate">
                 {col.displayName}
               </label>
               {onRemoveColumn && (
@@ -301,7 +302,7 @@ export function FilterBar({
           </div>
         )}
       </div>
-    </div>
+    </form>
   );
 }
 

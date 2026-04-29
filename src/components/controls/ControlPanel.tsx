@@ -209,10 +209,9 @@ export function ControlPanel({
   );
 
   return (
-    <div
+    <aside
       className="wcdv-control-panel border-b border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800"
-      role="region"
-      aria-label={t('CONTROL.TITLE') || 'Controls'}
+      aria-label={t('CONTROL.PANEL_LABEL') || 'Data controls'}
     >
       {/* Filter Bar */}
       {(filterColumns.length > 0 || (allFilterableFields && allFilterableFields.length > 0)) && (
@@ -274,6 +273,6 @@ export function ControlPanel({
           />
         </div>
       </DndContext>
-    </div>
+    </aside>
   );
 }

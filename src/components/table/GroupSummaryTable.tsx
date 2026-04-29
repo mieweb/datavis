@@ -86,11 +86,10 @@ export function GroupSummaryTable({
   return (
     <div
       className={`wcdv-group-summary-table flex flex-col h-full ${className}`}
-      role="grid"
-      aria-rowcount={groupOrder.length + (showTotalRow ? 1 : 0)}
     >
       <div className="flex-1 overflow-auto min-h-0">
-        <table className="w-full border-collapse" role="grid">
+        <table className="w-full border-collapse" role="grid" aria-colcount={summaryColumns.length} aria-rowcount={groupOrder.length + (showTotalRow ? 1 : 0)}>
+          <caption className="sr-only">{t('TABLE.CAPTION', { param0: t('GRID_TOOLBAR.GROUP.MODE.SUMMARY') }) || 'Data table: Summary'}</caption>
           {/* Header */}
           <thead
             className={
@@ -109,6 +108,7 @@ export function GroupSummaryTable({
                     minWidth: col.minWidth ?? 50,
                   }}
                   role="columnheader"
+                  scope="col"
                   aria-sort={
                     sort?.field === col.field
                       ? sort.direction === 'asc'

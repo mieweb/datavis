@@ -243,10 +243,10 @@ export function GroupDetailTable({
   return (
     <div
       className={`wcdv-group-detail-table flex flex-col h-full ${className}`}
-      aria-rowcount={totalRows ?? 0}
     >
       <div className="flex-1 overflow-auto min-h-0">
-        <table className="w-full border-collapse" role="treegrid">
+        <table className="w-full border-collapse" role="treegrid" aria-colcount={columnLayout.reduce((sum, col) => sum + col.span, 0) + 1} aria-rowcount={totalRows ?? 0}>
+          <caption className="sr-only">{t('TABLE.CAPTION', { param0: t('GRID_TOOLBAR.GROUP.MODE.DETAIL') }) || 'Data table: Detail'}</caption>
           {/* Header */}
           <thead
             className={
@@ -261,6 +261,7 @@ export function GroupDetailTable({
               <th
                 className="wcdv-group-toggle-all w-8 border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-1 py-2 text-center"
                 rowSpan={hasAggSubCols ? 2 : 1}
+                scope="col"
               >
                 <IconButton
                   type="button"
@@ -285,6 +286,7 @@ export function GroupDetailTable({
                     minWidth: col.minWidth ?? 50,
                   }}
                   role="columnheader"
+                  scope="col"
                   aria-sort={
                     sort?.field === col.field
                       ? sort.direction === 'asc'
@@ -330,6 +332,7 @@ export function GroupDetailTable({
                     <th
                       key={`${col.field}-${fn}`}
                       className="border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800 px-2 py-1 text-center text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-neutral-400"
+                      scope="col"
                     >
                       {aggFnLabels?.[fn] ? t(aggFnLabels[fn]) : fn}
                     </th>

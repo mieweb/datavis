@@ -125,11 +125,10 @@ export function ControlSection({
   const fieldIds = fields.map((f) => f.field);
 
   return (
-    <div
-      className={`wcdv-control-section flex flex-col gap-1 rounded transition-colors ${
+    <fieldset
+      className={`wcdv-control-section flex flex-col gap-1 rounded transition-colors border-0 p-0 m-0 min-w-0 ${
         dragOver ? 'ring-2 ring-blue-400 dark:ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''
       }`}
-      role="region"
       aria-label={title}
       data-drop-zone={dropZone}
       onDragOver={handleNativeDragOver}
@@ -137,7 +136,7 @@ export function ControlSection({
       onDrop={handleNativeDrop}
     >
       {/* Section header */}
-      <div className="flex items-center gap-1">
+      <legend className="flex items-center gap-1 w-full">
         {icon ? <span className="text-sm text-gray-500 dark:text-neutral-400" aria-hidden="true">{icon}</span> : null}
         <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300 uppercase tracking-wide">
           {title}
@@ -159,7 +158,7 @@ export function ControlSection({
             </Button>
           </Tooltip>
         )}
-      </div>
+      </legend>
 
       {/* Add field dropdown */}
       {dropdownOptions.length > 0 && (
@@ -227,6 +226,6 @@ export function ControlSection({
           </SortableContext>
         </div>
       )}
-    </div>
+    </fieldset>
   );
 }

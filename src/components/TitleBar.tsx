@@ -64,7 +64,8 @@ export function TitleBar({
   return (
     <div
       className="wcdv-title-bar flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700 rounded-t-lg"
-      role="banner"
+      role="group"
+      aria-label={title}
     >
       {/* Spinner */}
       {loading && (

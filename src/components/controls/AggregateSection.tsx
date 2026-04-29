@@ -116,13 +116,12 @@ export function AggregateSection({
   }));
 
   return (
-    <div
-      className="wcdv-control-section wcdv-aggregate-section flex flex-col gap-1"
-      role="region"
+    <fieldset
+      className="wcdv-control-section wcdv-aggregate-section flex flex-col gap-1 border-0 p-0 m-0 min-w-0"
       aria-label={t('CONTROL.AGGREGATE') || 'Aggregate'}
     >
       {/* Header */}
-      <div className="flex items-center gap-1">
+      <legend className="flex items-center gap-1 w-full">
         <span className="text-sm text-gray-500 dark:text-neutral-400" aria-hidden="true"><ClipboardIcon className="h-4 w-4" /></span>
         <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300 uppercase tracking-wide">
           {t('CONTROL.AGGREGATE') || 'Aggregate'}
@@ -144,7 +143,7 @@ export function AggregateSection({
             </Button>
           </Tooltip>
         )}
-      </div>
+      </legend>
 
       {/* Add function dropdown */}
       <Select
@@ -205,6 +204,6 @@ export function AggregateSection({
           </div>
         );
       })}
-    </div>
+    </fieldset>
   );
 }
