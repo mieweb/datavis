@@ -420,7 +420,7 @@ export function PlainTable({
   // Measure actual <th> widths and compute sticky left offsets after render
   useLayoutEffect(() => {
     if (pinnedCount === 0) {
-      setPinStyles(new Map());
+      setPinStyles((prev) => (prev.size === 0 ? prev : new Map()));
       return;
     }
     const thead = scrollContainerRef.current?.querySelector('thead');

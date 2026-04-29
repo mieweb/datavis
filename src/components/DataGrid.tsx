@@ -9,6 +9,7 @@ import {
   Children,
   cloneElement,
   isValidElement,
+  useRef,
   useState,
   useCallback,
   useMemo,
@@ -215,7 +216,14 @@ export function DataGrid({
 
   // ── Local UI state ─────────────────────────────
   const [collapsed, setCollapsed] = useState(false);
-  const [controlsVisible, setControlsVisible] = useState(initialShowControls);
+  const controlsVisibleRef = useRef(initialShowControls);
+  const controlsWrapperRef = useRef<HTMLDivElement>(null);
+  const setControlsVisible = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
+    const next = typeof value === 'function' ? value(controlsVisibleRef.current) : value;
+    if (next === controlsVisibleRef.current) return;
+    controlsVisibleRef.current = next;
+    controlsWrapperRef.current?.classList.toggle('hidden', !next);
+  }, []);
 
   // ── Dynamic filter columns ─────────────────────
   const [dynamicFilterColumns, setDynamicFilterColumns] = useState<ColumnFilterConfig[]>([]);
@@ -709,7 +717,7 @@ export function DataGrid({
         vertical: { field, dir: direction.toUpperCase() },
       });
     },
-    [viewState],
+    [viewState.setSort],
   );
 
   /** Sort context for table renderers */
@@ -857,20 +865,37 @@ export function DataGrid({
 
   /** Auto-open controls when a column header drag starts or enters the grid */
   const handleColumnDragStart = useCallback(() => {
-    if (!controlsVisible) setControlsVisible(true);
-  }, [controlsVisible]);
+    if (!controlsVisibleRef.current) setControlsVisible(true);
+  }, []);
 
   const handleGridDragOver = useCallback(
     (e: React.DragEvent) => {
       if (!e.dataTransfer.types.includes(COLUMN_DRAG_MIME)) return;
-      if (!controlsVisible) setControlsVisible(true);
+      if (!controlsVisibleRef.current) setControlsVisible(true);
     },
-    [controlsVisible],
+    [],
   );
 
   const columnDropContextValue = useMemo<ColumnDropContextValue>(
     () => ({ onColumnDragStart: handleColumnDragStart }),
     [handleColumnDragStart],
+  );
+
+  /** Memoised provider-wrapped table content — isolates the table subtree from
+   *  unrelated state changes (e.g. controlsVisible toggling). */
+  const tableContent = useMemo(
+    () => (
+      <SortContext.Provider value={sortContextValue}>
+      <FilterContext.Provider value={filterContextValue}>
+      <ColumnConfigContext.Provider value={columnConfigContextValue}>
+      <ColumnDropProvider value={columnDropContextValue}>
+        {renderedChildren}
+      </ColumnDropProvider>
+      </ColumnConfigContext.Provider>
+      </FilterContext.Provider>
+      </SortContext.Provider>
+    ),
+    [sortContextValue, filterContextValue, columnConfigContextValue, columnDropContextValue, renderedChildren],
   );
 
   // ── Render ─────────────────────────────────────
@@ -917,25 +942,26 @@ export function DataGrid({
       {/* Collapsible Content */}
       {!collapsed && (
         <div className="wcdv-grid-content flex flex-col flex-1 min-h-0">
-          {/* Toolbar (hidden with controls) */}
-          {controlsVisible && showToolbar && (
-            <GridToolbar
-              autoShowMore={autoShowMore}
-              dataMode={dataMode}
-              tableDef={effectiveTableDef}
-              rowMode={rowMode}
-              view={view}
-              onAutoShowMoreChange={handleAutoShowMoreChange}
-              onRowModeChange={handleRowModeChange}
-              onRedraw={handleToolbarRedraw}
-              onShowAllRows={handleShowAllRows}
-              onOpenColumnConfig={openColumnConfig}
-              onOpenTableOptions={openTableOpts}
-            />
-          )}
+          {/* Controls area — toggled via CSS class, not React state */}
+          <div ref={controlsWrapperRef} className={initialShowControls ? undefined : 'hidden'}>
+            {/* Toolbar */}
+            {showToolbar && (
+              <GridToolbar
+                autoShowMore={autoShowMore}
+                dataMode={dataMode}
+                tableDef={effectiveTableDef}
+                rowMode={rowMode}
+                view={view}
+                onAutoShowMoreChange={handleAutoShowMoreChange}
+                onRowModeChange={handleRowModeChange}
+                onRedraw={handleToolbarRedraw}
+                onShowAllRows={handleShowAllRows}
+                onOpenColumnConfig={openColumnConfig}
+                onOpenTableOptions={openTableOpts}
+              />
+            )}
 
-          {/* Control Panel */}
-          {controlsVisible && (
+            {/* Control Panel */}
             <ControlPanel
               filterColumns={mergedFilterColumns}
               allFilterableFields={allColumns.map((c) => ({ field: c.field, displayName: c.header ?? c.field }))}
@@ -955,12 +981,12 @@ export function DataGrid({
               onGroupFunctionClick={handleGroupFunctionClick}
               onPivotFunctionClick={handlePivotFunctionClick}
             />
-          )}
 
-          {/* Operations Palette (hidden with controls) */}
-          {controlsVisible && operations.length > 0 && (
-            <OperationsPalette operations={operations} />
-          )}
+            {/* Operations Palette */}
+            {operations.length > 0 && (
+              <OperationsPalette operations={operations} />
+            )}
+          </div>
 
           {/* Loading overlay */}
           <LoadingOverlay
@@ -974,15 +1000,7 @@ export function DataGrid({
             className="wcdv-grid-table flex-1 min-h-0 overflow-auto relative"
             aria-busy={viewState.loading}
           >
-            <SortContext.Provider value={sortContextValue}>
-            <FilterContext.Provider value={filterContextValue}>
-            <ColumnConfigContext.Provider value={columnConfigContextValue}>
-            <ColumnDropProvider value={columnDropContextValue}>
-              {renderedChildren}
-            </ColumnDropProvider>
-            </ColumnConfigContext.Provider>
-            </FilterContext.Provider>
-            </SortContext.Provider>
+            {tableContent}
           </div>
         </div>
       )}
