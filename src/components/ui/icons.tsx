@@ -1,4 +1,24 @@
-import { ChevronIcon, CloseIcon, QuickActionIcons, RefreshIcon, SendIcon } from '@mieweb/ui';
+import {
+  Bell,
+  Calendar,
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronUp,
+  ChevronsDown,
+  ChevronsUp,
+  ChevronsUpDown,
+  CircleHelp,
+  ClipboardList,
+  FileText,
+  GripVertical,
+  RefreshCw,
+  Search,
+  Send,
+  Settings,
+  User,
+  X,
+} from 'lucide-react';
 
 function joinClassNames(...parts: Array<string | undefined>) {
   return parts.filter(Boolean).join(' ');
@@ -13,55 +33,63 @@ function iconClassName(className?: string) {
 }
 
 export function HelpIcon({ className }: MiewebIconProps) {
-  return <QuickActionIcons.Help className={iconClassName(className)} aria-hidden="true" />;
+  return <CircleHelp className={iconClassName(className)} aria-hidden="true" />;
 }
 
 export function SettingsIcon({ className }: MiewebIconProps) {
-  return <QuickActionIcons.Settings className={iconClassName(className)} aria-hidden="true" />;
+  return <Settings className={iconClassName(className)} aria-hidden="true" />;
 }
 
 export function SearchIcon({ className }: MiewebIconProps) {
-  return <QuickActionIcons.Search className={iconClassName(className)} aria-hidden="true" />;
+  return <Search className={iconClassName(className)} aria-hidden="true" />;
 }
 
 export function DocumentIcon({ className }: MiewebIconProps) {
-  return <QuickActionIcons.Document className={iconClassName(className)} aria-hidden="true" />;
+  return <FileText className={iconClassName(className)} aria-hidden="true" />;
 }
 
 export function ClipboardIcon({ className }: MiewebIconProps) {
-  return <QuickActionIcons.Clipboard className={iconClassName(className)} aria-hidden="true" />;
+  return <ClipboardList className={iconClassName(className)} aria-hidden="true" />;
 }
 
 export function CalendarIcon({ className }: MiewebIconProps) {
-  return <QuickActionIcons.Calendar className={iconClassName(className)} aria-hidden="true" />;
+  return <Calendar className={iconClassName(className)} aria-hidden="true" />;
 }
 
 export function UserIcon({ className }: MiewebIconProps) {
-  return <QuickActionIcons.User className={iconClassName(className)} aria-hidden="true" />;
+  return <User className={iconClassName(className)} aria-hidden="true" />;
 }
 
 export function BellIcon({ className }: MiewebIconProps) {
-  return <QuickActionIcons.Bell className={iconClassName(className)} aria-hidden="true" />;
+  return <Bell className={iconClassName(className)} aria-hidden="true" />;
 }
 
 export function RefreshGlyphIcon({ className }: MiewebIconProps) {
-  return <RefreshIcon className={iconClassName(className)} aria-hidden="true" />;
+  return <RefreshCw className={iconClassName(className)} aria-hidden="true" />;
 }
 
 export function CloseGlyphIcon({ className }: MiewebIconProps) {
-  return <CloseIcon className={iconClassName(className)} aria-hidden="true" />;
+  return <X className={iconClassName(className)} aria-hidden="true" />;
 }
 
 export function SendGlyphIcon({ className }: MiewebIconProps) {
-  return <SendIcon className={iconClassName(className)} aria-hidden="true" />;
+  return <Send className={iconClassName(className)} aria-hidden="true" />;
 }
+
+const chevronMap = {
+  up: ChevronUp,
+  down: ChevronDown,
+  left: ChevronLeft,
+  right: ChevronRight,
+} as const;
 
 export interface ChevronGlyphIconProps extends MiewebIconProps {
   direction: 'up' | 'down' | 'left' | 'right';
 }
 
 export function ChevronGlyphIcon({ className, direction }: ChevronGlyphIconProps) {
-  return <ChevronIcon className={iconClassName(className)} direction={direction} aria-hidden="true" />;
+  const Icon = chevronMap[direction];
+  return <Icon className={iconClassName(className)} aria-hidden="true" />;
 }
 
 export interface DisclosureGlyphIconProps extends MiewebIconProps {
@@ -84,12 +112,7 @@ export function SortGlyphIcon({ className, direction }: SortGlyphIconProps) {
     return <ChevronGlyphIcon className={className} direction="down" />;
   }
 
-  return (
-    <span className={joinClassNames('inline-flex flex-col items-center justify-center gap-px', className)} aria-hidden="true">
-      <ChevronGlyphIcon className="h-3 w-3" direction="up" />
-      <ChevronGlyphIcon className="-mt-1 h-3 w-3" direction="down" />
-    </span>
-  );
+  return <ChevronsUpDown className={iconClassName(className)} aria-hidden="true" />;
 }
 
 export interface DoubleChevronGlyphIconProps extends MiewebIconProps {
@@ -97,21 +120,10 @@ export interface DoubleChevronGlyphIconProps extends MiewebIconProps {
 }
 
 export function DoubleChevronGlyphIcon({ className, direction }: DoubleChevronGlyphIconProps) {
-  const offsetClassName = direction === 'up' ? '-mb-1' : '-mt-1';
-
-  return (
-    <span className={joinClassNames('inline-flex flex-col items-center justify-center', className)} aria-hidden="true">
-      <ChevronGlyphIcon className={joinClassNames('h-3 w-3', offsetClassName)} direction={direction} />
-      <ChevronGlyphIcon className={joinClassNames('h-3 w-3', offsetClassName)} direction={direction} />
-    </span>
-  );
+  const Icon = direction === 'up' ? ChevronsUp : ChevronsDown;
+  return <Icon className={iconClassName(className)} aria-hidden="true" />;
 }
 
 export function DragHandleIcon({ className }: MiewebIconProps) {
-  return (
-    <span className={joinClassNames('inline-flex flex-col items-center justify-center', className)} aria-hidden="true">
-      <ChevronGlyphIcon className="-mb-1 h-3 w-3" direction="up" />
-      <ChevronGlyphIcon className="-mt-1 h-3 w-3" direction="down" />
-    </span>
-  );
+  return <GripVertical className={iconClassName(className)} aria-hidden="true" />;
 }

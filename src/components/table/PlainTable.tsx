@@ -36,6 +36,7 @@ import { useFilterContext } from '../filters/FilterContext';
 import { useColumnConfig } from './ColumnConfigContext';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '../../i18n';
+import { Filter } from 'lucide-react';
 import { CalendarIcon, ChevronGlyphIcon, IconButton, SearchIcon, SortGlyphIcon, TableActionButton } from '../ui';
 import { formatCellValue, formatAggregateNumber, DATE_FORMAT_PRESETS, type DateFormatPreset } from './format-cell';
 import { COLUMN_DRAG_MIME } from '../controls/column-drag';
@@ -69,16 +70,13 @@ function SortIcon({ direction }: { direction?: SortDirection }) {
 /** Small funnel icon — filled when filter is active */
 function FilterIcon({ active }: { active?: boolean }) {
   return (
-    <svg
-      viewBox="0 0 16 16"
+    <Filter
       className={`w-3 h-3 flex-shrink-0 ${
         active ? 'text-blue-500 dark:text-blue-400' : 'text-gray-300 dark:text-neutral-600 hover:text-gray-500 dark:hover:text-neutral-400'
       }`}
-      fill="currentColor"
+      fill={active ? 'currentColor' : 'none'}
       aria-hidden="true"
-    >
-      <path d="M1.5 1.5h13L10 7.5v5l-4-2.5V7.5L1.5 1.5z" />
-    </svg>
+    />
   );
 }
 
