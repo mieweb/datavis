@@ -5,8 +5,9 @@
  * Shows a matrix of row-values × column-values with aggregate cells.
  */
 
-import { useMemo } from 'react';
+import { useMemo, useCallback, useRef, useState } from 'react';
 import type { BaseTableProps, PivotHeader, SortDirection } from './types';
+import { useIsConstrained } from './useAutoHeight';
 import { useTranslation } from 'react-i18next';
 import { SortGlyphIcon } from '../ui';
 
@@ -110,18 +111,26 @@ export function PivotTable({
     onSort?.(field, nextDir);
   };
 
+  const [scrolled, setScrolled] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isConstrained = useIsConstrained(scrollRef);
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (el) setScrolled(el.scrollTop > 0);
+  }, []);
+
   return (
     <div
-      className={`wcdv-pivot-table flex flex-col h-full ${className}`}
+      className={`wcdv-pivot-table flex flex-col flex-1 min-h-0 ${className}`}
     >
-      <div className="flex-1 overflow-auto min-h-0">
+      <div ref={scrollRef} className={`flex-1 min-h-0${isConstrained ? ' overflow-auto' : ''}`} onScroll={handleScroll}>
         <table className="w-full border-collapse" role="grid" aria-colcount={rowColumns.length + pivotHeaders.length + (showTotalCol ? aggFunctions.length : 0)} aria-rowcount={rowVals.length + 1}>
           <caption className="sr-only">{t('TABLE.CAPTION', { param0: t('CONTROL.PIVOT') }) || 'Data table: Pivot'}</caption>
           {/* Header row 1: column value groups */}
           <thead
             className={
               features.stickyHeaders !== false
-                ? 'sticky top-0 z-10 bg-gray-50 dark:bg-neutral-800'
+                ? `sticky top-0 z-10 bg-gray-50 dark:bg-neutral-800${scrolled ? ' wcdv-thead-shadow' : ''}`
                 : ''
             }
           >

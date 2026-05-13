@@ -31,6 +31,7 @@ import type {
 import { useColumnResize } from './useColumnResize';
 import { useKeyboardNav } from './useKeyboardNav';
 import { useColumnDrop } from './ColumnDropContext';
+import { useIsConstrained } from './useAutoHeight';
 import { HeaderContextMenu } from './HeaderContextMenu';
 import { useFilterContext } from '../filters/FilterContext';
 import { useColumnConfig } from './ColumnConfigContext';
@@ -387,6 +388,10 @@ export function PlainTable({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pendingAutoShowRef = useRef(false);
   const columnDropCtx = useColumnDrop();
+  const isConstrained = useIsConstrained(scrollContainerRef);
+
+  /** Whether the scroll container has scrolled (for header shadow) */
+  const [scrolled, setScrolled] = useState(false);
 
   /** Native drag state: source field, target field, and insertion side */
   const dragSourceRef = useRef<string | null>(null);
@@ -677,12 +682,15 @@ export function PlainTable({
   }, [rows.length]);
 
   const handleScroll = useCallback(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    // Track scroll position for header shadow
+    setScrolled(container.scrollTop > 0);
+
     if (!isLimited || limit?.autoShowMore === false || !onShowMore || pendingAutoShowRef.current) {
       return;
     }
-
-    const container = scrollContainerRef.current;
-    if (!container) return;
 
     const remainingScroll = container.scrollHeight - container.scrollTop - container.clientHeight;
     if (remainingScroll > 24) return;
@@ -690,6 +698,35 @@ export function PlainTable({
     pendingAutoShowRef.current = true;
     onShowMore();
   }, [isLimited, limit?.autoShowMore, onShowMore]);
+
+  // In viewport mode (not constrained), track page scroll for header shadow + auto-show-more
+  const theadRef = useRef<HTMLTableSectionElement>(null);
+  useEffect(() => {
+    if (isConstrained) return;
+
+    function onWindowScroll() {
+      const thead = theadRef.current;
+      if (thead && features.stickyHeaders !== false) {
+        const rect = thead.getBoundingClientRect();
+        setScrolled(rect.top <= 0 && window.scrollY > 0);
+      }
+
+      // Auto-show-more: trigger when near bottom of table content
+      if (!isLimited || limit?.autoShowMore === false || !onShowMore || pendingAutoShowRef.current) {
+        return;
+      }
+      const container = scrollContainerRef.current;
+      if (!container) return;
+      const containerRect = container.getBoundingClientRect();
+      const remainingBelow = containerRect.bottom - window.innerHeight;
+      if (remainingBelow > 24) return;
+      pendingAutoShowRef.current = true;
+      onShowMore();
+    }
+
+    window.addEventListener('scroll', onWindowScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onWindowScroll);
+  }, [isConstrained, features.stickyHeaders, isLimited, limit?.autoShowMore, onShowMore]);
 
   // ── Cell rendering ────────────────────────────
   const renderCell = useCallback(
@@ -721,13 +758,13 @@ export function PlainTable({
   return (
     <div
       ref={tableRef}
-      className={`wcdv-plain-table flex flex-col h-full ${className}`}
+      className={`wcdv-plain-table flex flex-col flex-1 min-h-0 ${className}`}
       onKeyDown={features.keyboardNav !== false ? handleKeyDown : undefined}
       tabIndex={features.keyboardNav !== false ? 0 : undefined}
     >
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-auto min-h-0"
+        className={`flex-1 min-h-0${isConstrained ? ' overflow-auto' : ''}`}
         data-testid="plain-table-scroll"
         onScroll={handleScroll}
       >
@@ -735,9 +772,10 @@ export function PlainTable({
             <caption className="sr-only">{t('TABLE.CAPTION', { param0: t('GRID_TOOLBAR.PLAIN.ROW_MODE') }) || 'Data table: Plain'}</caption>
             {/* ── Header ── */}
             <thead
+              ref={theadRef}
               className={
                 features.stickyHeaders !== false
-                  ? 'sticky top-0 z-10 bg-gray-50 dark:bg-neutral-800'
+                  ? `sticky top-0 z-10 bg-gray-50 dark:bg-neutral-800${scrolled ? ' wcdv-thead-shadow' : ''}`
                   : ''
               }
             >

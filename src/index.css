@@ -5,3 +5,8 @@
 .wcdv-pin-separator {
   box-shadow: 2px 0 4px -1px rgba(0, 0, 0, 0.1);
 }
+
+/* Shadow under sticky header when scrolled */
+.wcdv-thead-shadow {
+  box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
+}

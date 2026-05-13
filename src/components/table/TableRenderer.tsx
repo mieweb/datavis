@@ -304,7 +304,7 @@ export function TableRenderer({
   const showProgress = loading && loadedRows != null && totalRows != null;
 
   return (
-    <div className={`wcdv-table-renderer flex flex-col h-full ${className}`}>
+    <div className={`wcdv-table-renderer flex flex-col flex-1 min-h-0 ${className}`}>
       {/* Progress bar */}
       {showProgress && (
         <TableProgress

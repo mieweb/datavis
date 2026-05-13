@@ -6,7 +6,7 @@
  * showing aggregate values.
  */
 
-import { useState, useEffect, useCallback, useMemo, type ReactNode } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef, type ReactNode } from 'react';
 import { Button } from '@mieweb/ui/components/Button';
 
 import type {
@@ -17,6 +17,7 @@ import type {
   SortDirection,
   SelectionState,
 } from './types';
+import { useIsConstrained } from './useAutoHeight';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '../../i18n';
 import { ClipboardIcon, DisclosureGlyphIcon, IconButton, SortGlyphIcon, TableActionButton } from '../ui';
@@ -240,18 +241,26 @@ export function GroupDetailTable({
     [onSort],
   );
 
+  const [scrolled, setScrolled] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const isConstrained = useIsConstrained(scrollRef);
+  const handleScroll = useCallback(() => {
+    const el = scrollRef.current;
+    if (el) setScrolled(el.scrollTop > 0);
+  }, []);
+
   return (
     <div
-      className={`wcdv-group-detail-table flex flex-col h-full ${className}`}
+      className={`wcdv-group-detail-table flex flex-col flex-1 min-h-0 ${className}`}
     >
-      <div className="flex-1 overflow-auto min-h-0">
+      <div ref={scrollRef} className={`flex-1 min-h-0${isConstrained ? ' overflow-auto' : ''}`} onScroll={handleScroll}>
         <table className="w-full border-collapse" role="treegrid" aria-colcount={columnLayout.reduce((sum, col) => sum + col.span, 0) + 1} aria-rowcount={totalRows ?? 0}>
           <caption className="sr-only">{t('TABLE.CAPTION', { param0: t('GRID_TOOLBAR.GROUP.MODE.DETAIL') }) || 'Data table: Detail'}</caption>
           {/* Header */}
           <thead
             className={
               features.stickyHeaders !== false
-                ? 'sticky top-0 z-10 bg-gray-50 dark:bg-neutral-800'
+                ? `sticky top-0 z-10 bg-gray-50 dark:bg-neutral-800${scrolled ? ' wcdv-thead-shadow' : ''}`
                 : ''
             }
           >

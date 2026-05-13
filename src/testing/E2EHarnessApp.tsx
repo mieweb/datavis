@@ -279,7 +279,9 @@ type HarnessScenario =
   | 'cancel'
   | 'google-chart'
   | 'drilldown'
-  | 'row-customization';
+  | 'row-customization'
+  | 'sticky-viewport'
+  | 'sticky-container';
 
 interface HarnessConfig {
   id: string;
@@ -311,6 +313,8 @@ function getScenarioFromSearch(): HarnessScenario {
     || scenario === 'google-chart'
     || scenario === 'drilldown'
     || scenario === 'row-customization'
+    || scenario === 'sticky-viewport'
+    || scenario === 'sticky-container'
   ) {
     return scenario;
   }
@@ -718,6 +722,121 @@ function HarnessGrid({
   );
 }
 
+// ───────────────────────────────────────────────────────────
+// Sticky header test scenarios
+// ───────────────────────────────────────────────────────────
+
+function StickyViewportScenario() {
+  const data = useMemo(() => generateLedgerData(200), []);
+  const view = useMemo(() => createMockView(data, LEDGER_COLUMNS), [data]);
+  const groupFnDefs = useMemo(() => getBuiltinGroupFunctions(demoTrans), []);
+  const [viewData, setViewData] = useState<NormalizedViewData>({ isPlain: true, isGroup: false, isPivot: false, data });
+
+  useEffect(() => {
+    const handler = () => {
+      const vd = normalizeComputedViewData(
+        (view as { data: unknown }).data,
+        (view as { typeInfo?: unknown }).typeInfo,
+        view.getAggregate?.() ?? null,
+      );
+      if (vd) setViewData(vd);
+    };
+    view.on('workEnd', handler, { who: 'StickyViewport' });
+    view.getData();
+    return () => view.off('workEnd', 'StickyViewport');
+  }, [view]);
+
+  const controlFields = useMemo(
+    () => LEDGER_COLUMNS.slice(0, 6).map((c) => ({ field: c.field, displayName: c.header, type: c.typeInfo?.type })),
+    [],
+  );
+  const aggregateFields = useMemo(
+    () => [{ field: 'debit', displayName: 'Debit' }, { field: 'credit', displayName: 'Credit' }],
+    [],
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-100 p-6" data-testid="sticky-viewport-scenario">
+      <DataGrid
+        view={view}
+        title="Sticky Viewport Test"
+        helpText="Tests sticky headers in viewport-scroll mode (no fixed container height)"
+        showToolbar={true}
+        showControls={true}
+        filterColumns={LEDGER_FILTERS.slice(0, 4)}
+        allColumns={LEDGER_COLUMNS}
+        controlFields={controlFields}
+        aggregateFields={aggregateFields}
+        aggregateFunctions={DEMO_AGG_FUNCTIONS}
+        groupFunctionDefs={groupFnDefs}
+      >
+        <TableRenderer
+          viewData={viewData}
+          columns={LEDGER_COLUMNS}
+          totalRows={data.length}
+          features={{ stickyHeaders: true, columnResize: true, zebraStripe: true }}
+        />
+      </DataGrid>
+    </div>
+  );
+}
+
+function StickyContainerScenario() {
+  const data = useMemo(() => generateLedgerData(200), []);
+  const view = useMemo(() => createMockView(data, LEDGER_COLUMNS), [data]);
+  const groupFnDefs = useMemo(() => getBuiltinGroupFunctions(demoTrans), []);
+  const [viewData, setViewData] = useState<NormalizedViewData>({ isPlain: true, isGroup: false, isPivot: false, data });
+
+  useEffect(() => {
+    const handler = () => {
+      const vd = normalizeComputedViewData(
+        (view as { data: unknown }).data,
+        (view as { typeInfo?: unknown }).typeInfo,
+        view.getAggregate?.() ?? null,
+      );
+      if (vd) setViewData(vd);
+    };
+    view.on('workEnd', handler, { who: 'StickyContainer' });
+    view.getData();
+    return () => view.off('workEnd', 'StickyContainer');
+  }, [view]);
+
+  const controlFields = useMemo(
+    () => LEDGER_COLUMNS.slice(0, 6).map((c) => ({ field: c.field, displayName: c.header, type: c.typeInfo?.type })),
+    [],
+  );
+  const aggregateFields = useMemo(
+    () => [{ field: 'debit', displayName: 'Debit' }, { field: 'credit', displayName: 'Credit' }],
+    [],
+  );
+
+  return (
+    <div className="min-h-screen bg-slate-100 p-6" data-testid="sticky-container-scenario">
+        <DataGrid
+          view={view}
+          title="Sticky Container Test"
+          helpText="Tests sticky headers inside a fixed-height container (400px)"
+          height="400px"
+          showToolbar={true}
+          showControls={true}
+          filterColumns={LEDGER_FILTERS.slice(0, 4)}
+          allColumns={LEDGER_COLUMNS}
+          controlFields={controlFields}
+          aggregateFields={aggregateFields}
+          aggregateFunctions={DEMO_AGG_FUNCTIONS}
+          groupFunctionDefs={groupFnDefs}
+        >
+          <TableRenderer
+            viewData={viewData}
+            columns={LEDGER_COLUMNS}
+            totalRows={data.length}
+            features={{ stickyHeaders: true, columnResize: true, zebraStripe: true }}
+          />
+        </DataGrid>
+    </div>
+  );
+}
+
 export function E2EHarnessApp() {
   const scenario = getScenarioFromSearch();
   const config = useMemo(() => getScenarioConfig(scenario), [scenario]);
@@ -731,6 +850,8 @@ export function E2EHarnessApp() {
   if (scenario === 'cancel') return <CancelScenario />;
   if (scenario === 'google-chart') return <GoogleChartScenario />;
   if (scenario === 'drilldown') return <DrilldownScenario />;
+  if (scenario === 'sticky-viewport') return <StickyViewportScenario />;
+  if (scenario === 'sticky-container') return <StickyContainerScenario />;
   if (scenario === 'row-customization') return <RowCustomizationScenario />;
 
   if (scenario === 'multi-grid') {

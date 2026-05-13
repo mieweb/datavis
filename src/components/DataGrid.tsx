@@ -218,6 +218,7 @@ export function DataGrid({
   const [collapsed, setCollapsed] = useState(false);
   const controlsVisibleRef = useRef(initialShowControls);
   const controlsWrapperRef = useRef<HTMLDivElement>(null);
+  const gridTableRef = useRef<HTMLDivElement>(null);
   const setControlsVisible = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
     const next = typeof value === 'function' ? value(controlsVisibleRef.current) : value;
     if (next === controlsVisibleRef.current) return;
@@ -996,8 +997,9 @@ export function DataGrid({
 
           {/* Data content area */}
           <div
+            ref={gridTableRef}
             id={gridTableId}
-            className="wcdv-grid-table flex-1 min-h-0 overflow-auto relative"
+            className="wcdv-grid-table flex flex-col flex-1 min-h-0 overflow-clip relative"
             aria-busy={viewState.loading}
           >
             {tableContent}

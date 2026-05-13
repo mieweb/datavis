@@ -31,7 +31,7 @@ import {
 // Tab definitions
 // ───────────────────────────────────────────────────────────
 
-type TabKey = 'simple' | 'wide' | 'large';
+type TabKey = 'simple' | 'wide' | 'large' | 'constrained';
 
 interface TabDef {
   key: TabKey;
@@ -43,6 +43,7 @@ const TABS: TabDef[] = [
   { key: 'simple', label: 'Simple', badge: '8 rows × 8 cols' },
   { key: 'wide', label: 'Wide (50 columns)', badge: '20 rows × 50 cols' },
   { key: 'large', label: 'Large (5K rows)', badge: '5 000 rows × 33 cols' },
+  { key: 'constrained', label: 'Constrained', badge: '500px container' },
 ];
 
 // ───────────────────────────────────────────────────────────
@@ -57,6 +58,7 @@ function GridDemo({
   filters,
   controlFields,
   aggregateFields,
+  height,
 }: {
   title: string;
   helpText: string;
@@ -65,6 +67,7 @@ function GridDemo({
   filters: ColumnFilterConfig[];
   controlFields: { field: string; displayName: string; type?: string }[];
   aggregateFields: { field: string; displayName: string }[];
+  height?: string;
 }) {
   const view = useMemo(() => createMockView(data, columns), [columns, data]);
   const groupFnDefs = useMemo(() => getBuiltinGroupFunctions(demoTrans), []);
@@ -97,6 +100,7 @@ function GridDemo({
       view={view}
       title={title}
       helpText={helpText}
+      height={height}
       showToolbar={true}
       showControls={true}
       debug={true}
@@ -132,7 +136,7 @@ function GridDemo({
 
 function getTabFromHash(): TabKey {
   const hash = window.location.hash.replace('#', '').toLowerCase();
-  if (hash === 'wide' || hash === 'large') return hash;
+  if (hash === 'wide' || hash === 'large' || hash === 'constrained') return hash;
   return 'simple';
 }
 
@@ -285,6 +289,19 @@ function App() {
             controlFields={ledgerControlFields}
             aggregateFields={ledgerAggFields}
           />
+        )}
+
+        {activeTab === 'constrained' && (
+            <GridDemo
+              title="Constrained Container — 500px"
+              helpText="Same 5K-row ledger inside a fixed 500px container. Sticky headers work within the container's scroll area."
+              data={ledgerData}
+              columns={LEDGER_COLUMNS}
+              filters={LEDGER_FILTERS}
+              controlFields={ledgerControlFields}
+              aggregateFields={ledgerAggFields}
+              height="500px"
+            />
         )}
       </main>
     </div>
