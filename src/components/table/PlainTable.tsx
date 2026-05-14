@@ -685,8 +685,10 @@ export function PlainTable({
     const container = scrollContainerRef.current;
     if (!container) return;
 
-    // Track scroll position for header shadow
-    setScrolled(container.scrollTop > 0);
+    // Track vertical scroll position for header shadow (only in constrained mode)
+    if (isConstrained) {
+      setScrolled(container.scrollTop > 0);
+    }
 
     if (!isLimited || limit?.autoShowMore === false || !onShowMore || pendingAutoShowRef.current) {
       return;
@@ -697,25 +699,39 @@ export function PlainTable({
 
     pendingAutoShowRef.current = true;
     onShowMore();
-  }, [isLimited, limit?.autoShowMore, onShowMore]);
+  }, [isConstrained, isLimited, limit?.autoShowMore, onShowMore]);
 
-  // In viewport mode (not constrained), track page scroll for header shadow + auto-show-more
+  // In viewport mode (not constrained), directly manipulate thead DOM for sticky + auto-show-more
+  // Uses position:relative + top (not transform) to preserve pinned column sticky behavior.
   const theadRef = useRef<HTMLTableSectionElement>(null);
   useEffect(() => {
     if (isConstrained) return;
 
     function onWindowScroll() {
       const thead = theadRef.current;
-      if (thead && features.stickyHeaders !== false) {
-        const rect = thead.getBoundingClientRect();
-        setScrolled(rect.top <= 0 && window.scrollY > 0);
+      const container = scrollContainerRef.current;
+      if (thead && container && features.stickyHeaders !== false) {
+        const containerRect = container.getBoundingClientRect();
+        const offset = -containerRect.top;
+        if (offset > 0 && containerRect.bottom > thead.offsetHeight) {
+          thead.style.position = 'relative';
+          thead.style.top = `${offset}px`;
+          if (!thead.classList.contains('wcdv-thead-shadow')) {
+            thead.classList.add('wcdv-thead-shadow');
+          }
+        } else {
+          if (thead.style.top) {
+            thead.style.position = '';
+            thead.style.top = '';
+          }
+          thead.classList.toggle('wcdv-thead-shadow', offset > 0);
+        }
       }
 
       // Auto-show-more: trigger when near bottom of table content
       if (!isLimited || limit?.autoShowMore === false || !onShowMore || pendingAutoShowRef.current) {
         return;
       }
-      const container = scrollContainerRef.current;
       if (!container) return;
       const containerRect = container.getBoundingClientRect();
       const remainingBelow = containerRect.bottom - window.innerHeight;
@@ -725,7 +741,15 @@ export function PlainTable({
     }
 
     window.addEventListener('scroll', onWindowScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onWindowScroll);
+    return () => {
+      window.removeEventListener('scroll', onWindowScroll);
+      const thead = theadRef.current;
+      if (thead) {
+        thead.style.position = '';
+        thead.style.top = '';
+        thead.classList.remove('wcdv-thead-shadow');
+      }
+    };
   }, [isConstrained, features.stickyHeaders, isLimited, limit?.autoShowMore, onShowMore]);
 
   // ── Cell rendering ────────────────────────────
@@ -764,7 +788,7 @@ export function PlainTable({
     >
       <div
         ref={scrollContainerRef}
-        className={`flex-1 min-h-0${isConstrained ? ' overflow-auto' : ''}`}
+        className={`flex-1 min-h-0 overflow-x-auto${isConstrained ? ' overflow-y-auto' : ''}`}
         data-testid="plain-table-scroll"
         onScroll={handleScroll}
       >
@@ -775,7 +799,7 @@ export function PlainTable({
               ref={theadRef}
               className={
                 features.stickyHeaders !== false
-                  ? `sticky top-0 z-10 bg-gray-50 dark:bg-neutral-800${scrolled ? ' wcdv-thead-shadow' : ''}`
+                  ? `${isConstrained ? 'sticky top-0' : ''} z-10 bg-gray-50 dark:bg-neutral-800${isConstrained && scrolled ? ' wcdv-thead-shadow' : ''}`
                   : ''
               }
             >

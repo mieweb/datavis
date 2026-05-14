@@ -39,12 +39,15 @@ test.describe('Sticky Headers — Viewport Mode', () => {
     expect(theadRect!.top).toBeLessThanOrEqual(1);
   });
 
-  test('scroll container has no overflow in viewport mode', async ({ page }) => {
+  test('scroll container has overflow-x for horizontal scrolling in viewport mode', async ({ page }) => {
     const overflow = await page.evaluate(() => {
       const scrollDiv = document.querySelector('[data-testid="plain-table-scroll"]');
-      return scrollDiv ? getComputedStyle(scrollDiv).overflow : null;
+      if (!scrollDiv) return null;
+      const style = getComputedStyle(scrollDiv);
+      return { x: style.overflowX, y: style.overflowY };
     });
-    expect(overflow).toBe('visible');
+    // overflow-x: auto for horizontal scrolling within grid chrome
+    expect(overflow?.x).toBe('auto');
   });
 
   test('shadow appears when headers are floating', async ({ page }) => {
@@ -106,6 +109,45 @@ test.describe('Sticky Headers — Viewport Mode', () => {
     });
     expect(headerTexts.length).toBeGreaterThan(0);
     expect(headerTexts).toContain('Txn ID');
+  });
+
+  test('pinned column stays left while floating headers stay at viewport top', async ({ page }) => {
+    // Pin the first column via header context menu
+    const firstTh = page.locator('thead th').first();
+    await firstTh.click({ button: 'right' });
+    await page.locator('text=Pin Column').click();
+    await page.waitForTimeout(50);
+
+    // Scroll page down to activate floating headers
+    await page.evaluate(() => window.scrollTo(0, 1500));
+    await page.waitForTimeout(50);
+
+    // Scroll the table container horizontally
+    await page.evaluate(() => {
+      const scrollDiv = document.querySelector('[data-testid="plain-table-scroll"]');
+      if (scrollDiv) scrollDiv.scrollLeft = 400;
+    });
+    await page.waitForTimeout(50);
+
+    const result = await page.evaluate(() => {
+      const scrollDiv = document.querySelector('[data-testid="plain-table-scroll"]');
+      const thead = document.querySelector('thead');
+      const firstTh = thead?.querySelector('th');
+      if (!scrollDiv || !thead || !firstTh) return null;
+      const scrollRect = scrollDiv.getBoundingClientRect();
+      const thRect = firstTh.getBoundingClientRect();
+      return {
+        theadTop: thead.getBoundingClientRect().top,
+        pinnedAtLeft: Math.abs(thRect.left - scrollRect.left) < 2,
+        scrollLeft: scrollDiv.scrollLeft,
+      };
+    });
+    expect(result).toBeTruthy();
+    // Headers are floating at viewport top
+    expect(result!.theadTop).toBeLessThanOrEqual(1);
+    // Pinned column stays at the left edge of the scroll container
+    expect(result!.pinnedAtLeft).toBe(true);
+    expect(result!.scrollLeft).toBeGreaterThan(0);
   });
 });
 
@@ -235,5 +277,50 @@ test.describe('Sticky Headers — Container Mode', () => {
       return grid ? getComputedStyle(grid).height : null;
     });
     expect(gridHeight).toBe('400px');
+  });
+
+  test('pinned column stays left while headers stick to container top', async ({ page }) => {
+    // Pin the first column via header context menu
+    const firstTh = page.locator('thead th').first();
+    await firstTh.click({ button: 'right' });
+    await page.locator('text=Pin Column').click();
+    await page.waitForTimeout(50);
+
+    // Scroll the container down to activate sticky headers
+    await page.evaluate(() => {
+      const scrollDiv = document.querySelector('[data-testid="plain-table-scroll"]');
+      if (scrollDiv) scrollDiv.scrollTop = 300;
+    });
+    await page.waitForTimeout(50);
+
+    // Scroll the container horizontally
+    await page.evaluate(() => {
+      const scrollDiv = document.querySelector('[data-testid="plain-table-scroll"]');
+      if (scrollDiv) scrollDiv.scrollLeft = 400;
+    });
+    await page.waitForTimeout(50);
+
+    const result = await page.evaluate(() => {
+      const scrollDiv = document.querySelector('[data-testid="plain-table-scroll"]');
+      const thead = document.querySelector('thead');
+      const firstTh = thead?.querySelector('th');
+      if (!scrollDiv || !thead || !firstTh) return null;
+      const scrollRect = scrollDiv.getBoundingClientRect();
+      const theadRect = thead.getBoundingClientRect();
+      const thRect = firstTh.getBoundingClientRect();
+      return {
+        theadStuck: Math.abs(theadRect.top - scrollRect.top) < 2,
+        pinnedAtLeft: Math.abs(thRect.left - scrollRect.left) < 2,
+        scrollLeft: scrollDiv.scrollLeft,
+        scrollTop: scrollDiv.scrollTop,
+      };
+    });
+    expect(result).toBeTruthy();
+    // Headers stuck to container top
+    expect(result!.theadStuck).toBe(true);
+    // Pinned column stays at left edge
+    expect(result!.pinnedAtLeft).toBe(true);
+    expect(result!.scrollLeft).toBeGreaterThan(0);
+    expect(result!.scrollTop).toBeGreaterThan(0);
   });
 });
