@@ -1,12 +1,33 @@
 {
   "name": "@mieweb/datavis",
-  "version": "0.1.0",
-  "private": true,
+  "version": "0.0.0-PRE.0",
   "type": "module",
   "description": "DataVis NITRO: UI for DataVis built using React + Tailwind + @mieweb/ui",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "main": "./dist/datavis-react.js",
+  "module": "./dist/datavis-react.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/datavis-react.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npm run build:clean && npm run build:js && npm run build:types",
+    "build:clean": "rm -rf dist",
+    "build:js": "vite build",
+    "build:types": "tsc -p tsconfig.build.json",
     "preview": "vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
@@ -17,7 +38,8 @@
     "test": "vitest run",
     "e2e": "playwright test",
     "e2e:headed": "playwright test --headed",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -30,6 +52,11 @@
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-i18next": "^17.0.2"
+  },
+  "peerDependencies": {
+    "datavis-ace": "=4.0.0-PRE.2",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.11.2",
