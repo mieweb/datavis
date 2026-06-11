@@ -20,7 +20,16 @@ export default defineConfig({
       fileName: 'datavis-react',
     },
     rollupOptions: {
-      external: ['react', 'react-dom', 'react/jsx-runtime', 'datavis-ace'],
+      external: [
+        'react',
+        'react-dom',
+        'react/jsx-runtime',
+        'datavis-ace',
+        'i18next',
+        'react-i18next',
+        'lucide-react',
+        /^@mieweb\/ui/,
+      ],
       output: {
         globals: {
           react: 'React',

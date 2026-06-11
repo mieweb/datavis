@@ -5,6 +5,11 @@
  * Phase 1: Grid shell (DataGrid, Toolbar, Slider, OperationsPalette, LoadingOverlay)
  */
 
+import { ensureI18nInit } from './i18n/config';
+
+// Ensure locale resources are registered when consumers import from package root.
+ensureI18nInit();
+
 // Adapter layer
 export {
   EventBridge,
