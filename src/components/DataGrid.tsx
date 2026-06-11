@@ -16,8 +16,9 @@ import {
   useEffect,
 } from 'react';
 
+import { useDataVisEvent } from '../adapters/event-bridge';
 import { useView, useSource, type ViewData, type ViewInstance } from '../adapters/use-data';
-import { type PrefsInstance } from '../adapters/use-prefs';
+import { usePrefs, type PrefsInstance } from '../adapters/use-prefs';
 import {
   buildGroupSpec,
   getGroupFunctionLabel,
@@ -48,7 +49,7 @@ import type { TemplateData } from './dialogs/TemplateEditorDialog';
 import { GridTableOptionsDialog, type DisplayFormatConfig } from './dialogs/GridTableOptionsDialog';
 import { GroupFunctionDialog } from './dialogs/GroupFunctionDialog';
 import type { GroupFunction as GroupFunctionDef } from './dialogs/GroupFunctionDialog';
-import { PerspectiveManagerDialog, type PerspectiveInfo } from './dialogs/PerspectiveManagerDialog';
+import { PerspectiveManagerDialog } from './dialogs/PerspectiveManagerDialog';
 import type { TableRendererProps } from './table/TableRenderer';
 
 const DEFAULT_ROW_BATCH_SIZE = 100;
@@ -80,6 +81,107 @@ function limitPlainViewData(viewData: ViewData | null, visibleRowCount: number):
     data: limitedData,
     ...(limitedDataByRowId ? { dataByRowId: limitedDataByRowId } : {}),
   };
+}
+
+interface LegacyGroupFieldSpec {
+  field?: unknown;
+  fun?: unknown;
+}
+
+interface LegacyGroupSpec {
+  fieldNames?: LegacyGroupFieldSpec[];
+}
+
+interface LegacyAggregateItem {
+  fn?: unknown;
+  fun?: unknown;
+  fields?: unknown;
+}
+
+interface LegacyAggregateSpec {
+  group?: LegacyAggregateItem[];
+  pivot?: LegacyAggregateItem[];
+  cell?: LegacyAggregateItem[];
+  all?: LegacyAggregateItem[];
+}
+
+function parseGroupSpec(spec: unknown): Array<{ field: string; fun?: string }> {
+  if (!spec || typeof spec !== 'object') {
+    return [];
+  }
+
+  const fieldNames = (spec as LegacyGroupSpec).fieldNames;
+  if (!Array.isArray(fieldNames)) {
+    return [];
+  }
+
+  return fieldNames.flatMap((entry) => {
+    if (!entry || typeof entry !== 'object' || typeof entry.field !== 'string') {
+      return [];
+    }
+
+    const parsed: { field: string; fun?: string } = { field: entry.field };
+    if (typeof entry.fun === 'string' && entry.fun.length > 0) {
+      parsed.fun = entry.fun;
+    }
+    return [parsed];
+  });
+}
+
+function parseAggregateEntries(spec: unknown): AggregateEntry[] {
+  if (!spec || typeof spec !== 'object') {
+    return [];
+  }
+
+  const aggregateSpec = spec as LegacyAggregateSpec;
+  const channel = [aggregateSpec.group, aggregateSpec.pivot, aggregateSpec.cell, aggregateSpec.all]
+    .find((entries) => Array.isArray(entries) && entries.length > 0);
+
+  if (!Array.isArray(channel)) {
+    return [];
+  }
+
+  return channel.flatMap((entry, index) => {
+    if (!entry || typeof entry !== 'object') {
+      return [];
+    }
+
+    const fn = typeof entry.fn === 'string'
+      ? entry.fn
+      : typeof entry.fun === 'string'
+        ? entry.fun
+        : null;
+
+    if (!fn) {
+      return [];
+    }
+
+    const fields = Array.isArray(entry.fields)
+      ? entry.fields.filter((field): field is string => typeof field === 'string')
+      : [];
+
+    return [{
+      id: `agg-loaded-${index}-${fn}`,
+      functionName: fn,
+      fields,
+      visible: true,
+    } satisfies AggregateEntry];
+  });
+}
+
+function parseFilterSpec(spec: unknown): FilterSpec {
+  if (!spec || typeof spec !== 'object' || Array.isArray(spec)) {
+    return {};
+  }
+
+  const result: FilterSpec = {};
+  for (const [field, value] of Object.entries(spec as Record<string, unknown>)) {
+    if (value && typeof value === 'object' && !Array.isArray(value)) {
+      result[field] = value as FilterSpec[string];
+    }
+  }
+
+  return result;
 }
 
 // ───────────────────────────────────────────────────────────
@@ -165,6 +267,41 @@ export interface DataGridProps {
   onGroupFunctionSelect?: (fieldName: string, functionName: string | null) => void;
 }
 
+interface PerspectiveDialogHostProps {
+  prefs: PrefsInstance;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+function PerspectiveDialogHost({ prefs, open, onOpenChange }: PerspectiveDialogHostProps) {
+  const {
+    perspectives,
+    currentPerspectiveId,
+    selectPerspective,
+    addPerspective,
+    renamePerspective,
+    deletePerspective,
+  } = usePrefs(prefs);
+
+  const currentPerspective = useMemo(
+    () => perspectives.find((p) => p.id === currentPerspectiveId),
+    [perspectives, currentPerspectiveId],
+  );
+
+  return (
+    <PerspectiveManagerDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      currentPerspective={currentPerspective}
+      perspectives={perspectives}
+      onSwitch={selectPerspective}
+      onCreate={addPerspective}
+      onRename={renamePerspective}
+      onDelete={deletePerspective}
+    />
+  );
+}
+
 // ───────────────────────────────────────────────────────────
 // Component
 // ───────────────────────────────────────────────────────────
@@ -228,6 +365,7 @@ export function DataGrid({
 
   // ── Dynamic filter columns ─────────────────────
   const [dynamicFilterColumns, setDynamicFilterColumns] = useState<ColumnFilterConfig[]>([]);
+  const [initialFilterSpec, setInitialFilterSpec] = useState<FilterSpec>({});
   /** Static filter fields the user has hidden via the header icon */
   const [hiddenStaticFilters, setHiddenStaticFilters] = useState<Set<string>>(new Set());
 
@@ -411,6 +549,53 @@ export function DataGrid({
   const [groupFunMap, setGroupFunMap] = useState<Record<string, string>>({});
   /** Per-field pivot function map: field → function name */
   const [pivotFunMap, setPivotFunMap] = useState<Record<string, string>>({});
+
+  const syncControlStateFromView = useCallback(() => {
+    const groupSpecs = parseGroupSpec(view.getGroup?.() ?? null);
+    const pivotSpecs = parseGroupSpec(view.getPivot?.() ?? null);
+
+    setGroupFields(groupSpecs.map(({ field }) => ({
+      field,
+      displayName: controlFields.find((cf) => cf.field === field)?.displayName ?? field,
+    })));
+    setGroupFunMap(
+      Object.fromEntries(
+        groupSpecs
+          .filter((spec): spec is { field: string; fun: string } => typeof spec.fun === 'string')
+          .map((spec) => [spec.field, spec.fun]),
+      ),
+    );
+
+    setPivotFields(pivotSpecs.map(({ field }) => ({
+      field,
+      displayName: controlFields.find((cf) => cf.field === field)?.displayName ?? field,
+    })));
+    setPivotFunMap(
+      Object.fromEntries(
+        pivotSpecs
+          .filter((spec): spec is { field: string; fun: string } => typeof spec.fun === 'string')
+          .map((spec) => [spec.field, spec.fun]),
+      ),
+    );
+
+    setAggregateEntries(parseAggregateEntries(view.getAggregate?.() ?? null));
+    setInitialFilterSpec(parseFilterSpec(view.getFilter?.() ?? null));
+    setSyntheticPivot(false);
+  }, [view, controlFields]);
+
+  useEffect(() => {
+    syncControlStateFromView();
+  }, [syncControlStateFromView]);
+
+  useDataVisEvent(prefs, 'perspectiveChanged', () => {
+    syncControlStateFromView();
+    view.getData();
+  });
+
+  useDataVisEvent(prefs, 'prefsReset', () => {
+    syncControlStateFromView();
+    view.getData();
+  });
 
   // Enrich group fields with function subtitles
   const enrichedGroupFields = useMemo(
@@ -967,6 +1152,7 @@ export function DataGrid({
               filterColumns={mergedFilterColumns}
               allFilterableFields={allColumns.map((c) => ({ field: c.field, displayName: c.header ?? c.field }))}
               rowData={viewState.data?.data}
+              initialFilterSpec={initialFilterSpec}
               availableFields={controlFields}
               aggregateFields={aggregateFields}
               groupFields={enrichedGroupFields}
@@ -1041,15 +1227,10 @@ export function DataGrid({
       />
 
       {prefs && (
-        <PerspectiveManagerDialog
+        <PerspectiveDialogHost
+          prefs={prefs}
           open={perspectiveOpen}
           onOpenChange={setPerspectiveOpen}
-          currentPerspective={prefs.getCurrentPerspective() as PerspectiveInfo | undefined}
-          perspectives={prefs.getPerspectives() as PerspectiveInfo[]}
-          onSwitch={(id) => prefs.setCurrentPerspective(id)}
-          onCreate={(name) => prefs.addPerspective(name)}
-          onRename={(id, name) => prefs.renamePerspective(id, name)}
-          onDelete={(id) => prefs.deletePerspective(id)}
         />
       )}
     </div>

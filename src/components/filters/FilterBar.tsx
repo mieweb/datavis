@@ -69,6 +69,21 @@ export function FilterBar({
     },
   );
 
+  useEffect(() => {
+    if (!initialSpec) {
+      setSpecs({});
+      return;
+    }
+
+    const nextSpecs: Record<string, FieldFilterSpec | null> = {};
+    for (const col of columns) {
+      if (initialSpec[col.field]) {
+        nextSpecs[col.field] = initialSpec[col.field];
+      }
+    }
+    setSpecs(nextSpecs);
+  }, [initialSpec, columns]);
+
   // Visible columns only
   const visibleColumns = useMemo(
     () => columns.filter((c) => c.visible !== false),

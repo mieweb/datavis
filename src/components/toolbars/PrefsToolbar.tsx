@@ -5,8 +5,10 @@
  * Rename, Delete.
  */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@mieweb/ui/components/Button';
+import { Dropdown, DropdownContent } from '@mieweb/ui/components/Dropdown';
+import { Input } from '@mieweb/ui/components/Input';
 import { Select } from '@mieweb/ui/components/Select';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 
@@ -16,9 +18,52 @@ import { ChevronGlyphIcon, ClipboardIcon, CloseGlyphIcon, DocumentIcon, RefreshG
 
 export interface PrefsToolbarProps {
   prefs: PrefsInstance;
+  onOpenPerspective?: () => void;
 }
 
-export function PrefsToolbar({ prefs }: PrefsToolbarProps) {
+interface PromptResult {
+  supported: boolean;
+  value: string | null;
+}
+
+function safePrompt(message: string, defaultValue = ''): PromptResult {
+  try {
+    return { supported: true, value: window.prompt(message, defaultValue) };
+  } catch {
+    return { supported: false, value: null };
+  }
+}
+
+function safeConfirm(message: string): boolean {
+  try {
+    return window.confirm(message);
+  } catch {
+    return false;
+  }
+}
+
+function makeDefaultPerspectiveName(perspectives: Array<{ name: string }>, baseLabel: string): string {
+  const existing = new Set(perspectives.map((p) => p.name));
+  let index = 1;
+  let candidate = `${baseLabel} ${index}`;
+  while (existing.has(candidate)) {
+    index += 1;
+    candidate = `${baseLabel} ${index}`;
+  }
+  return candidate;
+}
+
+function normalizePerspectiveName(name: string): string {
+  return name.trim().toLocaleLowerCase();
+}
+
+function translateOrFallback(t: (key: string) => string, key: string, fallback: string): string {
+  const translated = t(key);
+  if (!translated || translated === key) return fallback;
+  return translated;
+}
+
+export function PrefsToolbar({ prefs, onOpenPerspective }: PrefsToolbarProps) {
   const { t } = useTranslation();
   const {
     perspectives,
@@ -41,35 +86,110 @@ export function PrefsToolbar({ prefs }: PrefsToolbarProps) {
     () => perspectives.find((p) => p.id === currentPerspectiveId),
     [perspectives, currentPerspectiveId],
   );
+  const [isRenameOpen, setIsRenameOpen] = useState(false);
+  const [renameDraft, setRenameDraft] = useState('');
+  const renameInputRef = useRef<HTMLInputElement | null>(null);
+  const trimmedRenameDraft = renameDraft.trim();
+  const normalizedRenameDraft = normalizePerspectiveName(renameDraft);
+  const normalizedCurrentName = normalizePerspectiveName(currentPerspective?.name ?? '');
+  const isRenameEmpty = trimmedRenameDraft.length === 0;
+  const isRenameUnchanged = normalizedRenameDraft === normalizedCurrentName;
+  const isDuplicateRename = Boolean(currentPerspectiveId)
+    && perspectives.some(
+      (p) => p.id !== currentPerspectiveId && normalizePerspectiveName(p.name) === normalizedRenameDraft,
+    );
+  const renameError = isRenameEmpty
+    ? translateOrFallback(
+      t,
+      'GRID_TOOLBAR.PREFS.RENAME_REQUIRED',
+      'Perspective name is required.',
+    )
+    : (isDuplicateRename
+      ? translateOrFallback(
+        t,
+        'GRID_TOOLBAR.PREFS.RENAME_DUPLICATE',
+        'A perspective with this name already exists.',
+      )
+      : null);
+  const canCommitRename = Boolean(currentPerspectiveId)
+    && !isRenameEmpty
+    && !isRenameUnchanged
+    && !isDuplicateRename;
+
+  useEffect(() => {
+    if (!isRenameOpen) return;
+    const frame = requestAnimationFrame(() => {
+      renameInputRef.current?.focus();
+      renameInputRef.current?.select();
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [isRenameOpen]);
+
+  useEffect(() => {
+    if (!isRenameOpen) return;
+    setIsRenameOpen(false);
+  }, [currentPerspectiveId]);
 
   const handlePerspectiveChange = (value: string) => {
     if (value === '__NEW__') {
-      const name = prompt(t('GRID_TOOLBAR.PREFS.NEW_PERSPECTIVE_PROMPT') || 'Enter perspective name:');
-      if (name) addPerspective(name);
+      const baseLabel = t('GRID_TOOLBAR.PREFS.PERSPECTIVE') || 'Perspective';
+      const suggestedName = makeDefaultPerspectiveName(perspectives, baseLabel);
+      const promptResult = safePrompt(
+        t('GRID_TOOLBAR.PREFS.NEW_PERSPECTIVE_PROMPT') || 'Enter perspective name:',
+        suggestedName,
+      );
+
+      if (!promptResult.supported) {
+        if (onOpenPerspective) {
+          onOpenPerspective();
+        } else {
+          addPerspective(suggestedName);
+        }
+        return;
+      }
+
+      if (promptResult.value == null) {
+        onOpenPerspective?.();
+        return;
+      }
+
+      if (promptResult.value?.trim()) addPerspective(promptResult.value);
     } else {
       selectPerspective(value);
     }
   };
 
-  const handleRename = () => {
+  const startRename = () => {
+    if (!currentPerspective) return;
+    setRenameDraft(currentPerspective.name);
+    setIsRenameOpen(true);
+  };
+
+  const cancelRename = () => {
+    setIsRenameOpen(false);
+  };
+
+  const commitRename = () => {
     if (!currentPerspectiveId) return;
-    const name = prompt(
-      t('GRID_TOOLBAR.PREFS.RENAME_PROMPT') || 'Enter new name:',
-      currentPerspective?.name ?? '',
-    );
-    if (name) renamePerspective(currentPerspectiveId, name);
+    if (isRenameUnchanged) {
+      setIsRenameOpen(false);
+      return;
+    }
+    if (!canCommitRename) return;
+    renamePerspective(currentPerspectiveId, trimmedRenameDraft);
+    setIsRenameOpen(false);
   };
 
   const handleDelete = () => {
     if (!currentPerspectiveId) return;
-    const yes = confirm(
+    const yes = safeConfirm(
       t('GRID_TOOLBAR.PREFS.DELETE_CONFIRM') || 'Delete this perspective?',
     );
     if (yes) deletePerspective(currentPerspectiveId);
   };
 
   const handleReset = () => {
-    const yes = confirm(
+    const yes = safeConfirm(
       t('GRID_TOOLBAR.PREFS.RESET_CONFIRM') || 'Reset all preferences?',
     );
     if (yes) reset();
@@ -173,16 +293,68 @@ export function PrefsToolbar({ prefs }: PrefsToolbarProps) {
 
       {/* Rename — hidden for essential perspectives */}
       {currentPerspective && !currentPerspective.isEssential && (
-        <Tooltip content={t('GRID_TOOLBAR.PREFS.RENAME') || 'Rename'}>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={handleRename}
-            aria-label={t('GRID_TOOLBAR.PREFS.RENAME')}
-          >
-            <DocumentIcon className="h-4 w-4" />
-          </Button>
-        </Tooltip>
+        <Dropdown
+          open={isRenameOpen}
+          onOpenChange={(open) => {
+            if (open) {
+              startRename();
+              return;
+            }
+            cancelRename();
+          }}
+          placement="bottom-end"
+          trigger={(
+            <Button
+              size="sm"
+              variant="ghost"
+              aria-label={t('GRID_TOOLBAR.PREFS.RENAME')}
+              title={t('GRID_TOOLBAR.PREFS.RENAME') || 'Rename'}
+            >
+              <DocumentIcon className="h-4 w-4" />
+            </Button>
+          )}
+        >
+          <DropdownContent className="w-64 p-2">
+            <div className="flex flex-col gap-2">
+              <Input
+                ref={renameInputRef}
+                size="sm"
+                value={renameDraft}
+                onChange={(e) => setRenameDraft(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitRename();
+                  if (e.key === 'Escape') cancelRename();
+                }}
+                aria-invalid={renameError ? true : undefined}
+                aria-label={t('GRID_TOOLBAR.PREFS.RENAME_PROMPT') || 'Rename perspective'}
+              />
+              {renameError && (
+                <p className="text-xs text-red-700" role="alert" aria-live="polite">
+                  {renameError}
+                </p>
+              )}
+              <div className="flex justify-end gap-1">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={cancelRename}
+                  aria-label={t('COMMON.CANCEL') || 'Cancel'}
+                >
+                  {t('COMMON.CANCEL') || 'Cancel'}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={!canCommitRename}
+                  onClick={commitRename}
+                  aria-label={t('COMMON.OK') || 'OK'}
+                >
+                  {t('COMMON.OK') || 'OK'}
+                </Button>
+              </div>
+            </div>
+          </DropdownContent>
+        </Dropdown>
       )}
 
       {/* Delete — hidden for essential perspectives */}

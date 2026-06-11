@@ -62,6 +62,9 @@ export interface ViewInstance extends EventEmitter {
   clearAggregate(opts?: Record<string, unknown>): void;
 
   getSort(): unknown;
+  getFilter(): unknown;
+  getGroup(): unknown;
+  getPivot(): unknown;
   getAggregate(): unknown;
 
   getRowCount(): number;

@@ -49,6 +49,14 @@ export interface PerspectiveManagerDialogProps {
   onDelete?: (id: string) => void;
 }
 
+function safeConfirm(message: string): boolean {
+  try {
+    return window.confirm(message);
+  } catch {
+    return false;
+  }
+}
+
 // ───────────────────────────────────────────────────────────
 // Component
 // ───────────────────────────────────────────────────────────
@@ -129,7 +137,7 @@ export function PerspectiveManagerDialog({
       const perspective = perspectives.find((p) => p.id === id);
       if (
         perspective &&
-        confirm(
+        safeConfirm(
           t('PERSPECTIVE.CONFIRM_DELETE', { param0: perspective.name }) || `Delete perspective "${perspective.name}"?`,
         )
       ) {

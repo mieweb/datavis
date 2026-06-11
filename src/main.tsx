@@ -10,12 +10,14 @@ import { useMemo, useState, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 import { ExternalLink } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@mieweb/ui/components/Tabs';
+import { Prefs } from 'datavis-ace';
 import './index.css';
 import { DataGrid } from './components/DataGrid';
 import { TableRenderer } from './components/table/TableRenderer';
 import type { TableColumn } from './components/table/types';
 import type { ColumnFilterConfig } from './components/filters/types';
 import { getBuiltinGroupFunctions } from './adapters/group-adapter';
+import type { PrefsInstance } from './adapters/use-prefs';
 import { normalizeComputedViewData, type NormalizedViewData } from './adapters/wcdatavis-interop';
 import { E2EHarnessApp, isE2EMode } from './testing/E2EHarnessApp';
 import { createMockView, DEMO_AGG_FUNCTIONS, demoTrans } from './demo/mock-grid';
@@ -71,6 +73,22 @@ function GridDemo({
 }) {
   const view = useMemo(() => createMockView(data, columns), [columns, data]);
   const groupFnDefs = useMemo(() => getBuiltinGroupFunctions(demoTrans), []);
+  const prefs = useMemo(() => {
+    const prefsSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+    const prefsName = `nitro-demo:${prefsSlug || 'grid'}`;
+    const nextPrefs = new Prefs(prefsName, null, {
+      autoSave: true,
+      backend: {
+        type: 'localStorage',
+        localStorage: {
+          key: 'WC_DataVis_NITRO_Prefs',
+        },
+      },
+    }) as unknown as PrefsInstance;
+
+    view.setPrefs(nextPrefs);
+    return nextPrefs;
+  }, [title, view]);
 
   // Track the filtered data from the mock view's workEnd cycle.
   // When filters are applied, the view re-runs getData() with filtered results.
@@ -80,6 +98,14 @@ function GridDemo({
     isPlain: true, isGroup: false, isPivot: false, data,
   }), [data]);
   const [viewData, setViewData] = useState<NormalizedViewData>(initialViewData);
+
+  useEffect(() => {
+    if (typeof prefs.prime !== 'function') {
+      return;
+    }
+
+    prefs.prime();
+  }, [prefs]);
 
   useEffect(() => {
     const handler = () => {
@@ -98,6 +124,7 @@ function GridDemo({
   return (
     <DataGrid
       view={view}
+      prefs={prefs}
       title={title}
       helpText={helpText}
       height={height}

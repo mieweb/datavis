@@ -123,7 +123,7 @@ export function TitleBar({
 
       {/* Prefs toolbar (perspective management) */}
       {prefs && (
-        <PrefsToolbar prefs={prefs} />
+        <PrefsToolbar prefs={prefs} onOpenPerspective={onOpenPerspective} />
       )}
 
       {/* Action buttons */}
