@@ -3,6 +3,7 @@
  */
 
 export { DataGrid, type DataGridProps, type GridTableDef } from './DataGrid';
+export { GraphView, type GraphViewProps } from './GraphView';
 export { TitleBar, type TitleBarProps } from './TitleBar';
 export { GridToolbar, type GridToolbarProps } from './GridToolbar';
 export { DetailSlider, type DetailSliderProps } from './DetailSlider';
@@ -74,6 +75,7 @@ export {
 
 // Export utilities
 export { rowsToCsv, downloadCsv, copyToClipboard, buildCsvFilename } from './export-utils';
+export { buildGraphModel, getSupportedChartTypes } from './graph';
 export {
   PlainTable,
 } from './table/PlainTable';
@@ -127,3 +129,12 @@ export type {
   FilterWidget,
   ColumnFilterConfig,
 } from './filters/types';
+export type {
+  GraphAxisOption,
+  GraphBuildResult,
+  GraphChartType,
+  GraphConfig,
+  GraphModel,
+  GraphPoint,
+  GraphSeriesOption,
+} from './graph';

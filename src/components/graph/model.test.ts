@@ -96,6 +96,39 @@ describe('buildGraphModel', () => {
     expect(result.config.yFields).toEqual(['sum(salary)']);
   });
 
+  it('defaults to a combined grouped x-axis when multiple group fields exist', () => {
+    const viewData: NormalizedViewData = {
+      isPlain: false,
+      isGroup: true,
+      isPivot: false,
+      data: [],
+      groupFields: ['department', 'active'],
+      groupMetadata: {
+        'department:Engineering|||active:true': {
+          groupValues: { department: 'Engineering', active: true },
+          count: 2,
+          level: 0,
+          aggregates: { 'sum(salary)': 270000 },
+        },
+        'department:Marketing|||active:false': {
+          groupValues: { department: 'Marketing', active: false },
+          count: 1,
+          level: 0,
+          aggregates: { 'sum(salary)': 95000 },
+        },
+      },
+    };
+
+    const result = buildGraphModel({ viewData, columns });
+
+    expect(result.config.xField).toBe('__group_combined__');
+    expect(result.axisOptions[0]).toEqual({ key: '__group_combined__', label: 'Department + Active' });
+    expect(result.model?.points).toEqual([
+      { xValue: 'Engineering | true', values: { 'sum(salary)': 270000 } },
+      { xValue: 'Marketing | false', values: { 'sum(salary)': 95000 } },
+    ]);
+  });
+
   it('maps pivot data into row categories and column series', () => {
     const viewData: NormalizedViewData = {
       isPlain: false,
@@ -117,10 +150,15 @@ describe('buildGraphModel', () => {
     const result = buildGraphModel({
       viewData,
       columns,
-      config: { xField: 'department', yFields: ['0', '1'] },
+      config: { xField: 'department', yFields: ['count'] },
     });
 
     expect(result.model?.mode).toBe('pivot');
+    expect(result.seriesOptions).toEqual([{ key: 'count', label: 'count' }]);
+    expect(result.model?.series).toEqual([
+      { key: '0', label: 'true' },
+      { key: '1', label: 'false' },
+    ]);
     expect(result.model?.points).toEqual([
       { xValue: 'Engineering', values: { '0': 4, '1': 1 } },
       { xValue: 'Marketing', values: { '0': 3, '1': 2 } },
@@ -145,8 +183,13 @@ describe('buildGraphModel', () => {
       colVals: [true, false],
     };
 
-    const defaultResult = buildGraphModel({ viewData, columns, config: { xField: 'department', yFields: ['0', '1'] } });
+    const defaultResult = buildGraphModel({ viewData, columns, config: { xField: 'department' } });
     expect(defaultResult.config.aggregateKey).toBe('sum(salary)');
+    expect(defaultResult.config.yFields).toEqual(['sum(salary)']);
+    expect(defaultResult.seriesOptions).toEqual([
+      { key: 'sum(salary)', label: 'sum(salary)' },
+      { key: 'avg(salary)', label: 'avg(salary)' },
+    ]);
     expect(defaultResult.model?.points).toEqual([
       { xValue: 'Engineering', values: { '0': 475000, '1': 95000 } },
       { xValue: 'Marketing', values: { '0': 278000, '1': 72000 } },
@@ -155,13 +198,72 @@ describe('buildGraphModel', () => {
     const avgResult = buildGraphModel({
       viewData,
       columns,
-      config: { xField: 'department', yFields: ['0', '1'], aggregateKey: 'avg(salary)' },
+      config: { xField: 'department', yFields: ['avg(salary)'] },
     });
 
     expect(avgResult.config.aggregateKey).toBe('avg(salary)');
+    expect(avgResult.config.yFields).toEqual(['avg(salary)']);
     expect(avgResult.model?.points).toEqual([
       { xValue: 'Engineering', values: { '0': 118750, '1': 95000 } },
       { xValue: 'Marketing', values: { '0': 92666, '1': 72000 } },
+    ]);
+  });
+
+  it('supports multiple selected aggregate pills for grouped and pivoted data', () => {
+    const viewData: NormalizedViewData = {
+      isPlain: false,
+      isGroup: true,
+      isPivot: true,
+      data: [
+        [{ 'sum(salary)': 475000, 'avg(salary)': 118750 }, { 'sum(salary)': 95000, 'avg(salary)': 95000 }],
+        [{ 'sum(salary)': 278000, 'avg(salary)': 92666 }, { 'sum(salary)': 72000, 'avg(salary)': 72000 }],
+      ],
+      groupFields: ['department'],
+      pivotFields: ['active'],
+      rowVals: [
+        { department: 'Engineering' },
+        { department: 'Marketing' },
+      ],
+      colVals: [true, false],
+    };
+
+    const result = buildGraphModel({
+      viewData,
+      columns,
+      config: {
+        xField: 'department',
+        yFields: ['sum(salary)', 'avg(salary)'],
+      },
+    });
+
+    expect(result.model?.mode).toBe('pivot');
+    expect(result.config.aggregateKey).toBe('sum(salary)');
+    expect(result.config.yFields).toEqual(['sum(salary)', 'avg(salary)']);
+    expect(result.model?.series).toEqual([
+      { key: 'sum(salary)::0', label: 'true (sum(salary))' },
+      { key: 'sum(salary)::1', label: 'false (sum(salary))' },
+      { key: 'avg(salary)::0', label: 'true (avg(salary))' },
+      { key: 'avg(salary)::1', label: 'false (avg(salary))' },
+    ]);
+    expect(result.model?.points).toEqual([
+      {
+        xValue: 'Engineering',
+        values: {
+          'sum(salary)::0': 475000,
+          'sum(salary)::1': 95000,
+          'avg(salary)::0': 118750,
+          'avg(salary)::1': 95000,
+        },
+      },
+      {
+        xValue: 'Marketing',
+        values: {
+          'sum(salary)::0': 278000,
+          'sum(salary)::1': 72000,
+          'avg(salary)::0': 92666,
+          'avg(salary)::1': 72000,
+        },
+      },
     ]);
   });
 });

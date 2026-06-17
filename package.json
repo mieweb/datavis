@@ -49,9 +49,11 @@
     "datavis-ace": "=4.0.0-PRE.2",
     "i18next": "^26.0.3",
     "lucide-react": "^1.14.0",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "react-i18next": "^17.0.2"
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-i18next": "^17.0.2",
+    "react-is": "^18.3.1",
+    "recharts": "^3.8.1"
   },
   "peerDependencies": {
     "datavis-ace": "=4.0.0-PRE.2",

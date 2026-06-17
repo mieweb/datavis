@@ -11,6 +11,8 @@ import type {
   GraphModel,
 } from './types';
 
+const GROUPED_COMBINED_X_FIELD_KEY = '__group_combined__';
+
 function isNumericColumn(column: TableColumn): boolean {
   return column.typeInfo?.type === 'number' || column.typeInfo?.type === 'currency';
 }
@@ -83,6 +85,18 @@ function getPlainSeriesOptions(columns: TableColumn[]): GraphSeriesOption[] {
     .map((column) => ({ key: column.field, label: column.header ?? column.field }));
 }
 
+function getFieldLabel(columns: TableColumn[], field: string): string {
+  return columns.find((column) => column.field === field)?.header ?? field;
+}
+
+function buildGroupedCombinedLabel(groupValues: Record<string, unknown> | undefined, groupFields: string[]): string {
+  return groupFields.map((field) => toLabel(groupValues?.[field])).join(' | ');
+}
+
+function buildPivotSeriesKey(columnIndex: number, aggregateKey: string, hasMultipleAggregates: boolean): string {
+  return hasMultipleAggregates ? `${aggregateKey}::${columnIndex}` : String(columnIndex);
+}
+
 function buildDefaultConfig(
   axisOptions: GraphAxisOption[],
   seriesOptions: GraphSeriesOption[],
@@ -152,6 +166,7 @@ function buildPlainModel(
 
 function buildGroupedModel(
   viewData: NormalizedViewData,
+  columns: TableColumn[],
   config?: Partial<GraphConfig>,
 ): GraphBuildResult {
   const groupFields = viewData.groupFields ?? [];
@@ -166,7 +181,17 @@ function buildGroupedModel(
   const selectedAggregateKey = config?.aggregateKey && aggregateOptions.some((option) => option.key === config.aggregateKey)
     ? config.aggregateKey
     : defaultAggregateKey;
-  const axisOptions = groupFields.map((field) => ({ key: field, label: field }));
+  const axisOptions: GraphAxisOption[] = [];
+
+  if (groupFields.length > 1) {
+    axisOptions.push({
+      key: GROUPED_COMBINED_X_FIELD_KEY,
+      label: groupFields.map((field) => getFieldLabel(columns, field)).join(' + '),
+    });
+  }
+
+  axisOptions.push(...groupFields.map((field) => ({ key: field, label: getFieldLabel(columns, field) })));
+
   const hasExplicitYFieldSelection = config != null
     && Object.prototype.hasOwnProperty.call(config, 'yFields');
   const effectiveConfig = buildDefaultConfig(axisOptions, seriesOptions, {
@@ -188,7 +213,9 @@ function buildGroupedModel(
   }
 
   const points = entries.map(([, meta]) => {
-    const labelSource = meta.groupValues?.[effectiveConfig.xField];
+    const labelSource = effectiveConfig.xField === GROUPED_COMBINED_X_FIELD_KEY
+      ? buildGroupedCombinedLabel(meta.groupValues, groupFields)
+      : meta.groupValues?.[effectiveConfig.xField];
     const values = Object.fromEntries(
       nextConfig.yFields.map((field) => {
         if (field === 'count') return [field, meta.count ?? 0];
@@ -228,38 +255,64 @@ function buildPivotModel(
   const matrix = Array.isArray(viewData.data) ? (viewData.data as Record<string, unknown>[][]) : [];
   const aggregateKeys = extractPivotAggregateKeys(matrix);
   const aggregateOptions = aggregateKeys.map((key) => ({ key, label: key }));
-  const defaultAggregateKey = getPreferredAggregateKey(aggregateKeys);
-  const selectedAggregateKey = config?.aggregateKey && aggregateKeys.includes(config.aggregateKey)
+  const aggregateSelectionOptions = aggregateOptions.length > 0
+    ? aggregateOptions
+    : [{ key: 'count', label: 'Count' }];
+  const defaultAggregateKey = getPreferredAggregateKey(aggregateSelectionOptions.map((option) => option.key));
+  const selectedAggregateKey = config?.aggregateKey && aggregateSelectionOptions.some((option) => option.key === config.aggregateKey)
     ? config.aggregateKey
     : defaultAggregateKey;
   const axisOptions = rowFields.map((field) => ({ key: field, label: field }));
-  const seriesOptions = colVals.map((value, index) => ({ key: String(index), label: toLabel(value) }));
-  const effectiveConfig = buildDefaultConfig(axisOptions, seriesOptions, config);
+  const hasExplicitYFieldSelection = config != null
+    && Object.prototype.hasOwnProperty.call(config, 'yFields');
+  const effectiveConfig = buildDefaultConfig(axisOptions, aggregateSelectionOptions, {
+    ...config,
+    yFields: hasExplicitYFieldSelection
+      ? (config?.yFields ?? [])
+      : selectedAggregateKey
+        ? [selectedAggregateKey]
+        : config?.yFields,
+  });
+  const activeAggregateKeys = effectiveConfig.yFields;
+  const primaryAggregateKey = activeAggregateKeys[0];
+  const hasMultipleAggregates = activeAggregateKeys.length > 1;
   const nextConfig: GraphConfig = {
     ...effectiveConfig,
-    aggregateKey: selectedAggregateKey,
+    yFields: activeAggregateKeys,
+    aggregateKey: primaryAggregateKey,
   };
 
   if (rowVals.length === 0 || colVals.length === 0 || !nextConfig.xField || nextConfig.yFields.length === 0) {
-    return { model: null, axisOptions, seriesOptions, aggregateOptions, config: nextConfig };
+    return {
+      model: null,
+      axisOptions,
+      seriesOptions: aggregateSelectionOptions,
+      aggregateOptions,
+      config: nextConfig,
+    };
   }
 
-  const activeIndices = nextConfig.yFields
-    .map((field) => Number(field))
-    .filter((index) => Number.isInteger(index) && index >= 0 && index < colVals.length);
+  const pivotSeriesOptions = activeAggregateKeys.flatMap((aggregateKey) =>
+    colVals.map((value, index) => ({
+      key: buildPivotSeriesKey(index, aggregateKey, hasMultipleAggregates),
+      label: hasMultipleAggregates ? `${toLabel(value)} (${aggregateKey})` : toLabel(value),
+    })),
+  );
 
   const points = rowVals.map((rowValue, rowIndex) => {
     const values = Object.fromEntries(
-      activeIndices.map((columnIndex) => {
-        const cell = matrix[rowIndex]?.[columnIndex] ?? {};
-        const preferredValue = selectedAggregateKey && typeof cell === 'object' && cell != null
-          ? (cell as Record<string, unknown>)[selectedAggregateKey]
-          : undefined;
-        const numeric = toNumber(preferredValue) != null
-          ? preferredValue
-          : Object.values(cell).find((value) => toNumber(value) != null);
-        return [String(columnIndex), toNumber(numeric) ?? 0];
-      }),
+      activeAggregateKeys.flatMap((aggregateKey) =>
+        colVals.map((_, columnIndex) => {
+          const cell = matrix[rowIndex]?.[columnIndex] ?? {};
+          const preferredValue = typeof cell === 'object' && cell != null
+            ? (cell as Record<string, unknown>)[aggregateKey]
+            : undefined;
+          const numeric = toNumber(preferredValue) != null
+            ? preferredValue
+            : Object.values(cell).find((value) => toNumber(value) != null);
+          return [buildPivotSeriesKey(columnIndex, aggregateKey, hasMultipleAggregates), toNumber(numeric) ?? 0];
+        }),
+      ),
     );
 
     return {
@@ -270,18 +323,15 @@ function buildPivotModel(
 
   return {
     axisOptions,
-    seriesOptions,
+    seriesOptions: aggregateSelectionOptions,
     aggregateOptions,
-    config: {
-      ...nextConfig,
-      yFields: activeIndices.map(String),
-    },
+    config: nextConfig,
     model: {
       mode: 'pivot',
       chartType: nextConfig.chartType,
       xField: nextConfig.xField,
-      yFields: activeIndices.map(String),
-      series: seriesOptions.filter((option) => activeIndices.map(String).includes(option.key)),
+      yFields: nextConfig.yFields,
+      series: pivotSeriesOptions,
       points,
     } satisfies GraphModel,
   };
@@ -309,7 +359,7 @@ export function buildGraphModel({ viewData, columns, config }: GraphBuilderParam
   }
 
   if (viewData.isGroup) {
-    return buildGroupedModel(viewData, config);
+    return buildGroupedModel(viewData, columns, config);
   }
 
   return buildPlainModel(viewData, columns, config);

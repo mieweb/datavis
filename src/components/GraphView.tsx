@@ -1,6 +1,8 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '@mieweb/ui/components/Button';
+import { Checkbox } from '@mieweb/ui/components/Checkbox';
+import { Select } from '@mieweb/ui/components/Select';
 import {
   Area,
   AreaChart,
@@ -41,6 +43,32 @@ function findColumn(columns: TableColumn[], field: string): TableColumn | undefi
   return columns.find((column) => column.field === field);
 }
 
+function getSvgRenderSize(svg: SVGSVGElement): { width: number; height: number } {
+  const rect = svg.getBoundingClientRect();
+  const attrWidth = Number(svg.getAttribute('width'));
+  const attrHeight = Number(svg.getAttribute('height'));
+  const width = Number.isFinite(attrWidth) && attrWidth > 0 ? attrWidth : rect.width;
+  const height = Number.isFinite(attrHeight) && attrHeight > 0 ? attrHeight : rect.height;
+  return {
+    width: Math.max(1, Math.ceil(width)),
+    height: Math.max(1, Math.ceil(height)),
+  };
+}
+
+function findLargestSvg(container: HTMLElement): SVGSVGElement | null {
+  const svgs = Array.from(container.querySelectorAll('svg')) as SVGSVGElement[];
+  if (svgs.length === 0) return null;
+
+  const ranked = svgs
+    .map((svg) => {
+      const { width, height } = getSvgRenderSize(svg);
+      return { svg, area: width * height };
+    })
+    .sort((a, b) => b.area - a.area);
+
+  return ranked[0]?.svg ?? null;
+}
+
 export function GraphView({
   viewData,
   columns,
@@ -55,8 +83,34 @@ export function GraphView({
   const graph = useMemo(() => buildGraphModel({ viewData, columns, config }), [viewData, columns, config]);
   const supportedChartTypes = useMemo(() => getSupportedChartTypes(viewData), [viewData]);
   const xAxisColumn = useMemo(() => findColumn(columns, graph.config.xField), [columns, graph.config.xField]);
+  const seriesLabelByKey = useMemo(
+    () => Object.fromEntries((graph.model?.series ?? []).map((series) => [series.key, series.label])),
+    [graph.model?.series],
+  );
+  const tooltipWrapperStyle = {
+    zIndex: 50,
+  };
+  const tooltipContentStyle = {
+    backgroundColor: '#ffffff',
+    border: '1px solid #d1d5db',
+    borderRadius: '8px',
+    boxShadow: '0 8px 20px rgba(15, 23, 42, 0.18)',
+    opacity: 1,
+  };
+  const tooltipLabelStyle = {
+    color: '#111827',
+    fontWeight: 600,
+  };
 
   const formatXAxisValue = (value: unknown) => formatCellValue(value, xAxisColumn?.typeInfo, locale);
+  const chartTypeOptions = useMemo(
+    () => supportedChartTypes.map((type) => ({ value: type, label: type })),
+    [supportedChartTypes],
+  );
+  const xAxisOptions = useMemo(
+    () => graph.axisOptions.map((option) => ({ value: option.key, label: option.label })),
+    [graph.axisOptions],
+  );
 
   const handleChartTypeChange = (chartType: GraphChartType) => {
     onConfigChange?.({ ...graph.config, chartType });
@@ -78,22 +132,14 @@ export function GraphView({
     handleYFieldChange(next);
   };
 
-  const handleAggregateKeyChange = (aggregateKey: string) => {
-    const shouldPinSeriesToAggregate = graph.seriesOptions.some((option) => option.key === aggregateKey);
-    onConfigChange?.({
-      ...graph.config,
-      aggregateKey,
-      yFields: shouldPinSeriesToAggregate ? [aggregateKey] : graph.config.yFields,
-    });
-  };
-
   const handleDownloadPng = useCallback(() => {
-    const svg = chartContainerRef.current?.querySelector('svg');
+    const container = chartContainerRef.current;
+    if (!container) return;
+
+    const svg = findLargestSvg(container);
     if (!svg) return;
 
-    const { width: rawWidth, height: rawHeight } = svg.getBoundingClientRect();
-    const width = Math.max(1, Math.ceil(rawWidth));
-    const height = Math.max(1, Math.ceil(rawHeight));
+    const { width, height } = getSvgRenderSize(svg);
 
     const serializer = new XMLSerializer();
     let source = serializer.serializeToString(svg);
@@ -158,16 +204,17 @@ export function GraphView({
     const seriesNodes = graph.model.series.map((series, index) => {
       const color = COLORS[index % COLORS.length];
       const key = series.key;
+      const label = series.label;
 
       if (graph.model?.chartType === 'line') {
-        return <Line key={key} type="monotone" dataKey={key} stroke={color} strokeWidth={2} dot={false} />;
+        return <Line key={key} type="monotone" dataKey={key} name={label} stroke={color} strokeWidth={2} dot={false} />;
       }
 
       if (graph.model?.chartType === 'area') {
-        return <Area key={key} type="monotone" dataKey={key} stroke={color} fill={color} fillOpacity={0.2} stackId={graph.config.stacked ? 'stack' : undefined} />;
+        return <Area key={key} type="monotone" dataKey={key} name={label} stroke={color} fill={color} fillOpacity={0.2} stackId={graph.config.stacked ? 'stack' : undefined} />;
       }
 
-      return <Bar key={key} dataKey={key} fill={color} stackId={graph.config.stacked ? 'stack' : undefined} radius={[4, 4, 0, 0]} />;
+      return <Bar key={key} dataKey={key} name={label} fill={color} stackId={graph.config.stacked ? 'stack' : undefined} radius={[4, 4, 0, 0]} />;
     });
 
     const chartBody = (
@@ -176,11 +223,17 @@ export function GraphView({
         <XAxis dataKey="xLabel" tickLine={false} axisLine={false} />
         <YAxis tickLine={false} axisLine={false} />
         <Tooltip
+          wrapperStyle={tooltipWrapperStyle}
+          contentStyle={tooltipContentStyle}
+          labelStyle={tooltipLabelStyle}
           labelFormatter={(value: unknown) => formatXAxisValue(value)}
           formatter={(value: unknown, name: string | number | undefined) => {
             const seriesKey = name == null ? '' : String(name);
             const column = findColumn(columns, seriesKey);
-            return [formatCellValue(value, column?.typeInfo, locale), column?.header ?? seriesKey];
+            return [
+              formatCellValue(value, column?.typeInfo, locale),
+              column?.header ?? seriesLabelByKey[seriesKey] ?? seriesKey,
+            ];
           }}
         />
         <Legend />
@@ -209,7 +262,12 @@ export function GraphView({
 
     return (
       <PieChart margin={{ top: 12, right: 16, left: 16, bottom: 12 }}>
-        <Tooltip formatter={(value: unknown) => formatCellValue(value, undefined, locale)} />
+        <Tooltip
+          wrapperStyle={tooltipWrapperStyle}
+          contentStyle={tooltipContentStyle}
+          labelStyle={tooltipLabelStyle}
+          formatter={(value: unknown) => formatCellValue(value, undefined, locale)}
+        />
         <Legend />
         <Pie data={pieData} dataKey="value" nameKey="name" outerRadius={110} innerRadius={55} paddingAngle={2}>
           {pieData.map((entry, index) => (
@@ -253,82 +311,72 @@ export function GraphView({
         <>
           <div className="flex flex-wrap items-center gap-3 border-b border-gray-200 px-4 py-3">
             <div className="min-w-[180px]">
-              <label className="mb-1 block text-xs font-medium text-gray-600" htmlFor="graph-chart-type">
+              <label className="mb-1 block text-xs font-medium text-gray-600">
                 {t('GRAPH.CONTROLS.CHART_TYPE') || 'Chart Type'}
               </label>
-              <select
-                id="graph-chart-type"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              <Select
+                options={chartTypeOptions}
                 value={graph.config.chartType}
-                onChange={(event) => handleChartTypeChange(event.target.value as GraphChartType)}
-              >
-                {supportedChartTypes.map((type) => (
-                  <option key={type} value={type}>{type}</option>
-                ))}
-              </select>
+                onValueChange={(value) => handleChartTypeChange(value as GraphChartType)}
+                label={t('GRAPH.CONTROLS.CHART_TYPE') || 'Chart Type'}
+                aria-label={t('GRAPH.CONTROLS.CHART_TYPE') || 'Chart Type'}
+                hideLabel
+                size="sm"
+                className="w-full"
+              />
             </div>
 
             <div className="min-w-[180px]">
-              <label className="mb-1 block text-xs font-medium text-gray-600" htmlFor="graph-x-field">
+              <label className="mb-1 block text-xs font-medium text-gray-600">
                 {t('GRAPH.CONTROLS.X_AXIS') || 'X Axis'}
               </label>
-              <select
-                id="graph-x-field"
-                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              <Select
+                options={xAxisOptions}
                 value={graph.config.xField}
-                onChange={(event) => handleXFieldChange(event.target.value)}
-              >
-                {graph.axisOptions.map((option) => (
-                  <option key={option.key} value={option.key}>{option.label}</option>
-                ))}
-              </select>
+                onValueChange={handleXFieldChange}
+                label={t('GRAPH.CONTROLS.X_AXIS') || 'X Axis'}
+                aria-label={t('GRAPH.CONTROLS.X_AXIS') || 'X Axis'}
+                hideLabel
+                size="sm"
+                className="w-full"
+              />
             </div>
 
-            {graph.model?.mode === 'pivot' && graph.aggregateOptions.length > 0 && (
-              <div className="min-w-[180px]">
-                <label className="mb-1 block text-xs font-medium text-gray-600" htmlFor="graph-aggregate-key">
-                  {t('CONTROL.AGGREGATE') || 'Aggregate'}
-                </label>
-                <select
-                  id="graph-aggregate-key"
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
-                  value={graph.config.aggregateKey ?? ''}
-                  onChange={(event) => handleAggregateKeyChange(event.target.value)}
-                >
-                  {graph.aggregateOptions.map((option) => (
-                    <option key={option.key} value={option.key}>{option.label}</option>
-                  ))}
-                </select>
-              </div>
-            )}
-
-            <div className="flex min-w-[220px] flex-1 flex-wrap gap-2">
+            <div className="flex min-w-[220px] flex-1 flex-wrap gap-2" role="group" aria-label={t('GRAPH.CONTROLS.Y_AXIS') || 'Y Axis'}>
               <span className="w-full text-xs font-medium text-gray-600">{t('GRAPH.CONTROLS.Y_AXIS') || 'Y Axis'}</span>
               {graph.seriesOptions.map((option) => {
                 const active = graph.config.yFields.includes(option.key);
                 return (
-                  <button
-                    key={option.key}
-                    type="button"
-                    className={`rounded-full border px-3 py-1 text-sm ${active ? 'border-blue-600 bg-blue-50 text-blue-700' : 'border-gray-300 text-gray-700'}`}
-                    onClick={() => toggleYField(option.key)}
-                    aria-pressed={active}
-                  >
-                    {option.label}
-                  </button>
+                  <div key={option.key} className="py-1">
+                    <Checkbox
+                      size="sm"
+                      label={option.label}
+                      checked={active}
+                      onChange={(event) => {
+                        if (event.target.checked) {
+                          if (!active) toggleYField(option.key);
+                          return;
+                        }
+
+                        if (active) toggleYField(option.key);
+                      }}
+                      aria-label={`${t('GRAPH.CONTROLS.Y_AXIS') || 'Y Axis'} ${option.label}`}
+                    />
+                  </div>
                 );
               })}
             </div>
 
             {graph.config.chartType !== 'pie' && (
-              <label className="flex items-center gap-2 text-sm text-gray-700">
-                <input
-                  type="checkbox"
+              <div className="flex items-center text-sm text-gray-700">
+                <Checkbox
+                  size="sm"
                   checked={graph.config.stacked}
                   onChange={(event) => onConfigChange?.({ ...graph.config, stacked: event.target.checked })}
+                  label={t('GRAPH.CONTROLS.STACKED') || 'Stacked'}
+                  aria-label={t('GRAPH.CONTROLS.STACKED') || 'Stacked'}
                 />
-                {t('GRAPH.CONTROLS.STACKED') || 'Stacked'}
-              </label>
+              </div>
             )}
           </div>
 
