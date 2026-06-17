@@ -1,6 +1,6 @@
 {
   "name": "@mieweb/datavis",
-  "version": "0.0.0-PRE.2",
+  "version": "0.0.0-PRE.4",
   "type": "module",
   "description": "DataVis NITRO: UI for DataVis built using React + Tailwind + @mieweb/ui",
   "files": [
