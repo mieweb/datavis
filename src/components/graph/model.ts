@@ -28,6 +28,12 @@ function toNumber(value: unknown): number | null {
     const parsed = Number(value);
     return Number.isFinite(parsed) ? parsed : null;
   }
+  // Currency aggregates resolve to BigNumber instances (and similar numeric
+  // wrappers), which expose a toNumber() method.
+  if (value && typeof value === 'object' && typeof (value as { toNumber?: unknown }).toNumber === 'function') {
+    const parsed = (value as { toNumber: () => number }).toNumber();
+    return Number.isFinite(parsed) ? parsed : null;
+  }
   return null;
 }
 

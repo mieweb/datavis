@@ -13,6 +13,11 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  // a3t ships CommonJS bundles via a symlinked `file:` dependency; pre-bundle
+  // its browser entries so Vite provides the default-export interop they need.
+  optimizeDeps: {
+    include: ['a3t/browser', 'a3t/minimongo', 'minimongo'],
+  },
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
