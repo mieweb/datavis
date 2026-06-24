@@ -364,6 +364,8 @@
   "TABLE.SORT_ASC": "Oplopend sorteren",
   "TABLE.SORT_BY": "Sorteren op {{param0}}",
   "TABLE.SORT_DESC": "Aflopend sorteren",
+  "TABLE.SORT_LEVEL": "Sorteerniveau {{param0}}",
+  "TABLE.SORT_MULTI_HINT": "Klik om te sorteren. Shift+klik om aan de sortering toe te voegen.",
   "TABLE.TOGGLE_ALL_GROUPS": "Alle groepen omschakelen",
   "TABLE.TOTAL": "Totaal",
   "TABLE.WAITING": "Wachten…",

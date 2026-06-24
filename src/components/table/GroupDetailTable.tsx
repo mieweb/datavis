@@ -17,10 +17,12 @@ import type {
   SortDirection,
   SelectionState,
 } from './types';
+import { findSort } from './types';
 import { useIsConstrained, useViewportSticky } from './useAutoHeight';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '../../i18n';
-import { ClipboardIcon, DisclosureGlyphIcon, IconButton, SortGlyphIcon, TableActionButton } from '../ui';
+import { ClipboardIcon, DisclosureGlyphIcon, IconButton, TableActionButton } from '../ui';
+import { SortIndicator } from './SortIndicator';
 import { formatCellValue, formatAggregateNumber, getAggregateValueForField } from './format-cell';
 
 /**
@@ -123,7 +125,7 @@ export function GroupDetailTable({
   groupedRows,
   groupOrder,
   groupFields,
-  sort,
+  sorts,
   features = {},
   totalRows,
   limit,
@@ -235,8 +237,8 @@ export function GroupDetailTable({
   );
 
   const handleSort = useCallback(
-    (field: string, direction: SortDirection) => {
-      onSort?.(field, direction);
+    (field: string, direction: SortDirection, additive = false) => {
+      onSort?.(field, direction, additive);
     },
     [onSort],
   );
@@ -283,7 +285,9 @@ export function GroupDetailTable({
                   <DisclosureGlyphIcon className="h-4 w-4" expanded={allExpanded} />
                 </IconButton>
               </th>
-              {columnLayout.map((col) => (
+              {columnLayout.map((col) => {
+                const sortInfo = findSort(sorts, col.field);
+                return (
                 <th
                   key={col.field}
                   colSpan={col.span}
@@ -298,8 +302,8 @@ export function GroupDetailTable({
                   role="columnheader"
                   scope="col"
                   aria-sort={
-                    sort?.field === col.field
-                      ? sort.direction === 'asc'
+                    sortInfo
+                      ? sortInfo.direction === 'asc'
                         ? 'ascending'
                         : 'descending'
                       : 'none'
@@ -312,25 +316,28 @@ export function GroupDetailTable({
                     className={`flex h-auto w-full items-center gap-0.5 bg-transparent p-0 text-left text-inherit font-inherit uppercase tracking-wider shadow-none hover:bg-transparent ${
                       col.aggFns.length > 0 ? 'justify-center' : ''
                     }`}
-                    onClick={() =>
+                    onClick={(e) =>
                       handleSort(
                         col.field,
-                        sort?.field === col.field && sort.direction === 'asc'
-                          ? 'desc'
-                          : 'asc',
+                        sortInfo?.direction === 'asc' ? 'desc' : 'asc',
+                        e.shiftKey,
                       )
                     }
                     aria-label={t('TABLE.SORT_BY', { param0: col.header }) || `Sort by ${col.header}`}
+                    title={t('TABLE.SORT_MULTI_HINT') || 'Click to sort. Shift+click to add to the sort.'}
                   >
                     <span className="truncate">{col.header}</span>
-                    {sort?.field === col.field && (
-                      <span className="ml-1 text-blue-500 dark:text-blue-400 text-xs">
-                        <SortGlyphIcon className="text-blue-500 dark:text-blue-400" direction={sort.direction} />
-                      </span>
+                    {sortInfo && (
+                      <SortIndicator
+                        direction={sortInfo.direction}
+                        index={sortInfo.index}
+                        count={sorts?.length ?? 0}
+                      />
                     )}
                   </Button>
                 </th>
-              ))}
+                );
+              })}
             </tr>
 
             {/* Row 2: aggregate function sub-headers (only when aggregates active) */}

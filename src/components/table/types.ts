@@ -56,10 +56,31 @@ export interface TableColumn {
 /** Sort direction */
 export type SortDirection = 'asc' | 'desc';
 
-/** Active sort spec */
+/** Active sort spec for a single column */
 export interface SortSpec {
   field: string;
   direction: SortDirection;
+}
+
+/**
+ * Multi-column sort: an ordered list of single-column sort specs in priority
+ * order. The first entry is the primary sort key, the second breaks ties
+ * within equal primary values, and so on.
+ */
+export type MultiSortSpec = SortSpec[];
+
+/**
+ * Find the active sort entry for a field within a multi-column sort list.
+ * Returns the column's direction and its zero-based priority index, or null
+ * when the field is not part of the current sort.
+ */
+export function findSort(
+  sorts: MultiSortSpec | null | undefined,
+  field: string,
+): { direction: SortDirection; index: number } | null {
+  if (!sorts) return null;
+  const index = sorts.findIndex((s) => s.field === field);
+  return index < 0 ? null : { direction: sorts[index].direction, index };
 }
 
 // ───────────────────────────────────────────────────────────
@@ -196,8 +217,8 @@ export interface BaseTableProps {
   columns: TableColumn[];
   /** Row data */
   rows: TableRow[];
-  /** Currently active sort */
-  sort?: SortSpec | null;
+  /** Active multi-column sort, in priority order (empty/null when unsorted) */
+  sorts?: MultiSortSpec | null;
   /** Feature flags */
   features?: TableFeatures;
   /** Total number of rows (before limit, for "showing X of Y") */
@@ -213,8 +234,8 @@ export interface BaseTableProps {
   aggFnLabels?: Record<string, string>;
 
   // ── Callbacks ──
-  /** Sort requested on a column */
-  onSort?: (field: string, direction: SortDirection) => void;
+  /** Sort requested on a column. When `additive` is true (e.g. shift-click), the column is added to / updated within the existing multi-column sort; otherwise it replaces the current sort. */
+  onSort?: (field: string, direction: SortDirection, additive?: boolean) => void;
   /** Row clicked */
   onRowClick?: (row: TableRow, event: React.MouseEvent) => void;
   /** Row double-clicked (drill-down) */

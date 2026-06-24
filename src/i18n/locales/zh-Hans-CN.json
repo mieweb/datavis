@@ -364,6 +364,8 @@
   "TABLE.SORT_ASC": "升序排列",
   "TABLE.SORT_BY": "按 {{param0}} 排序",
   "TABLE.SORT_DESC": "降序排列",
+  "TABLE.SORT_LEVEL": "排序级别 {{param0}}",
+  "TABLE.SORT_MULTI_HINT": "点击排序。Shift+点击可添加到排序。",
   "TABLE.TOGGLE_ALL_GROUPS": "切换所有分组",
   "TABLE.TOTAL": "合计",
   "TABLE.WAITING": "等待中…",

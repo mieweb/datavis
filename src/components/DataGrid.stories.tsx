@@ -50,7 +50,7 @@ function createMockSource() {
 }
 
 interface MockView extends ViewInstance {
-  _sortSpec: { vertical?: { field: string; dir: string } } | null;
+  _sortSpec: { vertical?: { field: string; dir: string }[] } | null;
 }
 
 function createMockView(source = createMockSource()): MockView {
@@ -60,7 +60,7 @@ function createMockView(source = createMockSource()): MockView {
     data: null as unknown,
     typeInfo: null,
     filterSpec: null,
-    _sortSpec: null as { vertical?: { field: string; dir: string } } | null,
+    _sortSpec: null as { vertical?: { field: string; dir: string }[] } | null,
     on(event: string, cb: (...args: unknown[]) => void, opts?: { who?: unknown }) {
       if (!listeners[event]) listeners[event] = [];
       listeners[event].push({ cb, who: opts?.who });
@@ -83,18 +83,23 @@ function createMockView(source = createMockSource()): MockView {
             { name: 'Charlie', age: 35, department: 'Engineering' },
           ];
 
-          // Apply sort
-          if (view._sortSpec?.vertical) {
-            const { field, dir } = view._sortSpec.vertical;
-            const direction = dir === 'DESC' ? -1 : 1;
+          // Apply multi-column sort (priority order: first key is primary)
+          const vertical = view._sortSpec?.vertical;
+          if (vertical && vertical.length > 0) {
             rows.sort((a, b) => {
-              const va = (a as Record<string, unknown>)[field];
-              const vb = (b as Record<string, unknown>)[field];
-              if (va == null && vb == null) return 0;
-              if (va == null) return direction;
-              if (vb == null) return -direction;
-              if (typeof va === 'number' && typeof vb === 'number') return (va - vb) * direction;
-              return String(va).localeCompare(String(vb)) * direction;
+              for (const { field, dir } of vertical) {
+                const direction = dir === 'DESC' ? -1 : 1;
+                const va = (a as Record<string, unknown>)[field];
+                const vb = (b as Record<string, unknown>)[field];
+                if (va == null && vb == null) continue;
+                if (va == null) return direction;
+                if (vb == null) return -direction;
+                let cmp: number;
+                if (typeof va === 'number' && typeof vb === 'number') cmp = (va - vb) * direction;
+                else cmp = String(va).localeCompare(String(vb)) * direction;
+                if (cmp !== 0) return cmp;
+              }
+              return 0;
             });
           }
 
@@ -120,7 +125,7 @@ function createMockView(source = createMockSource()): MockView {
       cont?.(true, {});
     },
     setSort(spec: unknown) {
-      view._sortSpec = spec as { vertical?: { field: string; dir: string } } | null;
+      view._sortSpec = spec as { vertical?: { field: string; dir: string }[] } | null;
       view.getData();
     },
     setFilter() {},

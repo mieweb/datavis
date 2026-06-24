@@ -109,6 +109,7 @@ export type {
   TableColumn,
   SortDirection,
   SortSpec,
+  MultiSortSpec,
   RowData,
   TableRow,
   SelectionState,

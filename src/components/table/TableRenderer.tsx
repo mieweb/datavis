@@ -11,7 +11,7 @@ import { useMemo } from 'react';
 import type {
   TableColumn,
   TableRow,
-  SortSpec,
+  MultiSortSpec,
   SortDirection,
   TableFeatures,
   CellFormatter,
@@ -42,8 +42,8 @@ export interface TableRendererProps {
   viewData: ViewData | null;
   /** Column definitions */
   columns: TableColumn[];
-  /** Current sort specification */
-  sort?: SortSpec | null;
+  /** Active multi-column sort, in priority order */
+  sorts?: MultiSortSpec | null;
   /** Feature flags */
   features?: TableFeatures;
   /** Total row count (before limit) */
@@ -73,7 +73,7 @@ export interface TableRendererProps {
 
   // ── Callbacks ──
   /** Sort requested */
-  onSort?: (field: string, direction: SortDirection) => void;
+  onSort?: (field: string, direction: SortDirection, additive?: boolean) => void;
   /** Row clicked */
   onRowClick?: (row: TableRow, event: React.MouseEvent) => void;
   /** Row double-clicked (drill-down) */
@@ -99,7 +99,7 @@ export interface TableRendererProps {
 export function TableRenderer({
   viewData,
   columns,
-  sort,
+  sorts,
   features = {},
   totalRows,
   limit,
@@ -127,7 +127,7 @@ export function TableRenderer({
 
   // Fall back to SortContext when sort/onSort props are not explicitly passed
   const sortCtx = useSortContext();
-  const effectiveSort = sort !== undefined ? sort : sortCtx?.sort ?? null;
+  const effectiveSorts = sorts !== undefined ? sorts : sortCtx?.sorts ?? null;
   const effectiveOnSort = onSort ?? sortCtx?.onSort;
 
   // ── Build rows from view data ─────────────────
@@ -319,7 +319,7 @@ export function TableRenderer({
         <PlainTable
           columns={columns}
           rows={plainRows}
-          sort={effectiveSort}
+          sorts={effectiveSorts}
           features={features}
           totalRows={totalRows}
           limit={limit}
@@ -346,7 +346,7 @@ export function TableRenderer({
             groups={groupData.groups}
             groupOrder={groupData.groupOrder}
             groupFields={groupData.groupFields}
-            sort={effectiveSort}
+            sorts={effectiveSorts}
             features={features}
             totalRows={totalRows}
             showTotalRow={showTotalRow}
@@ -361,7 +361,7 @@ export function TableRenderer({
             groupedRows={groupData.groupedRows}
             groupOrder={groupData.groupOrder}
             groupFields={groupData.groupFields}
-            sort={effectiveSort}
+            sorts={effectiveSorts}
             features={features}
             totalRows={totalRows}
             limit={limit}
@@ -387,7 +387,7 @@ export function TableRenderer({
         <PivotTable
           columns={columns}
           pivotData={pivotData}
-          sort={effectiveSort}
+          sorts={effectiveSorts}
           features={features}
           showTotalCol={showTotalCol}
           onSort={effectiveOnSort}
@@ -399,7 +399,7 @@ export function TableRenderer({
         <PivotTable
           columns={columns}
           pivotData={syntheticPivotData}
-          sort={effectiveSort}
+          sorts={effectiveSorts}
           features={features}
           showTotalCol={showTotalCol}
           onSort={effectiveOnSort}

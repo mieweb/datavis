@@ -7,6 +7,7 @@ export type {
   TableColumn,
   SortDirection,
   SortSpec,
+  MultiSortSpec,
   RowData,
   TableRow,
   SelectionState,
@@ -17,6 +18,7 @@ export type {
   CellFormatter,
   BaseTableProps,
 } from './types';
+export { findSort } from './types';
 
 // Main renderer
 export { TableRenderer, type TableRendererProps } from './TableRenderer';

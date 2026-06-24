@@ -364,6 +364,8 @@
   "TABLE.SORT_ASC": "Classificar Ascendente",
   "TABLE.SORT_BY": "Classificar por {{param0}}",
   "TABLE.SORT_DESC": "Classificar Descendente",
+  "TABLE.SORT_LEVEL": "Nível de classificação {{param0}}",
+  "TABLE.SORT_MULTI_HINT": "Clique para classificar. Shift+clique para adicionar à classificação.",
   "TABLE.TOGGLE_ALL_GROUPS": "Alternar todos os grupos",
   "TABLE.TOTAL": "Total",
   "TABLE.WAITING": "Aguardando…",

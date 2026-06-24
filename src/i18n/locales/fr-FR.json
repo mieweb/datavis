@@ -364,6 +364,8 @@
   "TABLE.SORT_ASC": "Tri croissant",
   "TABLE.SORT_BY": "Trier par {{param0}}",
   "TABLE.SORT_DESC": "Tri décroissant",
+  "TABLE.SORT_LEVEL": "Niveau de tri {{param0}}",
+  "TABLE.SORT_MULTI_HINT": "Cliquez pour trier. Maj+clic pour ajouter au tri.",
   "TABLE.TOGGLE_ALL_GROUPS": "Basculer tous les groupes",
   "TABLE.TOTAL": "Total",
   "TABLE.WAITING": "En attente…",

@@ -28,6 +28,7 @@ import type {
   SortDirection,
   ContextMenuItem,
 } from './types';
+import { findSort } from './types';
 import { useColumnResize } from './useColumnResize';
 import { useKeyboardNav } from './useKeyboardNav';
 import { useColumnDrop } from './ColumnDropContext';
@@ -38,35 +39,14 @@ import { useColumnConfig } from './ColumnConfigContext';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '../../i18n';
 import { Filter } from 'lucide-react';
-import { CalendarIcon, ChevronGlyphIcon, IconButton, SearchIcon, SortGlyphIcon, TableActionButton } from '../ui';
+import { CalendarIcon, ChevronGlyphIcon, IconButton, SearchIcon, TableActionButton } from '../ui';
+import { SortIndicator } from './SortIndicator';
 import { formatCellValue, formatAggregateNumber, DATE_FORMAT_PRESETS, type DateFormatPreset } from './format-cell';
 import { COLUMN_DRAG_MIME } from '../controls/column-drag';
 
 // ───────────────────────────────────────────────────────────
 // Sort icon
 // ───────────────────────────────────────────────────────────
-
-function SortIcon({ direction }: { direction?: SortDirection }) {
-  const { t } = useTranslation();
-  if (!direction) {
-    return (
-      <span
-        className="ml-1 inline-block text-gray-300 dark:text-neutral-600 text-xs"
-        aria-hidden="true"
-      >
-        <SortGlyphIcon className="text-gray-300 dark:text-neutral-600" />
-      </span>
-    );
-  }
-  return (
-    <span
-      className="ml-1 inline-block text-blue-500 dark:text-blue-400 text-xs"
-      aria-label={direction === 'asc' ? (t('TABLE.SORTED_ASC') || 'Sorted ascending') : (t('TABLE.SORTED_DESC') || 'Sorted descending')}
-    >
-      <SortGlyphIcon className="text-blue-500 dark:text-blue-400" direction={direction} />
-    </span>
-  );
-}
 
 /** Small funnel icon — filled when filter is active */
 function FilterIcon({ active }: { active?: boolean }) {
@@ -91,6 +71,10 @@ type InsertSide = 'before' | 'after';
 interface HeaderCellProps {
   column: TableColumn;
   sortDir?: SortDirection;
+  /** Zero-based priority index within the multi-column sort (0 = primary) */
+  sortIndex?: number;
+  /** Total number of active sort columns */
+  sortCount?: number;
   resizable: boolean;
   filterActive?: boolean;
   /** Sticky pin style for pinned columns (position, left, zIndex) */
@@ -98,7 +82,7 @@ interface HeaderCellProps {
   /** Whether this is the last pinned column (shows separator shadow) */
   isLastPinned?: boolean;
   onFilterClick?: () => void;
-  onSort?: (field: string, direction: SortDirection) => void;
+  onSort?: (field: string, direction: SortDirection, additive?: boolean) => void;
   onResizeStart?: (
     field: string,
     width: number,
@@ -117,6 +101,8 @@ interface HeaderCellProps {
 function HeaderCell({
   column,
   sortDir,
+  sortIndex,
+  sortCount,
   resizable,
   filterActive,
   pinStyle,
@@ -144,11 +130,15 @@ function HeaderCell({
     ...(pinStyle ? { zIndex: 20 + (pinStyle.zIndex as number) } : {}),
   };
 
-  const handleClick = useCallback(() => {
-    if (!column.sortable && column.sortable !== undefined) return;
-    const nextDir: SortDirection = sortDir === 'asc' ? 'desc' : 'asc';
-    onSort?.(column.field, nextDir);
-  }, [column.field, column.sortable, sortDir, onSort]);
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      if (!column.sortable && column.sortable !== undefined) return;
+      const nextDir: SortDirection = sortDir === 'asc' ? 'desc' : 'asc';
+      // Shift-click adds the column to the existing multi-column sort.
+      onSort?.(column.field, nextDir, e.shiftKey);
+    },
+    [column.field, column.sortable, sortDir, onSort],
+  );
 
   const handleContextMenu = useCallback(
     (e: React.MouseEvent) => {
@@ -196,9 +186,12 @@ function HeaderCell({
           onClick={handleClick}
           tabIndex={-1}
           aria-label={t('TABLE.SORT_BY', { param0: column.header }) || `Sort by ${column.header}`}
+          title={t('TABLE.SORT_MULTI_HINT') || 'Click to sort. Shift+click to add to the sort.'}
         >
           <span className="truncate">{column.header}</span>
-          {(column.sortable !== false) && <SortIcon direction={sortDir} />}
+          {(column.sortable !== false) && (
+            <SortIndicator direction={sortDir} index={sortIndex} count={sortCount} />
+          )}
         </Button>
 
         {/* Filter icon — adds this column to the filter bar */}
@@ -335,7 +328,7 @@ function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale, pinS
 export function PlainTable({
   columns: initialColumns,
   rows,
-  sort,
+  sorts,
   features = {},
   totalRows,
   limit,
@@ -804,13 +797,15 @@ export function PlainTable({
               }
             >
               <tr>
-                  {visibleColumns.map((col, colIdx) => (
+                  {visibleColumns.map((col, colIdx) => {
+                    const sortInfo = findSort(sorts, col.field);
+                    return (
                     <HeaderCell
                       key={col.field}
                       column={col}
-                      sortDir={
-                        sort?.field === col.field ? sort.direction : undefined
-                      }
+                      sortDir={sortInfo?.direction}
+                      sortIndex={sortInfo?.index}
+                      sortCount={sorts?.length ?? 0}
                       resizable={
                         features.columnResize !== false &&
                         col.resizable !== false
@@ -841,7 +836,8 @@ export function PlainTable({
                       onHeaderDrop={handleHeaderDrop}
                       onHeaderDragEnd={handleHeaderDragEnd}
                     />
-                  ))}
+                    );
+                  })}
               </tr>
             </thead>
 

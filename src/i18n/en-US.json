@@ -378,6 +378,8 @@
   "TABLE.SORT_ASC": "Sort Ascending",
   "TABLE.SORT_BY": "Sort by {{param0}}",
   "TABLE.SORT_DESC": "Sort Descending",
+  "TABLE.SORT_LEVEL": "Sort level {{param0}}",
+  "TABLE.SORT_MULTI_HINT": "Click to sort. Shift+click to add to the sort.",
   "TABLE.TOGGLE_ALL_GROUPS": "Toggle all groups",
   "TABLE.CAPTION": "Data table: {{param0}}",
   "TABLE.TOTAL": "Total",

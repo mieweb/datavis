@@ -65,14 +65,14 @@ export default meta;
 // ── Plain Table ─────────────────────────────────
 
 export const Plain: StoryFn = () => {
-  const [sort, setSort] = useState<SortSpec | null>(null);
+  const [sorts, setSorts] = useState<SortSpec[]>([]);
 
   return (
     <div className="h-[500px] border border-gray-200 rounded-lg overflow-hidden">
       <PlainTable
         columns={COLUMNS}
         rows={ROWS}
-        sort={sort}
+        sorts={sorts}
         totalRows={ROWS.length}
         features={{
           columnResize: true,
@@ -83,7 +83,12 @@ export const Plain: StoryFn = () => {
           zebraStripe: true,
           keyboardNav: true,
         }}
-        onSort={(field, direction) => setSort({ field, direction })}
+        onSort={(field, direction, additive) =>
+          setSorts((prev) => {
+            const rest = additive ? prev.filter((s) => s.field !== field) : [];
+            return [...rest, { field, direction }];
+          })
+        }
         onRowClick={(row) => console.log('Row clicked:', row.data)}
         onRowDoubleClick={(row) => console.log('Row double-clicked:', row.data)}
         onColumnResize={(field, width) => console.log('Column resized:', field, width)}
@@ -270,7 +275,7 @@ export const ProgressBar: StoryFn = () => {
 // ── TableRenderer (unified) ─────────────────────
 
 export const UnifiedPlain: StoryFn = () => {
-  const [sort, setSort] = useState<SortSpec | null>(null);
+  const [sorts, setSorts] = useState<SortSpec[]>([]);
 
   return (
     <div className="h-[500px] border border-gray-200 rounded-lg overflow-hidden">
@@ -282,7 +287,7 @@ export const UnifiedPlain: StoryFn = () => {
           data: ROWS.map((r) => r.data),
         }}
         columns={COLUMNS}
-        sort={sort}
+        sorts={sorts}
         totalRows={ROWS.length}
         features={{
           columnResize: true,
@@ -291,7 +296,12 @@ export const UnifiedPlain: StoryFn = () => {
           zebraStripe: true,
           keyboardNav: true,
         }}
-        onSort={(field, direction) => setSort({ field, direction })}
+        onSort={(field, direction, additive) =>
+          setSorts((prev) => {
+            const rest = additive ? prev.filter((s) => s.field !== field) : [];
+            return [...rest, { field, direction }];
+          })
+        }
         onRowClick={(row) => console.log('Row clicked:', row.data)}
       />
     </div>

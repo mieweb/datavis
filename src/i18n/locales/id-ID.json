@@ -364,6 +364,8 @@
   "TABLE.SORT_ASC": "Urutkan Naik",
   "TABLE.SORT_BY": "Urutkan berdasarkan {{param0}}",
   "TABLE.SORT_DESC": "Urutkan Turun",
+  "TABLE.SORT_LEVEL": "Tingkat urutan {{param0}}",
+  "TABLE.SORT_MULTI_HINT": "Klik untuk mengurutkan. Shift+klik untuk menambahkan ke urutan.",
   "TABLE.TOGGLE_ALL_GROUPS": "Alihkan semua grup",
   "TABLE.TOTAL": "Total",
   "TABLE.WAITING": "Menunggu…",

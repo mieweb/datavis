@@ -6,17 +6,21 @@
  */
 
 import { createContext, useContext } from 'react';
-import type { SortSpec, SortDirection } from './types';
+import type { MultiSortSpec, SortDirection } from './types';
 
 // ───────────────────────────────────────────────────────────
 // Context
 // ───────────────────────────────────────────────────────────
 
 export interface SortContextValue {
-  /** Current sort specification */
-  sort: SortSpec | null;
-  /** Request a sort change */
-  onSort: (field: string, direction: SortDirection) => void;
+  /** Active multi-column sort, in priority order (empty when unsorted) */
+  sorts: MultiSortSpec;
+  /**
+   * Request a sort change. When `additive` is true (e.g. shift-click), the
+   * column is added to / updated within the existing multi-column sort;
+   * otherwise it replaces the current sort with just this column.
+   */
+  onSort: (field: string, direction: SortDirection, additive?: boolean) => void;
 }
 
 export const SortContext = createContext<SortContextValue | null>(null);

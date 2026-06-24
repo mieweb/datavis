@@ -7,9 +7,10 @@
 
 import { useMemo, useCallback, useRef, useState } from 'react';
 import type { BaseTableProps, PivotHeader, SortDirection } from './types';
+import { findSort } from './types';
 import { useIsConstrained, useViewportSticky } from './useAutoHeight';
 import { useTranslation } from 'react-i18next';
-import { SortGlyphIcon } from '../ui';
+import { SortIndicator } from './SortIndicator';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -53,7 +54,7 @@ export interface PivotTableProps extends Omit<BaseTableProps, 'rows'> {
 export function PivotTable({
   columns,
   pivotData,
-  sort,
+  sorts,
   features = {},
   showTotalCol = true,
   onSort,
@@ -105,10 +106,11 @@ export function PivotTable({
     return headers;
   }, [colVals, aggFunctions]);
 
-  const handleSort = (field: string) => {
+  const handleSort = (field: string, additive = false) => {
+    const current = findSort(sorts, field);
     const nextDir: SortDirection =
-      sort?.field === field && sort.direction === 'asc' ? 'desc' : 'asc';
-    onSort?.(field, nextDir);
+      current?.direction === 'asc' ? 'desc' : 'asc';
+    onSort?.(field, nextDir, additive);
   };
 
   const [containerScrolled, setContainerScrolled] = useState(false);
@@ -137,7 +139,9 @@ export function PivotTable({
           >
             {/* Top header: row field labels + column value spans */}
             <tr>
-              {rowColumns.map((col) => (
+              {rowColumns.map((col) => {
+                const sortInfo = findSort(sorts, col.field);
+                return (
                 <th
                   key={col.field}
                   className="border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 cursor-pointer hover:bg-gray-200 dark:hover:bg-neutral-700"
@@ -145,16 +149,20 @@ export function PivotTable({
                   rowSpan={aggFunctions.length > 1 ? 2 : 1}
                   role="columnheader"
                   scope="col"
-                  onClick={() => handleSort(col.field)}
+                  onClick={(e) => handleSort(col.field, e.shiftKey)}
+                  title={t('TABLE.SORT_MULTI_HINT') || 'Click to sort. Shift+click to add to the sort.'}
                 >
                   <span className="truncate">{col.header}</span>
-                  {sort?.field === col.field && (
-                    <span className="ml-1 text-blue-500 dark:text-blue-400 text-xs">
-                      <SortGlyphIcon className="text-blue-500 dark:text-blue-400" direction={sort.direction} />
-                    </span>
+                  {sortInfo && (
+                    <SortIndicator
+                      direction={sortInfo.direction}
+                      index={sortInfo.index}
+                      count={sorts?.length ?? 0}
+                    />
                   )}
                 </th>
-              ))}
+                );
+              })}
               {colVals.map((colVal) => (
                 <th
                   key={String(colVal)}

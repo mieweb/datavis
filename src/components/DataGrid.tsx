@@ -37,7 +37,7 @@ import { type ControlFieldItem } from './controls/ControlSection';
 import { type AggregateEntry, type AggregateFunction } from './controls/AggregateSection';
 import { type ColumnFilterConfig, type FilterSpec } from './filters/types';
 import { FilterContext, columnToFilterConfig, type FilterContextValue } from './filters/FilterContext';
-import type { TableColumn, SortSpec, SortDirection } from './table/types';
+import type { TableColumn, MultiSortSpec, SortDirection } from './table/types';
 import { SortContext, type SortContextValue } from './table/SortContext';
 import { ColumnConfigContext, type ColumnConfigContextValue } from './table/ColumnConfigContext';
 import { ColumnDropProvider, type ColumnDropContextValue } from './table/ColumnDropContext';
@@ -452,7 +452,7 @@ export function DataGrid({
   const [syntheticPivot, setSyntheticPivot] = useState(false);
 
   // ── Sort state ─────────────────────────────────
-  const [sort, setSort] = useState<SortSpec | null>(null);
+  const [sorts, setSorts] = useState<MultiSortSpec>([]);
 
   // ── Column config state (auto-derived from allColumns when prop is empty) ──
   const [hiddenFields, setHiddenFields] = useState<Set<string>>(new Set());
@@ -895,21 +895,36 @@ export function DataGrid({
 
   // ── Sort handler ───────────────────────────────
   const handleSortChange = useCallback(
-    (field: string, direction: SortDirection) => {
-      const spec: SortSpec = { field, direction };
-      setSort(spec);
-      // Convert to legacy View~SortSpec format: { vertical: { field, dir: 'ASC'|'DESC' } }
+    (field: string, direction: SortDirection, additive = false) => {
+      // Build the next priority-ordered sort list.
+      let next: MultiSortSpec;
+      if (additive) {
+        const idx = sorts.findIndex((s) => s.field === field);
+        if (idx >= 0) {
+          // Toggle / update direction in place, preserving priority.
+          next = sorts.slice();
+          next[idx] = { field, direction };
+        } else {
+          // Append as the lowest-priority sort key.
+          next = [...sorts, { field, direction }];
+        }
+      } else {
+        // Non-additive click replaces the whole sort with just this column.
+        next = [{ field, direction }];
+      }
+      setSorts(next);
+      // Convert to legacy View~SortSpec format: { vertical: [{ field, dir }, …] }
       viewState.setSort({
-        vertical: { field, dir: direction.toUpperCase() },
+        vertical: next.map((s) => ({ field: s.field, dir: s.direction.toUpperCase() })),
       });
     },
-    [viewState.setSort],
+    [sorts, viewState.setSort],
   );
 
   /** Sort context for table renderers */
   const sortContextValue = useMemo<SortContextValue>(
-    () => ({ sort, onSort: handleSortChange }),
-    [sort, handleSortChange],
+    () => ({ sorts, onSort: handleSortChange }),
+    [sorts, handleSortChange],
   );
 
   // ── Dialog open helpers ────────────────────────

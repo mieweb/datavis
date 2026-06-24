@@ -364,6 +364,8 @@
   "TABLE.SORT_ASC": "Сортировка по возрастанию",
   "TABLE.SORT_BY": "Сортировать по {{param0}}",
   "TABLE.SORT_DESC": "Сортировка по убыванию",
+  "TABLE.SORT_LEVEL": "Уровень сортировки {{param0}}",
+  "TABLE.SORT_MULTI_HINT": "Нажмите для сортировки. Shift+щелчок, чтобы добавить к сортировке.",
   "TABLE.TOGGLE_ALL_GROUPS": "Переключить все группы",
   "TABLE.TOTAL": "Итого",
   "TABLE.WAITING": "Ожидание…",

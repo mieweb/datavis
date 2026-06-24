@@ -8,10 +8,11 @@
 import { useMemo, useCallback, useRef, useState } from 'react';
 
 import type { BaseTableProps, TableColumn, GroupMeta, SortDirection } from './types';
+import { findSort } from './types';
 import { useIsConstrained, useViewportSticky } from './useAutoHeight';
 import { useTranslation } from 'react-i18next';
 import { getAggregateValueForField } from './format-cell';
-import { SortGlyphIcon } from '../ui';
+import { SortIndicator } from './SortIndicator';
 
 // ───────────────────────────────────────────────────────────
 // Types
@@ -42,7 +43,7 @@ export function GroupSummaryTable({
   groupOrder,
   groupFields,
   aggregateColumns,
-  sort,
+  sorts,
   features = {},
   totalRows,
   showTotalRow = false,
@@ -78,10 +79,11 @@ export function GroupSummaryTable({
     return [...groupCols, ...aggCols];
   }, [columns, groupFields, aggregateColumns, firstGroup]);
 
-  const handleSort = (field: string) => {
+  const handleSort = (field: string, additive = false) => {
+    const current = findSort(sorts, field);
     const nextDir: SortDirection =
-      sort?.field === field && sort.direction === 'asc' ? 'desc' : 'asc';
-    onSort?.(field, nextDir);
+      current?.direction === 'asc' ? 'desc' : 'asc';
+    onSort?.(field, nextDir, additive);
   };
 
   const [containerScrolled, setContainerScrolled] = useState(false);
@@ -109,7 +111,9 @@ export function GroupSummaryTable({
             }
           >
             <tr>
-              {summaryColumns.map((col) => (
+              {summaryColumns.map((col) => {
+                const sortInfo = findSort(sorts, col.field);
+                return (
                 <th
                   key={col.field}
                   className="border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-neutral-700"
@@ -120,22 +124,26 @@ export function GroupSummaryTable({
                   role="columnheader"
                   scope="col"
                   aria-sort={
-                    sort?.field === col.field
-                      ? sort.direction === 'asc'
+                    sortInfo
+                      ? sortInfo.direction === 'asc'
                         ? 'ascending'
                         : 'descending'
                       : 'none'
                   }
-                  onClick={() => handleSort(col.field)}
+                  onClick={(e) => handleSort(col.field, e.shiftKey)}
+                  title={t('TABLE.SORT_MULTI_HINT') || 'Click to sort. Shift+click to add to the sort.'}
                 >
                   <span className="truncate">{col.header}</span>
-                  {sort?.field === col.field && (
-                    <span className="ml-1 text-blue-500 dark:text-blue-400 text-xs">
-                      <SortGlyphIcon className="text-blue-500 dark:text-blue-400" direction={sort.direction} />
-                    </span>
+                  {sortInfo && (
+                    <SortIndicator
+                      direction={sortInfo.direction}
+                      index={sortInfo.index}
+                      count={sorts?.length ?? 0}
+                    />
                   )}
                 </th>
-              ))}
+                );
+              })}
             </tr>
           </thead>
 
