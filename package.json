@@ -1,6 +1,6 @@
 {
   "name": "@mieweb/datavis",
-  "version": "0.0.0-PRE.4",
+  "version": "1.0.0-PRE.0",
   "type": "module",
   "description": "DataVis NITRO: UI for DataVis built using React + Tailwind + @mieweb/ui",
   "files": [
@@ -46,7 +46,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "@mieweb/ui": "=0.6.1-dev.148",
-    "datavis-ace": "=4.1.0-PRE.0",
+    "datavis-ace": "=4.1.0",
     "i18next": "^26.3.2",
     "lucide-react": "^1.21.0",
     "react": "^19.2.7",
