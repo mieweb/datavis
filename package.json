@@ -1,6 +1,6 @@
 {
   "name": "@mieweb/datavis",
-  "version": "1.0.0-PRE.0",
+  "version": "1.0.0-PRE.1",
   "type": "module",
   "description": "DataVis NITRO: UI for DataVis built using React + Tailwind + @mieweb/ui",
   "files": [
@@ -56,7 +56,7 @@
     "recharts": "^3.9.0"
   },
   "peerDependencies": {
-    "datavis-ace": "=4.0.0-PRE.2",
+    "datavis-ace": ">=4.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
