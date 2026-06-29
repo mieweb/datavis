@@ -215,6 +215,7 @@ function GridDemo({
   onGraphConfigChange,
   defaultGraphConfig,
   height,
+  minimalMode,
 }: {
   title: string;
   helpText: string;
@@ -227,6 +228,7 @@ function GridDemo({
   onGraphConfigChange: (config: Partial<GraphConfig>) => void;
   defaultGraphConfig: Partial<GraphConfig>;
   height?: string;
+  minimalMode?: boolean;
 }) {
   const view = useMemo(() => createMockView(data, columns), [columns, data]);
   const groupFnDefs = useMemo(() => getBuiltinGroupFunctions(demoTrans), []);
@@ -298,6 +300,7 @@ function GridDemo({
         title={title}
         helpText={helpText}
         height={height}
+        minimalMode={minimalMode}
         showToolbar={true}
         showControls={true}
         debug={true}
@@ -385,6 +388,7 @@ function getTabFromHash(): TabKey {
 function App() {
   const [activeTab, setActiveTab] = useState<TabKey>(getTabFromHash);
   const [graphConfigs, setGraphConfigs] = useState<Record<TabKey, Partial<GraphConfig>>>(DEFAULT_GRAPH_CONFIGS);
+  const [minimalMode, setMinimalMode] = useState(false);
 
   const handleGraphConfigChange = (tab: TabKey, config: Partial<GraphConfig>) => {
     setGraphConfigs((prev) => ({
@@ -469,6 +473,15 @@ function App() {
           </p>
         </div>
         <div className="flex items-center gap-3">
+          <label className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={minimalMode}
+              onChange={(e) => setMinimalMode(e.target.checked)}
+              aria-label="Toggle minimal mode"
+            />
+            Minimal mode
+          </label>
           <LanguageSelector />
           {location.hostname === 'localhost' && <a
             href="http://localhost:6006"
@@ -517,6 +530,7 @@ function App() {
             graphConfig={graphConfigs.simple}
             onGraphConfigChange={(config) => handleGraphConfigChange('simple', config)}
               defaultGraphConfig={DEFAULT_GRAPH_CONFIGS.simple}
+            minimalMode={minimalMode}
           />
         )}
 
@@ -532,6 +546,7 @@ function App() {
             graphConfig={graphConfigs.wide}
             onGraphConfigChange={(config) => handleGraphConfigChange('wide', config)}
               defaultGraphConfig={DEFAULT_GRAPH_CONFIGS.wide}
+            minimalMode={minimalMode}
           />
         )}
 
@@ -547,6 +562,7 @@ function App() {
             graphConfig={graphConfigs.large}
             onGraphConfigChange={(config) => handleGraphConfigChange('large', config)}
               defaultGraphConfig={DEFAULT_GRAPH_CONFIGS.large}
+            minimalMode={minimalMode}
           />
         )}
 
@@ -563,6 +579,7 @@ function App() {
               onGraphConfigChange={(config) => handleGraphConfigChange('constrained', config)}
                 defaultGraphConfig={DEFAULT_GRAPH_CONFIGS.constrained}
               height="500px"
+              minimalMode={minimalMode}
             />
         )}
 

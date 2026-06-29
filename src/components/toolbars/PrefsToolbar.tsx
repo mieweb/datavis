@@ -19,6 +19,12 @@ import { ChevronGlyphIcon, ClipboardIcon, CloseGlyphIcon, DocumentIcon, RefreshG
 export interface PrefsToolbarProps {
   prefs: PrefsInstance;
   onOpenPerspective?: () => void;
+  /**
+   * Layout of the toolbar.
+   * - `inline` (default): perspective dropdown and buttons on a single row.
+   * - `stacked`: perspective dropdown on its own row, buttons on the row beneath.
+   */
+  layout?: 'inline' | 'stacked';
 }
 
 interface PromptResult {
@@ -63,7 +69,7 @@ function translateOrFallback(t: (key: string) => string, key: string, fallback: 
   return translated;
 }
 
-export function PrefsToolbar({ prefs, onOpenPerspective }: PrefsToolbarProps) {
+export function PrefsToolbar({ prefs, onOpenPerspective, layout = 'inline' }: PrefsToolbarProps) {
   const { t } = useTranslation();
   const {
     perspectives,
@@ -195,12 +201,10 @@ export function PrefsToolbar({ prefs, onOpenPerspective }: PrefsToolbarProps) {
     if (yes) reset();
   };
 
-  return (
-    <div
-      className="wcdv-prefs-toolbar flex items-center gap-1"
-      role="toolbar"
-      aria-label={t('GRID_TOOLBAR.PREFS.LABEL') || 'Perspective Management'}
-    >
+  const ariaLabel = t('GRID_TOOLBAR.PREFS.LABEL') || 'Perspective Management';
+
+  const leadingButtons = (
+    <>
       {/* Reset */}
       <Tooltip content={t('GRID_TOOLBAR.PREFS.RESET') || 'Reset'}>
         <Button
@@ -238,31 +242,35 @@ export function PrefsToolbar({ prefs, onOpenPerspective }: PrefsToolbarProps) {
           <ChevronGlyphIcon className="h-4 w-4" direction="right" />
         </Button>
       </Tooltip>
+    </>
+  );
 
-      {/* Perspective dropdown */}
-      {perspectives.length > 0 && (
-        <Select
-          size="sm"
-          hideLabel
-          label={t('GRID_TOOLBAR.PREFS.PERSPECTIVE') || 'Perspective'}
-          className="min-w-[12rem]"
-          options={[
-            {
-              value: '__NEW__',
-              label: t('GRID_TOOLBAR.PREFS.NEW_PERSPECTIVE') || '+ New Perspective',
-            },
-            ...perspectives.map((p) => ({
-              value: p.id,
-              label: isUnsaved && p.id === currentPerspectiveId
-                ? `[*] ${p.name}`
-                : p.name,
-            })),
-          ]}
-          value={currentPerspectiveId ?? ''}
-          onValueChange={handlePerspectiveChange}
-        />
-      )}
+  // Perspective dropdown
+  const perspectiveSelect = perspectives.length > 0 ? (
+    <Select
+      size="sm"
+      hideLabel
+      label={t('GRID_TOOLBAR.PREFS.PERSPECTIVE') || 'Perspective'}
+      className="min-w-[12rem]"
+      options={[
+        {
+          value: '__NEW__',
+          label: t('GRID_TOOLBAR.PREFS.NEW_PERSPECTIVE') || '+ New Perspective',
+        },
+        ...perspectives.map((p) => ({
+          value: p.id,
+          label: isUnsaved && p.id === currentPerspectiveId
+            ? `[*] ${p.name}`
+            : p.name,
+        })),
+      ]}
+      value={currentPerspectiveId ?? ''}
+      onValueChange={handlePerspectiveChange}
+    />
+  ) : null;
 
+  const trailingButtons = (
+    <>
       {/* Save As (for temporary perspectives) */}
       {currentPerspective?.isTemporary && (
         <Tooltip content={t('GRID_TOOLBAR.PREFS.SAVE_AS') || 'Save As'}>
@@ -370,6 +378,30 @@ export function PrefsToolbar({ prefs, onOpenPerspective }: PrefsToolbarProps) {
           </Button>
         </Tooltip>
       )}
+    </>
+  );
+
+  if (layout === 'stacked') {
+    return (
+      <div className="wcdv-prefs-toolbar flex flex-col gap-1" aria-label={ariaLabel}>
+        {perspectiveSelect}
+        <div className="flex items-center gap-1" role="toolbar" aria-label={ariaLabel}>
+          {leadingButtons}
+          {trailingButtons}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="wcdv-prefs-toolbar flex items-center gap-1"
+      role="toolbar"
+      aria-label={ariaLabel}
+    >
+      {leadingButtons}
+      {perspectiveSelect}
+      {trailingButtons}
     </div>
   );
 }

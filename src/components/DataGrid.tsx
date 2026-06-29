@@ -30,6 +30,7 @@ import { useTranslation } from 'react-i18next';
 import { LocaleProvider } from '../i18n';
 import { COLUMN_DRAG_MIME } from './controls/column-drag';
 import { TitleBar } from './TitleBar';
+import { MinimalMenu } from './MinimalMenu';
 import { rowsToCsv, downloadCsv, copyToClipboard, buildCsvFilename } from './export-utils';
 import { GridToolbar } from './GridToolbar';
 import { ControlPanel } from './controls/ControlPanel';
@@ -223,6 +224,11 @@ export interface DataGridProps {
   showToolbar?: boolean;
   /** Whether to show controls (filter/group/pivot/aggregate) initially */
   showControls?: boolean;
+  /**
+   * Minimal mode — hides the title bar and instead overlays a floating ellipsis
+   * button that opens a menu with the title bar actions and perspective controls.
+   */
+  minimalMode?: boolean;
   /** Grid height (CSS value) */
   height?: string;
   /** Operations for the operations palette */
@@ -314,6 +320,7 @@ export function DataGrid({
   helpText,
   showToolbar = true,
   showControls: initialShowControls = false,
+  minimalMode = false,
   height,
   operations = [],
   onToggle,
@@ -1119,26 +1126,29 @@ export function DataGrid({
         {t('GRID.SKIP_TO_TABLE') || 'Skip to data table'}
       </a>
 
-      {/* Title Bar */}
-      <TitleBar
-        title={title}
-        helpText={helpText}
-        loading={viewState.loading || sourceState.fetching}
-        rowCount={viewState.workInfo?.numRows ?? 0}
-        totalRowCount={viewState.workInfo?.totalRows ?? 0}
-        hasActiveFilter={hasActiveFilter}
-        cancellable={sourceState.source.isCancellable()}
-        collapsed={collapsed}
-        prefs={prefs}
-        onToggle={handleToggle}
-        onToggleControls={handleToggleControls}
-        onRefresh={handleRefresh}
-        onCancel={sourceState.cancel}
-        onClearFilter={clearFilter}
-        onOpenPerspective={openPerspective}
-        onExportCsv={handleExportCsv}
-        onCopyClipboard={handleCopyClipboard}
-      />
+      {/* Title Bar — hidden in minimal mode (replaced by a floating ellipsis
+          menu rendered over the data table below) */}
+      {!minimalMode && (
+        <TitleBar
+          title={title}
+          helpText={helpText}
+          loading={viewState.loading || sourceState.fetching}
+          rowCount={viewState.workInfo?.numRows ?? 0}
+          totalRowCount={viewState.workInfo?.totalRows ?? 0}
+          hasActiveFilter={hasActiveFilter}
+          cancellable={sourceState.source.isCancellable()}
+          collapsed={collapsed}
+          prefs={prefs}
+          onToggle={handleToggle}
+          onToggleControls={handleToggleControls}
+          onRefresh={handleRefresh}
+          onCancel={sourceState.cancel}
+          onClearFilter={clearFilter}
+          onOpenPerspective={openPerspective}
+          onExportCsv={handleExportCsv}
+          onCopyClipboard={handleCopyClipboard}
+        />
+      )}
 
       {/* Collapsible Content */}
       {!collapsed && (
@@ -1203,6 +1213,18 @@ export function DataGrid({
             className="wcdv-grid-table flex flex-col flex-1 min-h-0 relative"
             aria-busy={viewState.loading}
           >
+            {/* Floating ellipsis menu (minimal mode) — sits over the table,
+                clear of the controls toolbar above */}
+            {minimalMode && (
+              <MinimalMenu
+                prefs={prefs}
+                onToggleControls={handleToggleControls}
+                onRefresh={handleRefresh}
+                onOpenPerspective={openPerspective}
+                onExportCsv={handleExportCsv}
+                onCopyClipboard={handleCopyClipboard}
+              />
+            )}
             {tableContent}
           </div>
         </div>
