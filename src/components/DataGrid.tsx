@@ -585,10 +585,21 @@ export function DataGrid({
       ),
     );
 
-    setAggregateEntries(parseAggregateEntries(view.getAggregate?.() ?? null));
+    setAggregateEntries(
+      minimalMode
+        ? []
+        : parseAggregateEntries(view.getAggregate?.() ?? null),
+    );
     setInitialFilterSpec(parseFilterSpec(view.getFilter?.() ?? null));
     setSyntheticPivot(false);
-  }, [view, controlFields]);
+
+    // Minimal mode hides the aggregate footer (e.g. the count row) by default.
+    // Strip any default aggregate the view seeds so the table starts without a
+    // footer; the user can still turn aggregates on via the aggregate control.
+    if (minimalMode && view.getAggregate?.()) {
+      view.setAggregate?.(null);
+    }
+  }, [view, controlFields, minimalMode]);
 
   useEffect(() => {
     syncControlStateFromView();
