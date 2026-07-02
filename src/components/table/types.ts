@@ -232,6 +232,8 @@ export interface BaseTableProps {
   aggregates?: Record<string, unknown>;
   /** Map of aggregate function internal names to display labels */
   aggFnLabels?: Record<string, string>;
+  /** Whether to show the "Showing N rows" count in the footer. Defaults to true. */
+  showRowCount?: boolean;
 
   // ── Callbacks ──
   /** Sort requested on a column. When `additive` is true (e.g. shift-click), the column is added to / updated within the existing multi-column sort; otherwise it replaces the current sort. */

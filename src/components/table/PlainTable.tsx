@@ -158,7 +158,7 @@ function HeaderCell({
       onDragLeave={(e) => onHeaderDragLeave?.(e)}
       onDrop={(e) => onHeaderDrop?.(column.field, e)}
       onDragEnd={() => onHeaderDragEnd?.()}
-      className={`wcdv-th relative select-none border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 cursor-grab active:cursor-grabbing${isLastPinned ? ' wcdv-pin-separator' : ''}`}
+      className={`wcdv-th relative select-none border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-2 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 cursor-grab active:cursor-grabbing${isLastPinned ? ' wcdv-pin-separator' : ''}`}
       scope="col"
       aria-sort={
         sortDir === 'asc'
@@ -289,7 +289,7 @@ function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale, pinS
                 return (
                   <td
                     key={col.field}
-                    className={`px-3 py-1.5 text-right border-r border-gray-200 dark:border-neutral-700${pinCls}`}
+                    className={`px-2 py-1 text-right border-r border-gray-200 dark:border-neutral-700${pinCls}`}
                     style={footPinStyle}
                     title={`${label}: ${formatted}`}
                   >
@@ -303,7 +303,7 @@ function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale, pinS
                 return (
                   <td
                     key={col.field}
-                    className={`px-3 py-1.5 border-r border-gray-200 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs uppercase tracking-wider${pinCls}`}
+                    className={`px-2 py-1 border-r border-gray-200 dark:border-neutral-700 text-gray-500 dark:text-neutral-400 text-xs uppercase tracking-wider${pinCls}`}
                     style={footPinStyle}
                   >
                     {label}
@@ -311,7 +311,7 @@ function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale, pinS
                 );
               }
               return (
-                <td key={col.field} className={`px-3 py-1.5 border-r border-gray-200 dark:border-neutral-700${pinCls}`} style={footPinStyle} />
+                <td key={col.field} className={`px-2 py-1 border-r border-gray-200 dark:border-neutral-700${pinCls}`} style={footPinStyle} />
               );
             })}
           </tr>
@@ -335,6 +335,7 @@ export function PlainTable({
   formatCell,
   aggregates,
   aggFnLabels,
+  showRowCount = true,
   onSort,
   onRowClick,
   onRowDoubleClick,
@@ -888,7 +889,7 @@ export function PlainTable({
                         return (
                         <td
                           key={col.field}
-                          className={`wcdv-td border-r border-gray-100 dark:border-neutral-700 px-3 py-1.5 text-sm ${getCellAlign(col)} ${
+                          className={`wcdv-td border-r border-gray-100 dark:border-neutral-700 px-2 py-1 text-sm ${getCellAlign(col)} ${
                             features.rowMode === 'clipped'
                               ? 'truncate max-w-0'
                               : ''
@@ -926,19 +927,23 @@ export function PlainTable({
       </div>
 
       {/* ── Footer: show more / row count ── */}
-      {(isLimited || totalRows != null) && (
+      {(isLimited || (showRowCount && totalRows != null)) && (
         <div className="wcdv-table-footer flex items-center justify-between border-t border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-3 py-1.5 text-xs text-gray-500 dark:text-neutral-400">
-          <span>
-            {t('TABLE.SHOWING') || 'Showing'} {rows.length}
-            {totalRows != null && totalRows > rows.length && (
-              <>
-                {' '}
-                {t('TABLE.OF') || 'of'} {totalRows}
-              </>
-            )}
-            {' '}
-            {t('TABLE.ROWS') || 'rows'}
-          </span>
+          {showRowCount ? (
+            <span>
+              {t('TABLE.SHOWING') || 'Showing'} {rows.length}
+              {totalRows != null && totalRows > rows.length && (
+                <>
+                  {' '}
+                  {t('TABLE.OF') || 'of'} {totalRows}
+                </>
+              )}
+              {' '}
+              {t('TABLE.ROWS') || 'rows'}
+            </span>
+          ) : (
+            <span />
+          )}
 
           {isLimited && (
             <div className="flex gap-2">

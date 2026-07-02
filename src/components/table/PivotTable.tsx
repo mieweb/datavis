@@ -144,7 +144,7 @@ export function PivotTable({
                 return (
                 <th
                   key={col.field}
-                  className="border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 cursor-pointer hover:bg-gray-200 dark:hover:bg-neutral-700"
+                  className="border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800 px-2 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 cursor-pointer hover:bg-gray-200 dark:hover:bg-neutral-700"
                   style={{ width: col.width, minWidth: col.minWidth }}
                   rowSpan={aggFunctions.length > 1 ? 2 : 1}
                   role="columnheader"
@@ -166,7 +166,7 @@ export function PivotTable({
               {colVals.map((colVal) => (
                 <th
                   key={String(colVal)}
-                  className="border-b border-r border-gray-200 dark:border-neutral-700 bg-blue-50 dark:bg-blue-900/30 px-3 py-2 text-center text-xs font-semibold text-blue-700 dark:text-blue-300"
+                  className="border-b border-r border-gray-200 dark:border-neutral-700 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 text-center text-xs font-semibold text-blue-700 dark:text-blue-300"
                   colSpan={aggFunctions.length}
                 >
                   {String(colVal)}
@@ -174,7 +174,7 @@ export function PivotTable({
               ))}
               {showTotalCol && (
                 <th
-                  className="border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-200 dark:bg-neutral-700 px-3 py-2 text-center text-xs font-semibold text-gray-700 dark:text-neutral-300"
+                  className="border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-200 dark:bg-neutral-700 px-2 py-1 text-center text-xs font-semibold text-gray-700 dark:text-neutral-300"
                   colSpan={aggFunctions.length}
                 >
                   {t('TABLE.TOTAL') || 'Total'}
@@ -292,7 +292,7 @@ export function PivotTable({
                 {rowColumns.map((col, idx) => (
                   <td
                     key={col.field}
-                    className="border-r border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm"
+                    className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm"
                   >
                     {idx === 0 ? t('TABLE.TOTAL') || 'Total' : ''}
                   </td>
@@ -301,7 +301,7 @@ export function PivotTable({
                   aggFunctions.map((fn) => (
                     <td
                       key={`total_${colIdx}_${fn}`}
-                      className="border-r border-gray-200 dark:border-neutral-700 px-2 py-2 text-sm text-right"
+                      className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm text-right"
                     >
                       {totalRow[colIdx]?.[fn] != null
                         ? String(totalRow[colIdx][fn])
@@ -313,7 +313,7 @@ export function PivotTable({
                   aggFunctions.map((fn) => (
                     <td
                       key={`grand_${fn}`}
-                      className="border-r border-gray-200 dark:border-neutral-700 bg-gray-200 dark:bg-neutral-700 px-2 py-2 text-sm text-right font-bold"
+                      className="border-r border-gray-200 dark:border-neutral-700 bg-gray-200 dark:bg-neutral-700 px-2 py-1 text-sm text-right font-bold"
                     >
                       {grandTotal?.[fn] != null ? String(grandTotal[fn]) : ''}
                     </td>

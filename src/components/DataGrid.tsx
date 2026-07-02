@@ -209,6 +209,9 @@ export interface GridTableDef {
   [key: string]: unknown;
 }
 
+/** Grid header display mode. See `DataGridProps.mode`. */
+export type GridMode = 'default' | 'full' | 'minimal';
+
 export interface DataGridProps {
   /** ComputedView instance from wcdatavis core */
   view: ViewInstance;
@@ -225,8 +228,18 @@ export interface DataGridProps {
   /** Whether to show controls (filter/group/pivot/aggregate) initially */
   showControls?: boolean;
   /**
-   * Minimal mode — hides the title bar and instead overlays a floating ellipsis
-   * button that opens a menu with the title bar actions and perspective controls.
+   * Display mode for the grid header:
+   * - `'default'` (new default): title bar with a smaller title, no seeded count
+   *   footer, and the minimal-mode hamburger menu replacing the inline
+   *   perspective/refresh/gear buttons.
+   * - `'full'`: the classic title bar with row count and inline perspective and
+   *   action buttons.
+   * - `'minimal'`: no title bar — a floating hamburger menu overlays the table.
+   */
+  mode?: GridMode;
+  /**
+   * @deprecated Use `mode="minimal"` instead. Kept for backward compatibility;
+   * when `true` it forces `mode="minimal"`.
    */
   minimalMode?: boolean;
   /** Grid height (CSS value) */
@@ -320,6 +333,7 @@ export function DataGrid({
   helpText,
   showToolbar = true,
   showControls: initialShowControls = false,
+  mode = 'default',
   minimalMode = false,
   height,
   operations = [],
@@ -345,6 +359,8 @@ export function DataGrid({
 }: DataGridProps) {
   // ── i18n via react-i18next ─
   const { t } = useTranslation();
+  // `minimalMode` is a deprecated alias for `mode="minimal"`.
+  const gridMode: GridMode = minimalMode ? 'minimal' : mode;
   const [internalTableDef] = useState<GridTableDef>(() => ({
     rowMode: 'wrapped',
     limit: { autoShowMore: true, limit: DEFAULT_ROW_BATCH_SIZE },
@@ -359,8 +375,11 @@ export function DataGrid({
   const sourceState = useSource(view.source);
 
   // ── Local UI state ─────────────────────────────
+  // Default mode is the compact/clean view: controls start hidden regardless
+  // of the `showControls` prop (the user opens them from the hamburger menu).
+  const controlsInitiallyVisible = gridMode === 'default' ? false : initialShowControls;
   const [collapsed, setCollapsed] = useState(false);
-  const controlsVisibleRef = useRef(initialShowControls);
+  const controlsVisibleRef = useRef(controlsInitiallyVisible);
   const controlsWrapperRef = useRef<HTMLDivElement>(null);
   const gridTableRef = useRef<HTMLDivElement>(null);
   const setControlsVisible = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
@@ -586,20 +605,28 @@ export function DataGrid({
     );
 
     setAggregateEntries(
-      minimalMode
-        ? []
-        : parseAggregateEntries(view.getAggregate?.() ?? null),
+      gridMode === 'full'
+        ? parseAggregateEntries(view.getAggregate?.() ?? null)
+        : [],
     );
     setInitialFilterSpec(parseFilterSpec(view.getFilter?.() ?? null));
     setSyntheticPivot(false);
 
-    // Minimal mode hides the aggregate footer (e.g. the count row) by default.
-    // Strip any default aggregate the view seeds so the table starts without a
-    // footer; the user can still turn aggregates on via the aggregate control.
-    if (minimalMode && view.getAggregate?.()) {
-      view.setAggregate?.(null);
+    // Default and minimal modes hide the aggregate footer (e.g. the count row)
+    // by default. Strip any default aggregate the view seeds so the table starts
+    // without a footer; the user can still turn aggregates on via the aggregate
+    // control. Guarded because clearing the aggregate can trigger a prefs save
+    // before the prefs backend has been primed (e.g. on initial mount).
+    if (gridMode !== 'full' && view.getAggregate?.()) {
+      try {
+        view.setAggregate?.(null);
+      } catch {
+        // Prefs backend not ready yet. syncControlStateFromView re-runs on the
+        // `primed`/`perspectiveChanged` events, which will strip the aggregate
+        // once the save can succeed.
+      }
     }
-  }, [view, controlFields, minimalMode]);
+  }, [view, controlFields, gridMode]);
 
   useEffect(() => {
     syncControlStateFromView();
@@ -744,6 +771,9 @@ export function DataGrid({
         syntheticPivot,
         onShowMore: childProps.onShowMore ?? handleShowMoreRows,
         onShowAll: childProps.onShowAll ?? handleShowAllRows,
+        // Default mode shows the row count next to the title, so suppress the
+        // "Showing N rows" footer count in the table.
+        showRowCount: childProps.showRowCount ?? gridMode !== 'default',
       });
     }),
     [
@@ -757,6 +787,7 @@ export function DataGrid({
       syntheticPivot,
       handleShowMoreRows,
       handleShowAllRows,
+      gridMode,
     ],
   );
 
@@ -1138,9 +1169,12 @@ export function DataGrid({
       </a>
 
       {/* Title Bar — hidden in minimal mode (replaced by a floating ellipsis
-          menu rendered over the data table below) */}
-      {!minimalMode && (
+          menu rendered over the data table below). In default mode the title
+          bar renders a compact title and the hamburger menu; in full mode it
+          shows the row count and inline perspective/action buttons. */}
+      {gridMode !== 'minimal' && (
         <TitleBar
+          variant={gridMode === 'default' ? 'default' : 'full'}
           title={title}
           helpText={helpText}
           loading={viewState.loading || sourceState.fetching}
@@ -1165,7 +1199,7 @@ export function DataGrid({
       {!collapsed && (
         <div className="wcdv-grid-content flex flex-col flex-1 min-h-0">
           {/* Controls area — toggled via CSS class, not React state */}
-          <div ref={controlsWrapperRef} className={initialShowControls ? undefined : 'hidden'}>
+          <div ref={controlsWrapperRef} className={controlsInitiallyVisible ? undefined : 'hidden'}>
             {/* Toolbar */}
             {showToolbar && (
               <GridToolbar
@@ -1226,7 +1260,7 @@ export function DataGrid({
           >
             {/* Floating ellipsis menu (minimal mode) — sits over the table,
                 clear of the controls toolbar above */}
-            {minimalMode && (
+            {gridMode === 'minimal' && (
               <MinimalMenu
                 prefs={prefs}
                 onToggleControls={handleToggleControls}

@@ -23,6 +23,20 @@ export interface MinimalMenuProps {
   onOpenPerspective?: () => void;
   onExportCsv?: () => void;
   onCopyClipboard?: () => void;
+  /**
+   * When `true` (default) the menu floats over the grid as a semi-transparent
+   * overlay. When `false` it renders inline (e.g. inside the title bar) with a
+   * plain ghost trigger.
+   */
+  floating?: boolean;
+  /**
+   * Whether to include the collapse/expand item. Omitted in the floating
+   * (minimal) overlay since nothing would remain to expand; enabled when the
+   * menu lives inside a visible title bar (default mode).
+   */
+  showCollapse?: boolean;
+  collapsed?: boolean;
+  onToggle?: () => void;
 }
 
 export function MinimalMenu({
@@ -32,31 +46,44 @@ export function MinimalMenu({
   onOpenPerspective,
   onExportCsv,
   onCopyClipboard,
+  floating = true,
+  showCollapse = false,
+  collapsed = false,
+  onToggle = () => {},
 }: MinimalMenuProps) {
   const { t } = useTranslation();
 
+  const wrapperClassName = floating
+    ? 'wcdv-minimal-menu absolute right-3 top-11 z-20'
+    : 'wcdv-minimal-menu -mr-2';
+  const triggerClassName = floating
+    ? 'border border-gray-300 bg-white/90 opacity-60 shadow-sm transition-opacity hover:opacity-100 dark:border-neutral-600 dark:bg-neutral-800/90'
+    : 'h-5 w-5 p-0';
+  const iconClassName = floating ? 'h-4 w-4' : 'h-3.5 w-3.5';
+
   return (
-    <div className="wcdv-minimal-menu absolute right-3 top-11 z-20">
+    <div className={wrapperClassName}>
       <Dropdown
         placement="bottom-end"
         trigger={(
           <Button
             size="sm"
             variant="ghost"
-            className="border border-gray-300 bg-white/90 opacity-60 shadow-sm transition-opacity hover:opacity-100 dark:border-neutral-600 dark:bg-neutral-800/90"
+            className={triggerClassName}
             aria-label={t('GRID.TITLEBAR.ACTIONS') || 'Grid actions'}
             aria-haspopup="menu"
           >
-            <Menu className="h-4 w-4" aria-hidden="true" />
+            <Menu className={iconClassName} aria-hidden="true" />
           </Button>
         )}
       >
         <DropdownContent className="flex flex-col gap-2 p-2">
-          {/* Row 1 — title bar actions (no collapse button in minimal mode) */}
+          {/* Row 1 — title bar actions (collapse optional, e.g. shown in
+              default mode where a title bar remains visible) */}
           <TitleBarActions
-            collapsed={false}
-            onToggle={() => {}}
-            showCollapse={false}
+            collapsed={collapsed}
+            onToggle={onToggle}
+            showCollapse={showCollapse}
             onToggleControls={onToggleControls}
             onRefresh={onRefresh}
             onOpenPerspective={onOpenPerspective}

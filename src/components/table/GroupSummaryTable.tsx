@@ -116,7 +116,7 @@ export function GroupSummaryTable({
                 return (
                 <th
                   key={col.field}
-                  className="border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-neutral-700"
+                  className="border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-2 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-neutral-700"
                   style={{
                     width: col.width,
                     minWidth: col.minWidth ?? 50,
@@ -179,7 +179,7 @@ export function GroupSummaryTable({
                         return (
                           <td
                             key={col.field}
-                            className="border-r border-gray-100 dark:border-neutral-700 px-3 py-2 text-sm font-medium"
+                            className="border-r border-gray-100 dark:border-neutral-700 px-2 py-1 text-sm font-medium"
                             style={{
                               width: col.width,
                               minWidth: col.minWidth ?? 50,
@@ -195,7 +195,7 @@ export function GroupSummaryTable({
                       return (
                         <td
                           key={col.field}
-                          className="border-r border-gray-100 dark:border-neutral-700 px-3 py-2 text-sm text-right"
+                          className="border-r border-gray-100 dark:border-neutral-700 px-2 py-1 text-sm text-right"
                           style={{
                             width: col.width,
                             minWidth: col.minWidth ?? 50,
@@ -220,7 +220,7 @@ export function GroupSummaryTable({
                 {summaryColumns.map((col, idx) => (
                   <td
                     key={col.field}
-                    className="border-r border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm"
+                    className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm"
                   >
                     {idx === 0
                       ? `${t('TABLE.TOTAL') || 'Total'} (${groupOrder.length})`

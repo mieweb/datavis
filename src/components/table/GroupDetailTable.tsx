@@ -292,7 +292,7 @@ export function GroupDetailTable({
                   key={col.field}
                   colSpan={col.span}
                   rowSpan={hasAggSubCols && col.aggFns.length === 0 ? 2 : 1}
-                  className={`border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 ${
+                  className={`border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-2 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 ${
                     col.aggFns.length > 0 ? 'text-center' : ''
                   }`}
                   style={{
@@ -396,7 +396,7 @@ export function GroupDetailTable({
                     <td
                       key={col.field}
                       colSpan={col.span}
-                      className="border-r border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm"
+                      className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm"
                     >
                       {(() => {
                         const aggregateValue = getAggregateValueForField(totalAggregates, col.field);
@@ -524,7 +524,7 @@ function GroupSection({
             return first.aggFns.map((fn, fi) => (
               <td
                 key={`${first.field}-${fn}`}
-                className={`border-r border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm ${
+                className={`border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm ${
                   fi === 0 ? 'font-semibold text-gray-700 dark:text-neutral-300' : 'text-center text-gray-600 dark:text-neutral-400 text-xs'
                 }`}
                 style={fi === 0 ? { minWidth: first.minWidth ?? 50 } : undefined}
@@ -547,7 +547,7 @@ function GroupSection({
           return (
             <td
               key={first.field}
-              className="border-r border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm font-semibold text-gray-700 dark:text-neutral-300"
+              className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm font-semibold text-gray-700 dark:text-neutral-300"
               style={{ minWidth: first.minWidth ?? 50 }}
             >
               <span>{formatGroupLabel(groupKey, meta)}</span>
@@ -566,7 +566,7 @@ function GroupSection({
               return (
                 <td
                   key={`${col.field}-${fn}`}
-                  className="border-r border-gray-200 dark:border-neutral-700 px-2 py-2 text-center text-sm text-gray-600 dark:text-neutral-400"
+                  className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-center text-sm text-gray-600 dark:text-neutral-400"
                 >
                   {match ? formatAggValue('', match.value) : ''}
                 </td>
@@ -576,7 +576,7 @@ function GroupSection({
           return (
             <td
               key={col.field}
-              className="border-r border-gray-200 dark:border-neutral-700 px-3 py-2 text-sm"
+              className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm"
             />
           );
         })}

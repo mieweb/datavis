@@ -672,6 +672,7 @@ function HarnessGrid({
         tableDef={tableDef}
         title={config.title}
         helpText={`E2E harness scenario: ${scenario}`}
+        mode="full"
         showToolbar={true}
         showControls={true}
         debug={true}
@@ -761,6 +762,7 @@ function StickyViewportScenario() {
         view={view}
         title="Sticky Viewport Test"
         helpText="Tests sticky headers in viewport-scroll mode (no fixed container height)"
+        mode="full"
         showToolbar={true}
         showControls={true}
         filterColumns={LEDGER_FILTERS.slice(0, 4)}
@@ -817,6 +819,7 @@ function StickyContainerScenario() {
           title="Sticky Container Test"
           helpText="Tests sticky headers inside a fixed-height container (400px)"
           height="400px"
+          mode="full"
           showToolbar={true}
           showControls={true}
           filterColumns={LEDGER_FILTERS.slice(0, 4)}

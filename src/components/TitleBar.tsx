@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { HelpIcon, InlineActionButton } from './ui';
 import { PrefsToolbar } from './toolbars/PrefsToolbar';
 import { TitleBarActions } from './TitleBarActions';
+import { MinimalMenu } from './MinimalMenu';
 import type { PrefsInstance } from '../adapters/use-prefs';
 
 export interface TitleBarProps {
@@ -25,6 +26,12 @@ export interface TitleBarProps {
   cancellable: boolean;
   collapsed: boolean;
   prefs?: PrefsInstance;
+  /**
+   * `'full'` (default) shows the row count and inline perspective/action
+   * buttons. `'default'` shows a compact title, hides the row count, and
+   * replaces the inline buttons with the hamburger menu.
+   */
+  variant?: 'full' | 'default';
   onToggle: () => void;
   onToggleControls: () => void;
   onRefresh: () => void;
@@ -45,6 +52,7 @@ export function TitleBar({
   cancellable,
   collapsed,
   prefs,
+  variant = 'full',
   onToggle,
   onToggleControls,
   onRefresh,
@@ -55,6 +63,7 @@ export function TitleBar({
   onCopyClipboard,
 }: TitleBarProps) {
   const { t } = useTranslation();
+  const isDefault = variant === 'default';
   const filtered = totalRowCount > 0 && rowCount !== totalRowCount;
   const rowCountText = filtered
     ? `${rowCount} / ${totalRowCount}`
@@ -64,7 +73,7 @@ export function TitleBar({
 
   return (
     <div
-      className="wcdv-title-bar flex items-center gap-2 px-3 py-2 bg-gray-50 dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700 rounded-t-lg"
+      className={`wcdv-title-bar flex items-center gap-2 px-3 ${isDefault ? 'py-0.5' : 'py-2'} bg-gray-50 dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700 rounded-t-lg`}
       role="group"
       aria-label={title}
     >
@@ -74,13 +83,26 @@ export function TitleBar({
       )}
 
       {/* Title */}
-      <strong className="wcdv-title text-sm font-semibold truncate" aria-live="polite">
+      <strong
+        className={`wcdv-title ${isDefault ? 'text-xs' : 'text-sm'} font-semibold truncate`}
+        aria-live="polite"
+      >
         {title}
       </strong>
 
+      {/* Row count beside the title (default mode) */}
+      {isDefault && rowCountText && (
+        <span
+          className="wcdv-title-rowcount text-xs text-gray-500 dark:text-neutral-400 whitespace-nowrap"
+          aria-live="polite"
+        >
+          {rowCountText} {t('TABLE.ROWS') || 'rows'}
+        </span>
+      )}
+
       {/* Status info */}
       <span className="wcdv-status-info flex items-center gap-2 text-xs text-gray-500 dark:text-neutral-400 ml-1">
-        {rowCountText && (
+        {!isDefault && rowCountText && (
           <span aria-live="polite">{rowCountText}</span>
         )}
 
@@ -122,21 +144,40 @@ export function TitleBar({
       {/* Spacer */}
       <span className="flex-1" />
 
-      {/* Prefs toolbar (perspective management) */}
-      {prefs && (
-        <PrefsToolbar prefs={prefs} onOpenPerspective={onOpenPerspective} />
-      )}
+      {isDefault ? (
+        /* Default mode — hamburger menu replaces the inline perspective and
+           action buttons (collapse included since the title bar stays visible) */
+        <MinimalMenu
+          floating={false}
+          prefs={prefs}
+          showCollapse
+          collapsed={collapsed}
+          onToggle={onToggle}
+          onToggleControls={onToggleControls}
+          onRefresh={onRefresh}
+          onOpenPerspective={onOpenPerspective}
+          onExportCsv={onExportCsv}
+          onCopyClipboard={onCopyClipboard}
+        />
+      ) : (
+        <>
+          {/* Prefs toolbar (perspective management) */}
+          {prefs && (
+            <PrefsToolbar prefs={prefs} onOpenPerspective={onOpenPerspective} />
+          )}
 
-      {/* Action buttons */}
-      <TitleBarActions
-        collapsed={collapsed}
-        onToggle={onToggle}
-        onToggleControls={onToggleControls}
-        onRefresh={onRefresh}
-        onOpenPerspective={onOpenPerspective}
-        onExportCsv={onExportCsv}
-        onCopyClipboard={onCopyClipboard}
-      />
+          {/* Action buttons */}
+          <TitleBarActions
+            collapsed={collapsed}
+            onToggle={onToggle}
+            onToggleControls={onToggleControls}
+            onRefresh={onRefresh}
+            onOpenPerspective={onOpenPerspective}
+            onExportCsv={onExportCsv}
+            onCopyClipboard={onCopyClipboard}
+          />
+        </>
+      )}
     </div>
   );
 }

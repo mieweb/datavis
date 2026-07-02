@@ -70,6 +70,8 @@ export interface TableRendererProps {
   className?: string;
   /** When true, group data should be displayed as a pivot (pivot without explicit grouping) */
   syntheticPivot?: boolean;
+  /** Whether to show the "Showing N rows" count in the table footer. Defaults to true. */
+  showRowCount?: boolean;
 
   // ── Callbacks ──
   /** Sort requested */
@@ -113,6 +115,7 @@ export function TableRenderer({
   aggFnLabels,
   className = '',
   syntheticPivot = false,
+  showRowCount = true,
   onSort,
   onRowClick,
   onRowDoubleClick,
@@ -326,6 +329,7 @@ export function TableRenderer({
           formatCell={formatCell}
           aggregates={viewData.totalAggregates as Record<string, unknown> | undefined}
           aggFnLabels={aggFnLabels}
+          showRowCount={showRowCount}
           onSort={effectiveOnSort}
           onRowClick={onRowClick}
           onRowDoubleClick={onRowDoubleClick}

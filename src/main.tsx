@@ -13,6 +13,7 @@ import { Tabs, TabsList, TabsTrigger } from '@mieweb/ui/components/Tabs';
 import { Prefs } from 'datavis-ace';
 import './index.css';
 import { DataGrid } from './components/DataGrid';
+import type { GridMode } from './components/DataGrid';
 import { GraphView } from './components/GraphView';
 import { TableRenderer } from './components/table/TableRenderer';
 import type { TableColumn } from './components/table/types';
@@ -215,7 +216,7 @@ function GridDemo({
   onGraphConfigChange,
   defaultGraphConfig,
   height,
-  minimalMode,
+  mode,
 }: {
   title: string;
   helpText: string;
@@ -228,7 +229,7 @@ function GridDemo({
   onGraphConfigChange: (config: Partial<GraphConfig>) => void;
   defaultGraphConfig: Partial<GraphConfig>;
   height?: string;
-  minimalMode?: boolean;
+  mode?: GridMode;
 }) {
   const view = useMemo(() => createMockView(data, columns), [columns, data]);
   const groupFnDefs = useMemo(() => getBuiltinGroupFunctions(demoTrans), []);
@@ -300,7 +301,7 @@ function GridDemo({
         title={title}
         helpText={helpText}
         height={height}
-        minimalMode={minimalMode}
+        mode={mode}
         showToolbar={true}
         showControls={true}
         debug={true}
@@ -388,7 +389,7 @@ function getTabFromHash(): TabKey {
 function App() {
   const [activeTab, setActiveTab] = useState<TabKey>(getTabFromHash);
   const [graphConfigs, setGraphConfigs] = useState<Record<TabKey, Partial<GraphConfig>>>(DEFAULT_GRAPH_CONFIGS);
-  const [minimalMode, setMinimalMode] = useState(false);
+  const [mode, setMode] = useState<GridMode>('default');
 
   const handleGraphConfigChange = (tab: TabKey, config: Partial<GraphConfig>) => {
     setGraphConfigs((prev) => ({
@@ -473,14 +474,18 @@ function App() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <label className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={minimalMode}
-              onChange={(e) => setMinimalMode(e.target.checked)}
-              aria-label="Toggle minimal mode"
-            />
-            Minimal mode
+          <label className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700">
+            <span>Mode</span>
+            <select
+              value={mode}
+              onChange={(e) => setMode(e.target.value as GridMode)}
+              className="rounded-md border border-gray-300 px-2 py-1 text-sm"
+              aria-label="Grid display mode"
+            >
+              <option value="default">Default</option>
+              <option value="full">Full</option>
+              <option value="minimal">Minimal</option>
+            </select>
           </label>
           <LanguageSelector />
           {location.hostname === 'localhost' && <a
@@ -530,7 +535,7 @@ function App() {
             graphConfig={graphConfigs.simple}
             onGraphConfigChange={(config) => handleGraphConfigChange('simple', config)}
               defaultGraphConfig={DEFAULT_GRAPH_CONFIGS.simple}
-            minimalMode={minimalMode}
+            mode={mode}
           />
         )}
 
@@ -546,7 +551,7 @@ function App() {
             graphConfig={graphConfigs.wide}
             onGraphConfigChange={(config) => handleGraphConfigChange('wide', config)}
               defaultGraphConfig={DEFAULT_GRAPH_CONFIGS.wide}
-            minimalMode={minimalMode}
+            mode={mode}
           />
         )}
 
@@ -562,7 +567,7 @@ function App() {
             graphConfig={graphConfigs.large}
             onGraphConfigChange={(config) => handleGraphConfigChange('large', config)}
               defaultGraphConfig={DEFAULT_GRAPH_CONFIGS.large}
-            minimalMode={minimalMode}
+            mode={mode}
           />
         )}
 
@@ -579,7 +584,7 @@ function App() {
               onGraphConfigChange={(config) => handleGraphConfigChange('constrained', config)}
                 defaultGraphConfig={DEFAULT_GRAPH_CONFIGS.constrained}
               height="500px"
-              minimalMode={minimalMode}
+              mode={mode}
             />
         )}
 
