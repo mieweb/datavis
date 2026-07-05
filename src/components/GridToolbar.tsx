@@ -53,6 +53,7 @@ export function GridToolbar({
           tableDef={tableDef}
           onShowAllRows={onShowAllRows}
           onOpenColumnConfig={onOpenColumnConfig}
+          onOpenTableOptions={onOpenTableOptions}
         />
       )}
 

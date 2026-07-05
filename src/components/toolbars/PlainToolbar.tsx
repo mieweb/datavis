@@ -1,7 +1,7 @@
 /**
  * PlainToolbar — Toolbar section for plain (ungrouped) data mode.
  *
- * Controls: Show All and Columns.
+ * Controls: Show All, Columns, and Table Options.
  */
 
 import { useCallback } from 'react';
@@ -10,18 +10,20 @@ import { Tooltip } from '@mieweb/ui/components/Tooltip';
 
 import { useTranslation } from 'react-i18next';
 import type { GridTableDef } from '../DataGrid';
-import { DocumentIcon } from '../ui';
+import { DocumentIcon, SettingsIcon } from '../ui';
 
 export interface PlainToolbarProps {
   tableDef?: GridTableDef;
   onShowAllRows?: () => void;
   onOpenColumnConfig?: () => void;
+  onOpenTableOptions?: () => void;
 }
 
 export function PlainToolbar({
   tableDef: _tableDef,
   onShowAllRows,
   onOpenColumnConfig,
+  onOpenTableOptions,
 }: PlainToolbarProps) {
   const { t } = useTranslation();
 
@@ -56,6 +58,21 @@ export function PlainToolbar({
           {t('GRID_TOOLBAR.PLAIN.COLUMNS') || 'Columns'}
         </Button>
       </Tooltip>
+
+      {/* Table Options */}
+      {onOpenTableOptions && (
+        <Tooltip content={t('TABLE_OPTS.TITLE') || 'Table Options'}>
+          <Button
+            size="sm"
+            variant="outline"
+            leftIcon={<SettingsIcon className="h-4 w-4" />}
+            onClick={onOpenTableOptions}
+            aria-label={t('TABLE_OPTS.TITLE')}
+          >
+            {t('TABLE_OPTS.TITLE') || 'Table Options'}
+          </Button>
+        </Tooltip>
+      )}
     </>
   );
 }

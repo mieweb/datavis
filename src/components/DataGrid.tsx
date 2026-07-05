@@ -634,6 +634,24 @@ export function DataGrid({
   // ── Dialog state ───────────────────────────────
   const [colConfigOpen, setColConfigOpen] = useState(false);
   const [tableOptsOpen, setTableOptsOpen] = useState(false);
+
+  // ── User multi-row selection preference ───────────
+  // Only offered (via the table options dialog) when the embedding code
+  // hasn't set features.rowSelection on the table renderer itself.
+  const [userRowSelection, setUserRowSelection] = useState(false);
+  const rowSelectionSetByCode = useMemo(() => {
+    let set = false;
+    Children.forEach(children, (child) => {
+      if (
+        isValidElement(child) &&
+        (child.props as Partial<TableRendererProps>).features?.rowSelection !== undefined
+      ) {
+        set = true;
+      }
+    });
+    return set;
+  }, [children]);
+
   const [groupFnOpen, setGroupFnOpen] = useState(false);
   /** Which field the group function dialog is editing */
   const [groupFnField, setGroupFnField] = useState<string | undefined>();
@@ -854,6 +872,11 @@ export function DataGrid({
 
       return cloneElement(child as React.ReactElement<TableRendererProps>, {
         viewData: preserveChildViewData && childProps.viewData !== undefined ? childProps.viewData : limitedViewData,
+        // User-enabled multi-row selection (table options dialog) — only
+        // applied when the embedding code didn't set rowSelection itself
+        ...(childProps.features?.rowSelection === undefined && userRowSelection
+          ? { features: { ...childProps.features, rowSelection: 'checkbox' as const } }
+          : {}),
         // Track selection so the operations palette receives the selected row
         // data — chained with any handler the consumer supplied.
         onSelectionChange: (sel: SelectionState) => {
@@ -888,6 +911,7 @@ export function DataGrid({
       handleShowMoreRows,
       handleShowAllRows,
       gridMode,
+      userRowSelection,
     ],
   );
 
@@ -1402,6 +1426,9 @@ export function DataGrid({
         onOpenChange={setTableOptsOpen}
         displayFormat={displayFormat}
         onSave={handleDisplayFormatSave}
+        rowSelection={userRowSelection}
+        showRowSelectionOption={!rowSelectionSetByCode}
+        onRowSelectionChange={setUserRowSelection}
       />
 
       <GroupFunctionDialog

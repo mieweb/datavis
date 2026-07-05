@@ -392,6 +392,7 @@
   "TABLE_OPTS.CELL_PLACEHOLDER": "Cell placeholder",
   "TABLE_OPTS.CELL_TEMPLATE": "Cell template",
   "TABLE_OPTS.CUSTOMIZE_CELL": "Customize cell",
+  "TABLE_OPTS.MULTI_ROW_SELECTION": "Allow selecting multiple rows (checkboxes)",
   "TABLE_OPTS.TITLE": "Table Options",
   "TEMPLATE_EDITOR.AFTER": "After",
   "TEMPLATE_EDITOR.AFTER_GROUP": "After Group",

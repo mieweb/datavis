@@ -30,6 +30,12 @@ export interface GridTableOptionsDialogProps {
   displayFormat?: DisplayFormatConfig;
   /** Called with updated configuration on save */
   onSave: (displayFormat: DisplayFormatConfig) => void;
+  /** Current multi-row selection setting (user preference) */
+  rowSelection?: boolean;
+  /** Show the multi-row selection option (hidden when the consumer set it in code) */
+  showRowSelectionOption?: boolean;
+  /** Called with the updated multi-row selection setting on save */
+  onRowSelectionChange?: (enabled: boolean) => void;
 }
 
 // ───────────────────────────────────────────────────────────
@@ -41,10 +47,14 @@ export function GridTableOptionsDialog({
   onOpenChange,
   displayFormat: initialDisplayFormat,
   onSave,
+  rowSelection = false,
+  showRowSelectionOption = false,
+  onRowSelectionChange,
 }: GridTableOptionsDialogProps) {
   const { t } = useTranslation();
   const [cellEnabled, setCellEnabled] = useState(false);
   const [cellTemplate, setCellTemplate] = useState('');
+  const [rowSelEnabled, setRowSelEnabled] = useState(rowSelection);
 
   // Reset state when dialog opens
   useEffect(() => {
@@ -52,8 +62,9 @@ export function GridTableOptionsDialog({
       const tpl = initialDisplayFormat?.cell ?? '';
       setCellEnabled(tpl.length > 0);
       setCellTemplate(tpl);
+      setRowSelEnabled(rowSelection);
     }
-  }, [open, initialDisplayFormat]);
+  }, [open, initialDisplayFormat, rowSelection]);
 
   const handleSave = useCallback(() => {
     const result: DisplayFormatConfig = {};
@@ -61,8 +72,9 @@ export function GridTableOptionsDialog({
       result.cell = cellTemplate;
     }
     onSave(result);
+    onRowSelectionChange?.(rowSelEnabled);
     onOpenChange(false);
-  }, [cellEnabled, cellTemplate, onSave, onOpenChange]);
+  }, [cellEnabled, cellTemplate, rowSelEnabled, onSave, onRowSelectionChange, onOpenChange]);
 
   const handleCancel = useCallback(() => {
     onOpenChange(false);
@@ -82,6 +94,16 @@ export function GridTableOptionsDialog({
 
       <ModalBody>
         <div className="space-y-4">
+          {/* Multi-row selection (only when not set by the embedding code) */}
+          {showRowSelectionOption && (
+            <Checkbox
+              checked={rowSelEnabled}
+              onChange={(e) => setRowSelEnabled(e.target.checked)}
+              label={t('TABLE_OPTS.MULTI_ROW_SELECTION') || 'Allow selecting multiple rows (checkboxes)'}
+              aria-label={t('TABLE_OPTS.MULTI_ROW_SELECTION')}
+            />
+          )}
+
           {/* Cell display format */}
           <div className="space-y-2">
             <Checkbox
