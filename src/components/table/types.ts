@@ -180,8 +180,13 @@ export interface TableFeatures {
   columnReorder?: boolean;
   /** Enable sticky headers */
   stickyHeaders?: boolean;
-  /** Enable row selection */
-  rowSelection?: boolean;
+  /**
+   * Enable row selection.
+   * - `true` — click selects a row, Shift+click extends the selection
+   * - `'checkbox'` — adds a leading checkbox column with a tri-state
+   *   select-all header checkbox (applies to the currently filtered rows)
+   */
+  rowSelection?: boolean | 'checkbox';
   /** Enable context menu on column headers */
   headerContextMenu?: boolean;
   /** Enable zebra striping */

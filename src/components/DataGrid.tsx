@@ -38,7 +38,7 @@ import { type ControlFieldItem } from './controls/ControlSection';
 import { type AggregateEntry, type AggregateFunction } from './controls/AggregateSection';
 import { type ColumnFilterConfig, type FilterSpec } from './filters/types';
 import { FilterContext, columnToFilterConfig, type FilterContextValue } from './filters/FilterContext';
-import type { TableColumn, MultiSortSpec, SortDirection } from './table/types';
+import type { TableColumn, MultiSortSpec, SortDirection, SelectionState } from './table/types';
 import { SortContext, type SortContextValue } from './table/SortContext';
 import { ColumnConfigContext, type ColumnConfigContextValue } from './table/ColumnConfigContext';
 import { ColumnDropProvider, type ColumnDropContextValue } from './table/ColumnDropContext';
@@ -750,6 +750,26 @@ export function DataGrid({
     [viewState.data, visibleRowCount],
   );
 
+  /** Row numbers selected in the child table — lifted so the operations
+   * palette can act on the selected rows' data. */
+  const [selectedRowNums, setSelectedRowNums] = useState<Set<number>>(
+    () => new Set(),
+  );
+
+  const selectedRowData = useMemo(() => {
+    if (
+      selectedRowNums.size === 0 ||
+      !limitedViewData?.isPlain ||
+      !Array.isArray(limitedViewData.data)
+    ) {
+      return [];
+    }
+    const data = limitedViewData.data as unknown[];
+    return [...selectedRowNums]
+      .map((rowNum) => data[rowNum])
+      .filter((row) => row !== undefined);
+  }, [selectedRowNums, limitedViewData]);
+
   const renderedChildren = useMemo(
     () => Children.map(children, (child) => {
       if (!isValidElement(child) || typeof child.type === 'string') {
@@ -760,6 +780,12 @@ export function DataGrid({
 
       return cloneElement(child as React.ReactElement<TableRendererProps>, {
         viewData: preserveChildViewData && childProps.viewData !== undefined ? childProps.viewData : limitedViewData,
+        // Track selection so the operations palette receives the selected row
+        // data — chained with any handler the consumer supplied.
+        onSelectionChange: (sel: SelectionState) => {
+          setSelectedRowNums(new Set(sel.selectedRows));
+          childProps.onSelectionChange?.(sel);
+        },
         limit: childProps.limit ?? { limit: rowBatchSize, autoShowMore },
         loadedRows: childProps.loadedRows ?? (limitedViewData?.isPlain && Array.isArray(limitedViewData.data)
           ? limitedViewData.data.length
@@ -1241,7 +1267,7 @@ export function DataGrid({
 
             {/* Operations Palette */}
             {operations.length > 0 && (
-              <OperationsPalette operations={operations} />
+              <OperationsPalette operations={operations} selectedRows={selectedRowData} />
             )}
           </div>
 

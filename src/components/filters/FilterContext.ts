@@ -50,7 +50,15 @@ export function columnToFilterConfig(col: TableColumn): ColumnFilterConfig {
     field: col.field,
     displayName: col.header,
     filterType,
-    widget: filterType === 'boolean' ? 'tribool' : 'textbox',
+    // Fast filter: string columns default to the searchable value-checklist
+    // dropdown ($in with select-all) so users can check off the values they
+    // care about; booleans get the tribool toggle; the rest use a textbox.
+    widget:
+      filterType === 'boolean'
+        ? 'tribool'
+        : filterType === 'string'
+          ? 'dropdown'
+          : 'textbox',
     visible: true,
   };
 }
