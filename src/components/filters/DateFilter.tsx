@@ -91,7 +91,9 @@ function toDateTimeEnd(value: string): string {
 }
 
 function deferChange(callback: () => void): void {
-  requestAnimationFrame(callback);
+  // setTimeout (not requestAnimationFrame) so commits still run when the
+  // page is hidden or occluded — rAF callbacks are paused there.
+  setTimeout(callback, 0);
 }
 
 function isStartOfDay(value: string): boolean {
@@ -225,7 +227,9 @@ export function DateFilter({
     return true;
   });
 
-  const fallbackOperator = operators[0]?.value ?? '$eq';
+  // Default to "between" — the most common date-range use; a single bound
+  // still works as before/after by leaving the other input empty.
+  const fallbackOperator = operators.find((o) => o.value === '$bet')?.value ?? operators[0]?.value ?? '$eq';
   const initialState = resolveInitialDateState(value, fallbackOperator, includeTime);
 
   const [operator, setOperator] = useState<FilterOperator>(initialState.operator);
@@ -250,10 +254,17 @@ export function DateFilter({
   if (value !== lastValueProp) {
     setLastValueProp(value);
     const next = resolveInitialDateState(value, fallbackOperator, includeTime);
-    setOperator(next.operator);
-    setDateValue(next.dateValue);
-    setRangeStart(next.rangeStart);
-    setRangeEnd(next.rangeEnd);
+    if (operator === '$bet' && (next.operator === '$gte' || next.operator === '$lte')) {
+      // A one-sided range round-trips as before/after — keep the "between"
+      // UI so the user can still fill in the other bound.
+      setRangeStart(next.operator === '$gte' ? next.dateValue : '');
+      setRangeEnd(next.operator === '$lte' ? next.dateValue : '');
+    } else {
+      setOperator(next.operator);
+      setDateValue(next.dateValue);
+      setRangeStart(next.rangeStart);
+      setRangeEnd(next.rangeEnd);
+    }
     setEveryUnit(next.everyUnit);
     setEveryValue(next.everyValue);
     setPeriodUnit(next.periodUnit);
@@ -370,8 +381,8 @@ export function DateFilter({
         <DateInput
           size="sm"
           hideLabel
+          showCalendar
           label={t('FILTER.DATE_VALUE', { param0: label })}
-          mode={includeTime ? 'default' : 'default'}
           className="min-w-0 flex-1"
           value={dateValue}
           onChange={(nextValue) => {
@@ -390,6 +401,7 @@ export function DateFilter({
           <DateInput
             size="sm"
             hideLabel
+            showCalendar
             label={`${label} ${t('FILTER.DATE_FROM') || 'from'}`}
             value={rangeStart}
             onChange={(nextValue) => {
@@ -410,6 +422,7 @@ export function DateFilter({
           <DateInput
             size="sm"
             hideLabel
+            showCalendar
             label={`${label} ${t('FILTER.DATE_TO') || 'to'}`}
             ref={endDateRef}
             value={rangeEnd}

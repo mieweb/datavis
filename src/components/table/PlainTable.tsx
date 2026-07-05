@@ -840,7 +840,11 @@ export function PlainTable({
                         features.columnResize !== false &&
                         col.resizable !== false
                       }
-                      filterActive={filterCtx?.activeFilterFields.has(col.field)}
+                      filterActive={
+                        filterCtx?.filterSpec
+                          ? Boolean(filterCtx.filterSpec[col.field])
+                          : filterCtx?.activeFilterFields.has(col.field)
+                      }
                       pinStyle={pinStyles.get(col.field)}
                       isLastPinned={pinnedCount > 0 && colIdx === pinnedCount - 1}
                       onFilterClick={

@@ -12,7 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Dropdown, DropdownContent, DropdownItem } from '@mieweb/ui/components/Dropdown';
 import { useTranslation } from 'react-i18next';
-import { IconButton, SettingsIcon } from '../ui';
+import { IconButton, SettingsIcon, CloseGlyphIcon } from '../ui';
 import { useFilterContext } from './FilterContext';
 import { FilterWidget } from './FilterBar';
 
@@ -132,26 +132,42 @@ export function HeaderFilterDropdown({
     </button>
   );
 
-  /** Header row inside the popup: column name + gear to the full filter config */
+  /** Header row inside the popup: column name + clear + gear to the full filter config */
   const gearRow = filterCtx.openFilterControls && (
     <div className="wcdv-header-filter-toolbar flex items-center justify-between gap-2 border-b border-gray-200 dark:border-neutral-700 px-2 pb-1 mb-1">
       <span className="truncate text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-neutral-400">
         {header}
       </span>
-      <IconButton
-        type="button"
-        variant="ghost"
-        className="h-5 w-5 shrink-0 p-0"
-        onClick={(e) => {
-          e.stopPropagation();
-          setOpen(false);
-          filterCtx.openFilterControls?.(field);
-        }}
-        aria-label={t('FILTER.OPEN_FULL_CONFIG', { param0: header }) || `Open full filter options for ${header}`}
-        title={t('FILTER.OPEN_FULL_CONFIG_SHORT') || 'All filter options'}
-      >
-        <SettingsIcon className="h-3.5 w-3.5" />
-      </IconButton>
+      <span className="flex items-center gap-0.5">
+        <IconButton
+          type="button"
+          variant="ghost"
+          className="h-5 w-5 shrink-0 p-0 text-gray-400 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400"
+          disabled={!fieldSpec}
+          onClick={(e) => {
+            e.stopPropagation();
+            filterCtx.setFieldFilter?.(field, null);
+          }}
+          aria-label={`${t('FILTER.CLEAR') || 'Clear filter'}: ${header}`}
+          title={t('FILTER.CLEAR') || 'Clear filter'}
+        >
+          <CloseGlyphIcon className="h-3.5 w-3.5" />
+        </IconButton>
+        <IconButton
+          type="button"
+          variant="ghost"
+          className="h-5 w-5 shrink-0 p-0"
+          onClick={(e) => {
+            e.stopPropagation();
+            setOpen(false);
+            filterCtx.openFilterControls?.(field);
+          }}
+          aria-label={t('FILTER.OPEN_FULL_CONFIG', { param0: header }) || `Open full filter options for ${header}`}
+          title={t('FILTER.OPEN_FULL_CONFIG_SHORT') || 'All filter options'}
+        >
+          <SettingsIcon className="h-3.5 w-3.5" />
+        </IconButton>
+      </span>
     </div>
   );
 

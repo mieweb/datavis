@@ -482,7 +482,8 @@ export function DataGrid({
       const seen = accumulated[field];
       for (const row of (viewState.data?.data ?? []) as Record<string, unknown>[]) {
         const val = row?.[field];
-        if (val != null && val !== '') seen.add(String(val));
+        // Blank values surface as an "(empty)" checklist entry ('' matches via $in)
+        seen.add(val == null || val === '' ? '' : String(val));
       }
       return Array.from(seen).sort();
     },
@@ -1208,6 +1209,9 @@ export function DataGrid({
 
   const clearFilter = useCallback(() => {
     viewState.clearFilter();
+    // Keep the filter bar widgets and header funnel popups in sync
+    setCurrentFilterSpec({});
+    setInitialFilterSpec({});
   }, [viewState]);
 
   /** Auto-open controls when a column header drag starts or enters the grid */

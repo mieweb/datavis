@@ -116,6 +116,7 @@
   "FILTER.ADD_FIELD": "Add field",
   "FILTER.ALL_SELECTED": "All selected",
   "FILTER.BOTH": "Both",
+  "FILTER.CLEAR": "Clear filter",
   "FILTER.CLEAR_ALL": "Clear all filters",
   "FILTER.DATE.OPERATOR.AFTER": "after",
   "FILTER.DATE.OPERATOR.AND": "and",

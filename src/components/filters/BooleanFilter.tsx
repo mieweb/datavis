@@ -1,11 +1,12 @@
 /**
  * BooleanFilter — filter component for boolean columns.
  *
- * Renders a simple checkbox that toggles between checked (true) and
- * unchecked (no filter).
+ * Tri-state radio group: True / False / Both (no filter), so rows can be
+ * filtered on either value — a lone checkbox couldn't select "false".
  */
 
-import { Checkbox } from '@mieweb/ui/components/Checkbox';
+import { Radio, RadioGroup } from '@mieweb/ui/components/Radio';
+import { useTranslation } from 'react-i18next';
 import type { FieldFilterSpec } from './types';
 
 export interface BooleanFilterProps {
@@ -25,19 +26,27 @@ export function BooleanFilter({
   value,
   onChange,
 }: BooleanFilterProps) {
-  const isChecked = value?.$eq === true;
+  const { t } = useTranslation();
+  const current =
+    value?.$eq === true ? 'true' : value?.$eq === false ? 'false' : 'both';
 
   return (
     <div className="wcdv-filter wcdv-filter-boolean flex items-center">
-      <Checkbox
+      <RadioGroup
         size="sm"
-        label={label}
-        checked={isChecked}
-        onChange={(e) => {
-          const checked = (e.target as HTMLInputElement).checked;
-          onChange(field, checked ? { $eq: true } : null);
+        orientation="horizontal"
+        value={current}
+        onValueChange={(val: string) => {
+          if (val === 'true') onChange(field, { $eq: true });
+          else if (val === 'false') onChange(field, { $eq: false });
+          else onChange(field, null);
         }}
-      />
+        label={label}
+      >
+        <Radio value="true" label={t('FILTER.TRUE') || 'True'} />
+        <Radio value="false" label={t('FILTER.FALSE') || 'False'} />
+        <Radio value="both" label={t('FILTER.BOTH') || 'Both'} />
+      </RadioGroup>
     </div>
   );
 }
