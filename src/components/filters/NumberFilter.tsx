@@ -111,6 +111,15 @@ function NumberTextboxFilter({
     initialVal != null ? String(initialVal) : '',
   );
 
+  // Re-derive local state when the value prop changes from outside
+  // (e.g. the header funnel dropdown updated this field's spec).
+  const [lastValueProp, setLastValueProp] = useState(value);
+  if (value !== lastValueProp) {
+    setLastValueProp(value);
+    setOperator(initialOp);
+    setTextValue(initialVal != null && typeof initialVal !== 'boolean' ? String(initialVal) : '');
+  }
+
   const isNoInput = operators.find((o) => o.value === operator)?.noInput;
 
   const emitChange = useCallback(

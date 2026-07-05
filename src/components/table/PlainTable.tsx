@@ -37,6 +37,7 @@ import { useColumnDrop } from './ColumnDropContext';
 import { useIsConstrained } from './useAutoHeight';
 import { HeaderContextMenu } from './HeaderContextMenu';
 import { useFilterContext } from '../filters/FilterContext';
+import { HeaderFilterDropdown } from '../filters/HeaderFilterDropdown';
 import { useColumnConfig } from './ColumnConfigContext';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '../../i18n';
@@ -122,6 +123,7 @@ function HeaderCell({
 }: HeaderCellProps) {
   const { t } = useTranslation();
   const thRef = useRef<HTMLTableCellElement>(null);
+  const filterCtx = useFilterContext();
 
   const style: React.CSSProperties = {
     width: column.width,
@@ -196,8 +198,16 @@ function HeaderCell({
           )}
         </Button>
 
-        {/* Filter icon — adds this column to the filter bar */}
-        {onFilterClick && (
+        {/* Filter icon — opens the in-place value-checklist dropdown */}
+        {filterCtx?.setFieldFilter ? (
+          <HeaderFilterDropdown
+            field={column.field}
+            header={column.header}
+            filterActive={filterActive}
+          >
+            <FilterIcon active={filterActive} />
+          </HeaderFilterDropdown>
+        ) : onFilterClick ? (
           <IconButton
             type="button"
             variant="ghost"
@@ -212,7 +222,7 @@ function HeaderCell({
           >
             <FilterIcon active={filterActive} />
           </IconButton>
-        )}
+        ) : null}
       </div>
 
       {/* Resize handle */}

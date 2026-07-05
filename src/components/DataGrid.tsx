@@ -36,7 +36,7 @@ import { GridToolbar } from './GridToolbar';
 import { ControlPanel } from './controls/ControlPanel';
 import { type ControlFieldItem } from './controls/ControlSection';
 import { type AggregateEntry, type AggregateFunction } from './controls/AggregateSection';
-import { type ColumnFilterConfig, type FilterSpec } from './filters/types';
+import { type ColumnFilterConfig, type FieldFilterSpec, type FilterSpec } from './filters/types';
 import { FilterContext, columnToFilterConfig, type FilterContextValue } from './filters/FilterContext';
 import type { TableColumn, MultiSortSpec, SortDirection, SelectionState } from './table/types';
 import { SortContext, type SortContextValue } from './table/SortContext';
@@ -392,6 +392,8 @@ export function DataGrid({
   // ── Dynamic filter columns ─────────────────────
   const [dynamicFilterColumns, setDynamicFilterColumns] = useState<ColumnFilterConfig[]>([]);
   const [initialFilterSpec, setInitialFilterSpec] = useState<FilterSpec>({});
+  /** Latest combined filter spec (drives header filter dropdowns) */
+  const [currentFilterSpec, setCurrentFilterSpec] = useState<FilterSpec>({});
   /** Static filter fields the user has hidden via the header icon */
   const [hiddenStaticFilters, setHiddenStaticFilters] = useState<Set<string>>(new Set());
 
@@ -418,7 +420,6 @@ export function DataGrid({
           next.delete(field);
           return next;
         });
-        setControlsVisible(true);
         return;
       }
 
@@ -432,9 +433,6 @@ export function DataGrid({
         : { field, displayName: field, filterType: 'string', widget: 'textbox', visible: true };
 
       setDynamicFilterColumns((prev) => [...prev, config]);
-
-      // Auto-open controls so the user sees the new filter
-      setControlsVisible(true);
     },
     [activeFilterFields, hiddenStaticFilters, allColumns],
   );
@@ -451,10 +449,81 @@ export function DataGrid({
     [filterColumns],
   );
 
+  /** Set one field's filter spec in place (header funnel dropdown) */
+  const setFieldFilter = useCallback(
+    (field: string, fieldSpec: FieldFilterSpec | null) => {
+      const next = { ...currentFilterSpec };
+      if (fieldSpec) next[field] = fieldSpec;
+      else delete next[field];
+      setCurrentFilterSpec(next);
+      // Sync the filter bar widgets with the new spec
+      setInitialFilterSpec(next);
+      if (Object.keys(next).length === 0) {
+        viewState.clearFilter();
+      } else {
+        viewState.setFilter(next);
+      }
+      // Ensure the field has a widget in the filter bar (without opening controls)
+      addFilterColumn(field);
+    },
+    [currentFilterSpec, viewState, addFilterColumn],
+  );
+
+  /** Unique values for a field's header value-checklist dropdown.
+      Accumulated grow-only (like FilterBar) so filtering the data down
+      doesn't remove previously-seen values from the checklist. */
+  const accumulatedFilterOptionsRef = useRef<Record<string, Set<string>>>({});
+  const getFilterOptions = useCallback(
+    (field: string): string[] => {
+      const col = mergedFilterColumns.find((c) => c.field === field);
+      if (col?.options?.length) return col.options;
+      const accumulated = accumulatedFilterOptionsRef.current;
+      if (!accumulated[field]) accumulated[field] = new Set();
+      const seen = accumulated[field];
+      for (const row of (viewState.data?.data ?? []) as Record<string, unknown>[]) {
+        const val = row?.[field];
+        if (val != null && val !== '') seen.add(String(val));
+      }
+      return Array.from(seen).sort();
+    },
+    [mergedFilterColumns, viewState.data],
+  );
+
+  /** Filter config for a field — existing bar config or derived from column metadata */
+  const getFilterConfig = useCallback(
+    (field: string): ColumnFilterConfig => {
+      const existing = mergedFilterColumns.find((c) => c.field === field);
+      if (existing) return existing;
+      const col = allColumns.find((c) => c.field === field);
+      return col
+        ? columnToFilterConfig(col)
+        : { field, displayName: field, filterType: 'string', widget: 'dropdown', visible: true };
+    },
+    [mergedFilterColumns, allColumns],
+  );
+
+  /** Open the full filter configuration (controls panel) for a field */
+  const openFilterControls = useCallback(
+    (field: string) => {
+      addFilterColumn(field);
+      setControlsVisible(true);
+    },
+    [addFilterColumn, setControlsVisible],
+  );
+
   /** Context value for table header filter icons */
   const filterContextValue = useMemo<FilterContextValue>(
-    () => ({ addFilterColumn, removeFilterColumn, activeFilterFields }),
-    [addFilterColumn, removeFilterColumn, activeFilterFields],
+    () => ({
+      addFilterColumn,
+      removeFilterColumn,
+      activeFilterFields,
+      filterSpec: currentFilterSpec,
+      setFieldFilter,
+      getFilterOptions,
+      getFilterConfig,
+      openFilterControls,
+    }),
+    [addFilterColumn, removeFilterColumn, activeFilterFields, currentFilterSpec, setFieldFilter, getFilterOptions, getFilterConfig, openFilterControls],
   );
   const [sliderOpen, setSliderOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -610,6 +679,7 @@ export function DataGrid({
         : [],
     );
     setInitialFilterSpec(parseFilterSpec(view.getFilter?.() ?? null));
+    setCurrentFilterSpec(parseFilterSpec(view.getFilter?.() ?? null));
     setSyntheticPivot(false);
 
     // Default and minimal modes hide the aggregate footer (e.g. the count row)
@@ -835,6 +905,7 @@ export function DataGrid({
   // ── Control panel handlers ─────────────────────
   const handleFilterChange = useCallback(
     (spec: FilterSpec) => {
+      setCurrentFilterSpec(spec);
       if (Object.keys(spec).length === 0) {
         viewState.clearFilter();
       } else {

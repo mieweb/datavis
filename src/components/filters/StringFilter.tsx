@@ -63,6 +63,16 @@ export function StringFilter({
     () => new Set(Array.isArray(initialValue) ? initialValue : []),
   );
 
+  // Re-derive local state when the value prop changes from outside
+  // (e.g. the header funnel dropdown updated this field's spec).
+  const [lastValueProp, setLastValueProp] = useState(value);
+  if (value !== lastValueProp) {
+    setLastValueProp(value);
+    setOperator(initialOperator);
+    setTextValue(typeof initialValue === 'string' ? initialValue : '');
+    setSelectedValues(new Set(Array.isArray(initialValue) ? initialValue.map(String) : []));
+  }
+
   const isNoInput = operators.find((operatorInfo) => operatorInfo.value === operator)?.noInput;
 
   const emitChange = useCallback(

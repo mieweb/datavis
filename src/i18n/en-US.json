@@ -149,6 +149,8 @@
   "FILTER.NUMBER.OPERATOR.NOT_BLANK": "not blank",
   "FILTER.NUMBER.OPERATOR.NOT_EQUALS": "not equals",
   "FILTER.OPERATOR": "operator",
+  "FILTER.OPEN_FULL_CONFIG": "Open full filter options for {{param0}}",
+  "FILTER.OPEN_FULL_CONFIG_SHORT": "All filter options",
   "FILTER.PERIOD": "Period",
   "FILTER.PERIOD_DAY": "Day",
   "FILTER.PERIOD_MONTH": "Month",

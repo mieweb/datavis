@@ -244,6 +244,21 @@ export function DateFilter({
   // For $this / $last — period unit
   const [periodUnit, setPeriodUnit] = useState<PeriodUnit>(initialState.periodUnit);
 
+  // Re-derive local state when the value prop changes from outside
+  // (e.g. the header funnel dropdown updated this field's spec).
+  const [lastValueProp, setLastValueProp] = useState(value);
+  if (value !== lastValueProp) {
+    setLastValueProp(value);
+    const next = resolveInitialDateState(value, fallbackOperator, includeTime);
+    setOperator(next.operator);
+    setDateValue(next.dateValue);
+    setRangeStart(next.rangeStart);
+    setRangeEnd(next.rangeEnd);
+    setEveryUnit(next.everyUnit);
+    setEveryValue(next.everyValue);
+    setPeriodUnit(next.periodUnit);
+  }
+
   const isNoInput = operators.find((o) => o.value === operator)?.noInput;
 
   // Ref for the "end" date input in Between mode
