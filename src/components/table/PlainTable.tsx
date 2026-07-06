@@ -793,8 +793,6 @@ export function PlainTable({
     <div
       ref={tableRef}
       className={`wcdv-plain-table flex flex-col flex-1 min-h-0 ${className}`}
-      onKeyDown={features.keyboardNav !== false ? handleKeyDown : undefined}
-      tabIndex={features.keyboardNav !== false ? 0 : undefined}
     >
       <div
         ref={scrollContainerRef}
@@ -802,7 +800,14 @@ export function PlainTable({
         data-testid="plain-table-scroll"
         onScroll={handleScroll}
       >
-          <table className="min-w-full border-collapse" role="grid" aria-colcount={visibleColumns.length + (checkboxSelection ? 1 : 0)} aria-rowcount={totalRows ?? rows.length}>
+          <table
+            className="min-w-full border-collapse"
+            role="grid"
+            aria-colcount={visibleColumns.length + (checkboxSelection ? 1 : 0)}
+            aria-rowcount={totalRows ?? rows.length}
+            onKeyDown={features.keyboardNav !== false ? handleKeyDown : undefined}
+            tabIndex={features.keyboardNav !== false ? 0 : undefined}
+          >
             <caption className="sr-only">{t('TABLE.CAPTION', { param0: t('GRID_TOOLBAR.PLAIN.ROW_MODE') }) || 'Data table: Plain'}</caption>
             {/* ── Header ── */}
             <thead

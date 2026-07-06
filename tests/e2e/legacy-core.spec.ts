@@ -94,7 +94,7 @@ test.describe('Legacy Core Ports', () => {
   test('active-row.js: keyboard navigation wraps from first to last row', async ({ page }) => {
     await gotoHarness(page, 'default');
 
-    const table = page.locator('.wcdv-plain-table[tabindex="0"]');
+    const table = page.locator('.wcdv-plain-table [role="grid"][tabindex="0"]');
     await table.focus();
     await page.keyboard.press('ArrowDown');
     await expect.poll(async () => (await getState(page)).selectedRows).toEqual([0]);
