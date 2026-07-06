@@ -17,7 +17,7 @@ test.describe('Legacy Scenario Expanded', () => {
   test('active-row.js: pressing Enter on an active row opens a detail panel', async ({ page }) => {
     await gotoHarness(page, 'default');
 
-    const table = page.locator('.wcdv-plain-table[tabindex="0"]');
+    const table = page.locator('.wcdv-plain-table [role="grid"][tabindex="0"]');
     await table.focus();
     await page.keyboard.press('ArrowDown');
     await page.keyboard.press('Enter');
