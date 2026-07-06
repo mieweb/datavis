@@ -38,6 +38,7 @@ import { type ControlFieldItem } from './controls/ControlSection';
 import { type AggregateEntry, type AggregateFunction } from './controls/AggregateSection';
 import { type ColumnFilterConfig, type FieldFilterSpec, type FilterSpec } from './filters/types';
 import { FilterContext, columnToFilterConfig, type FilterContextValue } from './filters/FilterContext';
+import { getStableRowId } from './table/row-identity';
 import type { TableColumn, MultiSortSpec, SortDirection, SelectionState } from './table/types';
 import { SortContext, type SortContextValue } from './table/SortContext';
 import { ColumnConfigContext, type ColumnConfigContextValue } from './table/ColumnConfigContext';
@@ -856,10 +857,10 @@ export function DataGrid({
     ) {
       return [];
     }
+    // Rows are identified by stable ids (not positions) so selection
+    // follows the row content across filtering — resolve by id.
     const data = limitedViewData.data as unknown[];
-    return [...selectedRowNums]
-      .map((rowNum) => data[rowNum])
-      .filter((row) => row !== undefined);
+    return data.filter((row, idx) => selectedRowNums.has(getStableRowId(row, idx)));
   }, [selectedRowNums, limitedViewData]);
 
   const renderedChildren = useMemo(
@@ -878,11 +879,18 @@ export function DataGrid({
           ? { features: { ...childProps.features, rowSelection: 'checkbox' as const } }
           : {}),
         // Track selection so the operations palette receives the selected row
-        // data — chained with any handler the consumer supplied.
+        // data — chained with any handler the consumer supplied. Only plain
+        // mode updates the lifted selection, so group/pivot round trips (and
+        // clicks within them) don't clobber it.
         onSelectionChange: (sel: SelectionState) => {
-          setSelectedRowNums(new Set(sel.selectedRows));
+          if (limitedViewData?.isPlain) {
+            setSelectedRowNums(new Set(sel.selectedRows));
+          }
           childProps.onSelectionChange?.(sel);
         },
+        // Reseed the plain table's selection when it remounts after a
+        // group/pivot round trip
+        initialSelectedRows: childProps.initialSelectedRows ?? selectedRowNums,
         limit: childProps.limit ?? { limit: rowBatchSize, autoShowMore },
         loadedRows: childProps.loadedRows ?? (limitedViewData?.isPlain && Array.isArray(limitedViewData.data)
           ? limitedViewData.data.length
@@ -912,6 +920,7 @@ export function DataGrid({
       handleShowAllRows,
       gridMode,
       userRowSelection,
+      selectedRowNums,
     ],
   );
 

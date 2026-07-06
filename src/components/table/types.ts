@@ -239,6 +239,9 @@ export interface BaseTableProps {
   aggFnLabels?: Record<string, string>;
   /** Whether to show the "Showing N rows" count in the footer. Defaults to true. */
   showRowCount?: boolean;
+  /** Seed the row selection on mount (stable row ids) — lets a lifted
+      selection survive renderer remounts (e.g. group/pivot round trips) */
+  initialSelectedRows?: Set<number>;
 
   // ── Callbacks ──
   /** Sort requested on a column. When `additive` is true (e.g. shift-click), the column is added to / updated within the existing multi-column sort; otherwise it replaces the current sort. */

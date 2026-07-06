@@ -73,12 +73,13 @@ export interface UseRowSelectionResult {
 export function useRowSelection(
   rows: Pick<TableRow, 'rowNum'>[],
   onSelectionChange?: (selection: SelectionState) => void,
+  initialSelectedRows?: Iterable<number>,
 ): UseRowSelectionResult {
-  const [selection, setSelectionState] = useState<SelectionState>({
-    selectedRows: new Set(),
+  const [selection, setSelectionState] = useState<SelectionState>(() => ({
+    selectedRows: new Set(initialSelectedRows ?? []),
     activeRow: null,
     activeColumn: null,
-  });
+  }));
 
   const setSelection = useCallback(
     (sel: SelectionState) => {

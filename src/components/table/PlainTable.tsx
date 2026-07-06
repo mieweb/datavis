@@ -365,6 +365,7 @@ export function PlainTable({
   onShowMore,
   onShowAll,
   onSelectionChange,
+  initialSelectedRows,
   className = '',
 }: BaseTableProps) {
   const { t } = useTranslation();
@@ -380,7 +381,7 @@ export function PlainTable({
   // ── Selection state ────────────────────────────
   const checkboxSelection = features.rowSelection === 'checkbox';
   const { selection, setSelection, headerState, toggleRow, toggleAll } =
-    useRowSelection(rows, onSelectionChange);
+    useRowSelection(rows, onSelectionChange, initialSelectedRows);
 
   // ── Context menu state ─────────────────────────
   const [contextMenu, setContextMenu] = useState<{
@@ -907,7 +908,7 @@ export function PlainTable({
                         ${features.rowMode === 'clipped' ? '' : ''}
                       `}
                       role="row"
-                      aria-rowindex={row.rowNum + 1}
+                      aria-rowindex={rowIdx + 1}
                       aria-selected={isSelected}
                       onClick={(e) => handleRowClick(row, e)}
                       onDoubleClick={
