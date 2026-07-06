@@ -1292,7 +1292,6 @@ export function DataGrid({
     <LocaleProvider value={locale}>
     <div
       className={`wcdv-grid flex flex-col border border-gray-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 shadow-sm dark:shadow-none ${className}`}
-      style={height ? { height } : undefined}
       role="region"
       aria-label={title || t('GRID.TITLEBAR.TITLE')}
       onDragOver={handleGridDragOver}
@@ -1389,11 +1388,14 @@ export function DataGrid({
             fetching={sourceState.fetching}
           />
 
-          {/* Data content area */}
+          {/* Data content area — when a fixed `height` is supplied it applies
+              to the table (scroll area) itself, not the whole grid, so the
+              toolbar/controls stack above and add to the overall height. */}
           <div
             ref={gridTableRef}
             id={gridTableId}
             className="wcdv-grid-table flex flex-col flex-1 min-h-0 relative"
+            style={height ? { height, flex: 'none' } : undefined}
             aria-busy={viewState.loading}
           >
             {/* Floating ellipsis menu (minimal mode) — sits over the table,

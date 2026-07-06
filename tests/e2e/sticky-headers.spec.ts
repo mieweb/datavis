@@ -3,7 +3,8 @@
  *
  * Tests two modes:
  * - Viewport mode (sticky-viewport): page scrolls, headers stick to viewport top
- * - Container mode (sticky-container): grid has fixed height, headers stick to container top
+ * - Container mode (sticky-container): the table has a fixed height (the toolbar
+ *   and controls stack above it), headers stick to the table's scroll-container top
  */
 
 import { test, expect } from '@playwright/test';
@@ -156,7 +157,12 @@ test.describe('Sticky Headers — Container Mode', () => {
     await gotoSticky(page, 'sticky-container');
   });
 
-  test('page does not scroll in container mode', async ({ page }) => {
+  test('page does not scroll when the grid fits the viewport (container mode)', async ({ page }) => {
+    // The table is height-capped and scrolls internally, so the page only needs
+    // to fit the grid chrome + the fixed table height — never all 200 rows.
+    // Give the viewport enough room for the toolbar/controls that stack above.
+    await page.setViewportSize({ width: 1280, height: 1000 });
+    await page.waitForTimeout(50);
     const isPageScrollable = await page.evaluate(
       () => document.documentElement.scrollHeight > window.innerHeight,
     );
@@ -271,12 +277,14 @@ test.describe('Sticky Headers — Container Mode', () => {
     expect(headerTexts).toContain('Txn ID');
   });
 
-  test('grid respects the 400px height constraint', async ({ page }) => {
-    const gridHeight = await page.evaluate(() => {
-      const grid = document.querySelector('.wcdv-grid');
-      return grid ? getComputedStyle(grid).height : null;
+  test('the table area respects the 400px height constraint', async ({ page }) => {
+    // The fixed height applies to the table (scroll area), not the whole grid —
+    // the toolbar and controls stack above and add to the overall grid height.
+    const tableHeight = await page.evaluate(() => {
+      const gridTable = document.querySelector('.wcdv-grid-table');
+      return gridTable ? getComputedStyle(gridTable).height : null;
     });
-    expect(gridHeight).toBe('400px');
+    expect(tableHeight).toBe('400px');
   });
 
   test('pinned column stays left while headers stick to container top', async ({ page }) => {
