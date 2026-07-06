@@ -8,7 +8,7 @@
 
 import { createContext, useContext } from 'react';
 import type { TableColumn } from '../table/types';
-import type { ColumnFilterConfig, FilterType } from './types';
+import type { ColumnFilterConfig, FieldFilterSpec, FilterSpec, FilterType } from './types';
 
 // ───────────────────────────────────────────────────────────
 // Context
@@ -21,6 +21,16 @@ export interface FilterContextValue {
   removeFilterColumn: (field: string) => void;
   /** Fields that currently have a filter widget in the bar */
   activeFilterFields: Set<string>;
+  /** Current combined filter spec, keyed by field */
+  filterSpec?: FilterSpec;
+  /** Set one field's filter spec directly (null clears it) */
+  setFieldFilter?: (field: string, spec: FieldFilterSpec | null) => void;
+  /** Unique values available for a field's value-checklist dropdown */
+  getFilterOptions?: (field: string) => string[];
+  /** Filter config (type/widget/operators) for a field */
+  getFilterConfig?: (field: string) => ColumnFilterConfig;
+  /** Open the full filter configuration (controls panel) for a field */
+  openFilterControls?: (field: string) => void;
 }
 
 export const FilterContext = createContext<FilterContextValue | null>(null);
@@ -50,7 +60,15 @@ export function columnToFilterConfig(col: TableColumn): ColumnFilterConfig {
     field: col.field,
     displayName: col.header,
     filterType,
-    widget: filterType === 'boolean' ? 'tribool' : 'textbox',
+    // Fast filter: string columns default to the searchable value-checklist
+    // dropdown ($in with select-all) so users can check off the values they
+    // care about; booleans get the tribool toggle; the rest use a textbox.
+    widget:
+      filterType === 'boolean'
+        ? 'tribool'
+        : filterType === 'string'
+          ? 'dropdown'
+          : 'textbox',
     visible: true,
   };
 }

@@ -25,6 +25,9 @@ export interface TitleBarProps {
   hasActiveFilter: boolean;
   cancellable: boolean;
   collapsed: boolean;
+  /** Whether the controls panel is currently open. In `'default'` variant
+      the action buttons embed inline in the header while it's open. */
+  controlsVisible?: boolean;
   prefs?: PrefsInstance;
   /**
    * `'full'` (default) shows the row count and inline perspective/action
@@ -51,6 +54,7 @@ export function TitleBar({
   hasActiveFilter,
   cancellable,
   collapsed,
+  controlsVisible = false,
   prefs,
   variant = 'full',
   onToggle,
@@ -146,19 +150,42 @@ export function TitleBar({
 
       {isDefault ? (
         /* Default mode — hamburger menu replaces the inline perspective and
-           action buttons (collapse included since the title bar stays visible) */
-        <MinimalMenu
-          floating={false}
-          prefs={prefs}
-          showCollapse
-          collapsed={collapsed}
-          onToggle={onToggle}
-          onToggleControls={onToggleControls}
-          onRefresh={onRefresh}
-          onOpenPerspective={onOpenPerspective}
-          onExportCsv={onExportCsv}
-          onCopyClipboard={onCopyClipboard}
-        />
+           action buttons. While the controls are open the actions embed
+           inline in the header, but only when the title bar is wide enough
+           to fit them all (container query); otherwise the hamburger popup
+           is used. */
+        <>
+          {controlsVisible && (
+            <div className="wcdv-titlebar-inline items-center gap-2">
+              {prefs && (
+                <PrefsToolbar prefs={prefs} onOpenPerspective={onOpenPerspective} />
+              )}
+              <TitleBarActions
+                collapsed={collapsed}
+                onToggle={onToggle}
+                onToggleControls={onToggleControls}
+                onRefresh={onRefresh}
+                onOpenPerspective={onOpenPerspective}
+                onExportCsv={onExportCsv}
+                onCopyClipboard={onCopyClipboard}
+              />
+            </div>
+          )}
+          <div className={controlsVisible ? 'wcdv-titlebar-burger' : undefined}>
+            <MinimalMenu
+              floating={false}
+              prefs={prefs}
+              showCollapse
+              collapsed={collapsed}
+              onToggle={onToggle}
+              onToggleControls={onToggleControls}
+              onRefresh={onRefresh}
+              onOpenPerspective={onOpenPerspective}
+              onExportCsv={onExportCsv}
+              onCopyClipboard={onCopyClipboard}
+            />
+          </div>
+        </>
       ) : (
         <>
           {/* Prefs toolbar (perspective management) */}

@@ -36,9 +36,10 @@ import { GridToolbar } from './GridToolbar';
 import { ControlPanel } from './controls/ControlPanel';
 import { type ControlFieldItem } from './controls/ControlSection';
 import { type AggregateEntry, type AggregateFunction } from './controls/AggregateSection';
-import { type ColumnFilterConfig, type FilterSpec } from './filters/types';
+import { type ColumnFilterConfig, type FieldFilterSpec, type FilterSpec } from './filters/types';
 import { FilterContext, columnToFilterConfig, type FilterContextValue } from './filters/FilterContext';
-import type { TableColumn, MultiSortSpec, SortDirection } from './table/types';
+import { getStableRowId } from './table/row-identity';
+import type { TableColumn, MultiSortSpec, SortDirection, SelectionState } from './table/types';
 import { SortContext, type SortContextValue } from './table/SortContext';
 import { ColumnConfigContext, type ColumnConfigContextValue } from './table/ColumnConfigContext';
 import { ColumnDropProvider, type ColumnDropContextValue } from './table/ColumnDropContext';
@@ -380,6 +381,8 @@ export function DataGrid({
   const controlsInitiallyVisible = gridMode === 'default' ? false : initialShowControls;
   const [collapsed, setCollapsed] = useState(false);
   const controlsVisibleRef = useRef(controlsInitiallyVisible);
+  /** Mirrors controlsVisibleRef so the title bar can embed actions inline while open */
+  const [controlsOpen, setControlsOpen] = useState(controlsInitiallyVisible);
   const controlsWrapperRef = useRef<HTMLDivElement>(null);
   const gridTableRef = useRef<HTMLDivElement>(null);
   const setControlsVisible = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
@@ -387,11 +390,14 @@ export function DataGrid({
     if (next === controlsVisibleRef.current) return;
     controlsVisibleRef.current = next;
     controlsWrapperRef.current?.classList.toggle('hidden', !next);
+    setControlsOpen(next);
   }, []);
 
   // ── Dynamic filter columns ─────────────────────
   const [dynamicFilterColumns, setDynamicFilterColumns] = useState<ColumnFilterConfig[]>([]);
   const [initialFilterSpec, setInitialFilterSpec] = useState<FilterSpec>({});
+  /** Latest combined filter spec (drives header filter dropdowns) */
+  const [currentFilterSpec, setCurrentFilterSpec] = useState<FilterSpec>({});
   /** Static filter fields the user has hidden via the header icon */
   const [hiddenStaticFilters, setHiddenStaticFilters] = useState<Set<string>>(new Set());
 
@@ -418,7 +424,6 @@ export function DataGrid({
           next.delete(field);
           return next;
         });
-        setControlsVisible(true);
         return;
       }
 
@@ -432,9 +437,6 @@ export function DataGrid({
         : { field, displayName: field, filterType: 'string', widget: 'textbox', visible: true };
 
       setDynamicFilterColumns((prev) => [...prev, config]);
-
-      // Auto-open controls so the user sees the new filter
-      setControlsVisible(true);
     },
     [activeFilterFields, hiddenStaticFilters, allColumns],
   );
@@ -451,10 +453,82 @@ export function DataGrid({
     [filterColumns],
   );
 
+  /** Set one field's filter spec in place (header funnel dropdown) */
+  const setFieldFilter = useCallback(
+    (field: string, fieldSpec: FieldFilterSpec | null) => {
+      const next = { ...currentFilterSpec };
+      if (fieldSpec) next[field] = fieldSpec;
+      else delete next[field];
+      setCurrentFilterSpec(next);
+      // Sync the filter bar widgets with the new spec
+      setInitialFilterSpec(next);
+      if (Object.keys(next).length === 0) {
+        viewState.clearFilter();
+      } else {
+        viewState.setFilter(next);
+      }
+      // Ensure the field has a widget in the filter bar (without opening controls)
+      addFilterColumn(field);
+    },
+    [currentFilterSpec, viewState, addFilterColumn],
+  );
+
+  /** Unique values for a field's header value-checklist dropdown.
+      Accumulated grow-only (like FilterBar) so filtering the data down
+      doesn't remove previously-seen values from the checklist. */
+  const accumulatedFilterOptionsRef = useRef<Record<string, Set<string>>>({});
+  const getFilterOptions = useCallback(
+    (field: string): string[] => {
+      const col = mergedFilterColumns.find((c) => c.field === field);
+      if (col?.options?.length) return col.options;
+      const accumulated = accumulatedFilterOptionsRef.current;
+      if (!accumulated[field]) accumulated[field] = new Set();
+      const seen = accumulated[field];
+      for (const row of (viewState.data?.data ?? []) as Record<string, unknown>[]) {
+        const val = row?.[field];
+        // Blank values surface as an "(empty)" checklist entry ('' matches via $in)
+        seen.add(val == null || val === '' ? '' : String(val));
+      }
+      return Array.from(seen).sort();
+    },
+    [mergedFilterColumns, viewState.data],
+  );
+
+  /** Filter config for a field — existing bar config or derived from column metadata */
+  const getFilterConfig = useCallback(
+    (field: string): ColumnFilterConfig => {
+      const existing = mergedFilterColumns.find((c) => c.field === field);
+      if (existing) return existing;
+      const col = allColumns.find((c) => c.field === field);
+      return col
+        ? columnToFilterConfig(col)
+        : { field, displayName: field, filterType: 'string', widget: 'dropdown', visible: true };
+    },
+    [mergedFilterColumns, allColumns],
+  );
+
+  /** Open the full filter configuration (controls panel) for a field */
+  const openFilterControls = useCallback(
+    (field: string) => {
+      addFilterColumn(field);
+      setControlsVisible(true);
+    },
+    [addFilterColumn, setControlsVisible],
+  );
+
   /** Context value for table header filter icons */
   const filterContextValue = useMemo<FilterContextValue>(
-    () => ({ addFilterColumn, removeFilterColumn, activeFilterFields }),
-    [addFilterColumn, removeFilterColumn, activeFilterFields],
+    () => ({
+      addFilterColumn,
+      removeFilterColumn,
+      activeFilterFields,
+      filterSpec: currentFilterSpec,
+      setFieldFilter,
+      getFilterOptions,
+      getFilterConfig,
+      openFilterControls,
+    }),
+    [addFilterColumn, removeFilterColumn, activeFilterFields, currentFilterSpec, setFieldFilter, getFilterOptions, getFilterConfig, openFilterControls],
   );
   const [sliderOpen, setSliderOpen] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -561,6 +635,24 @@ export function DataGrid({
   // ── Dialog state ───────────────────────────────
   const [colConfigOpen, setColConfigOpen] = useState(false);
   const [tableOptsOpen, setTableOptsOpen] = useState(false);
+
+  // ── User multi-row selection preference ───────────
+  // Only offered (via the table options dialog) when the embedding code
+  // hasn't set features.rowSelection on the table renderer itself.
+  const [userRowSelection, setUserRowSelection] = useState(false);
+  const rowSelectionSetByCode = useMemo(() => {
+    let set = false;
+    Children.forEach(children, (child) => {
+      if (
+        isValidElement(child) &&
+        (child.props as Partial<TableRendererProps>).features?.rowSelection !== undefined
+      ) {
+        set = true;
+      }
+    });
+    return set;
+  }, [children]);
+
   const [groupFnOpen, setGroupFnOpen] = useState(false);
   /** Which field the group function dialog is editing */
   const [groupFnField, setGroupFnField] = useState<string | undefined>();
@@ -610,6 +702,7 @@ export function DataGrid({
         : [],
     );
     setInitialFilterSpec(parseFilterSpec(view.getFilter?.() ?? null));
+    setCurrentFilterSpec(parseFilterSpec(view.getFilter?.() ?? null));
     setSyntheticPivot(false);
 
     // Default and minimal modes hide the aggregate footer (e.g. the count row)
@@ -750,6 +843,26 @@ export function DataGrid({
     [viewState.data, visibleRowCount],
   );
 
+  /** Row numbers selected in the child table — lifted so the operations
+   * palette can act on the selected rows' data. */
+  const [selectedRowNums, setSelectedRowNums] = useState<Set<number>>(
+    () => new Set(),
+  );
+
+  const selectedRowData = useMemo(() => {
+    if (
+      selectedRowNums.size === 0 ||
+      !limitedViewData?.isPlain ||
+      !Array.isArray(limitedViewData.data)
+    ) {
+      return [];
+    }
+    // Rows are identified by stable ids (not positions) so selection
+    // follows the row content across filtering — resolve by id.
+    const data = limitedViewData.data as unknown[];
+    return data.filter((row, idx) => selectedRowNums.has(getStableRowId(row, idx)));
+  }, [selectedRowNums, limitedViewData]);
+
   const renderedChildren = useMemo(
     () => Children.map(children, (child) => {
       if (!isValidElement(child) || typeof child.type === 'string') {
@@ -760,6 +873,24 @@ export function DataGrid({
 
       return cloneElement(child as React.ReactElement<TableRendererProps>, {
         viewData: preserveChildViewData && childProps.viewData !== undefined ? childProps.viewData : limitedViewData,
+        // User-enabled multi-row selection (table options dialog) — only
+        // applied when the embedding code didn't set rowSelection itself
+        ...(childProps.features?.rowSelection === undefined && userRowSelection
+          ? { features: { ...childProps.features, rowSelection: 'checkbox' as const } }
+          : {}),
+        // Track selection so the operations palette receives the selected row
+        // data — chained with any handler the consumer supplied. Only plain
+        // mode updates the lifted selection, so group/pivot round trips (and
+        // clicks within them) don't clobber it.
+        onSelectionChange: (sel: SelectionState) => {
+          if (limitedViewData?.isPlain) {
+            setSelectedRowNums(new Set(sel.selectedRows));
+          }
+          childProps.onSelectionChange?.(sel);
+        },
+        // Reseed the plain table's selection when it remounts after a
+        // group/pivot round trip
+        initialSelectedRows: childProps.initialSelectedRows ?? selectedRowNums,
         limit: childProps.limit ?? { limit: rowBatchSize, autoShowMore },
         loadedRows: childProps.loadedRows ?? (limitedViewData?.isPlain && Array.isArray(limitedViewData.data)
           ? limitedViewData.data.length
@@ -788,6 +919,8 @@ export function DataGrid({
       handleShowMoreRows,
       handleShowAllRows,
       gridMode,
+      userRowSelection,
+      selectedRowNums,
     ],
   );
 
@@ -809,6 +942,7 @@ export function DataGrid({
   // ── Control panel handlers ─────────────────────
   const handleFilterChange = useCallback(
     (spec: FilterSpec) => {
+      setCurrentFilterSpec(spec);
       if (Object.keys(spec).length === 0) {
         viewState.clearFilter();
       } else {
@@ -1111,6 +1245,9 @@ export function DataGrid({
 
   const clearFilter = useCallback(() => {
     viewState.clearFilter();
+    // Keep the filter bar widgets and header funnel popups in sync
+    setCurrentFilterSpec({});
+    setInitialFilterSpec({});
   }, [viewState]);
 
   /** Auto-open controls when a column header drag starts or enters the grid */
@@ -1155,7 +1292,6 @@ export function DataGrid({
     <LocaleProvider value={locale}>
     <div
       className={`wcdv-grid flex flex-col border border-gray-200 dark:border-neutral-700 rounded-lg bg-white dark:bg-neutral-900 shadow-sm dark:shadow-none ${className}`}
-      style={height ? { height } : undefined}
       role="region"
       aria-label={title || t('GRID.TITLEBAR.TITLE')}
       onDragOver={handleGridDragOver}
@@ -1183,6 +1319,7 @@ export function DataGrid({
           hasActiveFilter={hasActiveFilter}
           cancellable={sourceState.source.isCancellable()}
           collapsed={collapsed}
+          controlsVisible={controlsOpen}
           prefs={prefs}
           onToggle={handleToggle}
           onToggleControls={handleToggleControls}
@@ -1241,7 +1378,7 @@ export function DataGrid({
 
             {/* Operations Palette */}
             {operations.length > 0 && (
-              <OperationsPalette operations={operations} />
+              <OperationsPalette operations={operations} selectedRows={selectedRowData} />
             )}
           </div>
 
@@ -1251,11 +1388,14 @@ export function DataGrid({
             fetching={sourceState.fetching}
           />
 
-          {/* Data content area */}
+          {/* Data content area — when a fixed `height` is supplied it applies
+              to the table (scroll area) itself, not the whole grid, so the
+              toolbar/controls stack above and add to the overall height. */}
           <div
             ref={gridTableRef}
             id={gridTableId}
             className="wcdv-grid-table flex flex-col flex-1 min-h-0 relative"
+            style={height ? { height, flex: 'none' } : undefined}
             aria-busy={viewState.loading}
           >
             {/* Floating ellipsis menu (minimal mode) — sits over the table,
@@ -1297,6 +1437,9 @@ export function DataGrid({
         onOpenChange={setTableOptsOpen}
         displayFormat={displayFormat}
         onSave={handleDisplayFormatSave}
+        rowSelection={userRowSelection}
+        showRowSelectionOption={!rowSelectionSetByCode}
+        onRowSelectionChange={setUserRowSelection}
       />
 
       <GroupFunctionDialog

@@ -10,3 +10,21 @@
 .wcdv-thead-shadow {
   box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
 }
+
+/* Title bar action embedding — the inline action/perspective cluster only
+   shows when the title bar is wide enough to fit every button; otherwise
+   the hamburger popup is used (mobile & narrow containers). */
+.wcdv-title-bar {
+  container-type: inline-size;
+}
+.wcdv-titlebar-inline {
+  display: none;
+}
+@container (min-width: 56rem) {
+  .wcdv-titlebar-inline {
+    display: flex;
+  }
+  .wcdv-titlebar-burger {
+    display: none;
+  }
+}

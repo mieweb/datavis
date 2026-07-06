@@ -281,7 +281,8 @@ type HarnessScenario =
   | 'drilldown'
   | 'row-customization'
   | 'sticky-viewport'
-  | 'sticky-container';
+  | 'sticky-container'
+  | 'checkbox';
 
 interface HarnessConfig {
   id: string;
@@ -315,6 +316,7 @@ function getScenarioFromSearch(): HarnessScenario {
     || scenario === 'row-customization'
     || scenario === 'sticky-viewport'
     || scenario === 'sticky-container'
+    || scenario === 'checkbox'
   ) {
     return scenario;
   }
@@ -700,7 +702,7 @@ function HarnessGrid({
             zebraStripe: true,
             keyboardNav: true,
             headerContextMenu: true,
-            rowSelection: true,
+            rowSelection: scenario === 'checkbox' ? 'checkbox' : true,
           }}
           formatCell={formatCell}
           onSelectionChange={setSelection}

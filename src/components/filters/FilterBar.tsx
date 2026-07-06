@@ -69,20 +69,24 @@ export function FilterBar({
     },
   );
 
-  useEffect(() => {
+  // Re-derive specs when the initial spec or column set changes (render-phase
+  // derivation so widgets mounting in the same pass see the correct value —
+  // e.g. a filter set from a header funnel dropdown before its widget exists).
+  const [lastSynced, setLastSynced] = useState<{ initialSpec?: FilterSpec; columns: ColumnFilterConfig[] }>({ initialSpec, columns });
+  if (lastSynced.initialSpec !== initialSpec || lastSynced.columns !== columns) {
+    setLastSynced({ initialSpec, columns });
     if (!initialSpec) {
       setSpecs({});
-      return;
-    }
-
-    const nextSpecs: Record<string, FieldFilterSpec | null> = {};
-    for (const col of columns) {
-      if (initialSpec[col.field]) {
-        nextSpecs[col.field] = initialSpec[col.field];
+    } else {
+      const nextSpecs: Record<string, FieldFilterSpec | null> = {};
+      for (const col of columns) {
+        if (initialSpec[col.field]) {
+          nextSpecs[col.field] = initialSpec[col.field];
+        }
       }
+      setSpecs(nextSpecs);
     }
-    setSpecs(nextSpecs);
-  }, [initialSpec, columns]);
+  }
 
   // Visible columns only
   const visibleColumns = useMemo(
@@ -325,7 +329,7 @@ export function FilterBar({
 // FilterWidget — dispatches to correct filter by type
 // ───────────────────────────────────────────────────────────
 
-interface FilterWidgetProps {
+export interface FilterWidgetProps {
   column: ColumnFilterConfig;
   derivedOptions?: string[];
   value?: FieldFilterSpec;
@@ -333,7 +337,7 @@ interface FilterWidgetProps {
   autoFocusOperator?: boolean;
 }
 
-function FilterWidget({ column, derivedOptions, value, onChange, autoFocusOperator }: FilterWidgetProps) {
+export function FilterWidget({ column, derivedOptions, value, onChange, autoFocusOperator }: FilterWidgetProps) {
   const { field, displayName, filterType, widget, options, includeOperators, excludeOperators } = column;
   const effectiveOptions = options?.length ? options : derivedOptions;
 

@@ -12,6 +12,7 @@ import { Tooltip } from '@mieweb/ui/components/Tooltip';
 import { Switch } from '@mieweb/ui/components/Switch';
 import { useTranslation } from 'react-i18next';
 import { ClipboardIcon, CloseGlyphIcon } from '../ui';
+import { COLUMN_DRAG_MIME } from './column-drag';
 
 export interface AggregateFunction {
   /** Function name (key) */
@@ -105,6 +106,42 @@ export function AggregateSection({
     onChange([]);
   }, [onChange]);
 
+  // ── Column drop zone — dropping a header creates an aggregate for it ──
+  const [dragOver, setDragOver] = useState(false);
+
+  const handleNativeDragOver = useCallback((e: React.DragEvent) => {
+    if (!e.dataTransfer.types.includes(COLUMN_DRAG_MIME)) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+    setDragOver(true);
+  }, []);
+
+  const handleNativeDragLeave = useCallback(() => {
+    setDragOver(false);
+  }, []);
+
+  const handleNativeDrop = useCallback(
+    (e: React.DragEvent) => {
+      setDragOver(false);
+      const field = e.dataTransfer.getData(COLUMN_DRAG_MIME);
+      if (!field) return;
+      e.preventDefault();
+      if (!availableFields.some((f) => f.field === field)) return;
+      // Prefer sum(); fall back to the first single-field function
+      const fn =
+        functions.find((f) => f.name === 'sum' && f.fieldCount === 1) ??
+        functions.find((f) => f.fieldCount === 1);
+      if (!fn) return;
+      const fields = new Array<string>(fn.fieldCount).fill('');
+      fields[0] = field;
+      onChange([
+        ...entries,
+        { id: `agg-${Date.now()}`, functionName: fn.name, fields, visible: true },
+      ]);
+    },
+    [availableFields, functions, entries, onChange],
+  );
+
   const fieldOptions = availableFields.map((f) => ({
     value: f.field,
     label: f.displayName,
@@ -117,8 +154,14 @@ export function AggregateSection({
 
   return (
     <fieldset
-      className="wcdv-control-section wcdv-aggregate-section flex flex-col gap-1 border-0 p-0 m-0 min-w-0"
+      className={`wcdv-control-section wcdv-aggregate-section flex flex-col gap-1 rounded transition-colors border-0 p-0 m-0 min-w-0 ${
+        dragOver ? 'ring-2 ring-blue-400 dark:ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''
+      }`}
       aria-label={t('CONTROL.AGGREGATE') || 'Aggregate'}
+      data-drop-zone="aggregate"
+      onDragOver={handleNativeDragOver}
+      onDragLeave={handleNativeDragLeave}
+      onDrop={handleNativeDrop}
     >
       {/* Header */}
       <legend className="flex items-center gap-1 w-full">

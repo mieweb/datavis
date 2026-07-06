@@ -24,6 +24,7 @@ import { GroupSummaryTable } from './GroupSummaryTable';
 import { PivotTable, type PivotData } from './PivotTable';
 import { TableProgress } from './TableProgress';
 import { useSortContext } from './SortContext';
+import { getStableRowId } from './row-identity';
 import type { ViewData } from '../../adapters/use-data';
 import { useTranslation } from 'react-i18next';
 
@@ -92,6 +93,8 @@ export interface TableRendererProps {
   onShowAll?: () => void;
   /** Selection changed */
   onSelectionChange?: (selection: SelectionState) => void;
+  /** Seed row selection on mount (stable row ids) */
+  initialSelectedRows?: Set<number>;
 }
 
 // ───────────────────────────────────────────────────────────
@@ -125,6 +128,7 @@ export function TableRenderer({
   onShowMore,
   onShowAll,
   onSelectionChange,
+  initialSelectedRows,
 }: TableRendererProps) {
   const { t } = useTranslation();
 
@@ -137,7 +141,9 @@ export function TableRenderer({
   const plainRows = useMemo<TableRow[]>(() => {
     if (!viewData?.isPlain || !Array.isArray(viewData.data)) return [];
     return viewData.data.map((row, idx) => ({
-      rowNum: idx,
+      // Stable identity so selection sticks to the row's content across
+      // filter/sort changes rather than its position
+      rowNum: getStableRowId(row, idx),
       rowId: (row as Record<string, unknown>)?._rowId as string | undefined,
       data: row as Record<string, unknown>,
     }));
@@ -175,7 +181,7 @@ export function TableRenderer({
       for (const [idx, row] of data.entries()) {
         const key = serializeGroupKey(groupFields, row);
         if (!groupedRows[key]) groupedRows[key] = [];
-        groupedRows[key].push({ rowNum: idx, data: row });
+        groupedRows[key].push({ rowNum: getStableRowId(row, idx), data: row });
       }
     } else if (data.length > 0) {
       // No metadata — derive groups entirely from data
@@ -197,7 +203,7 @@ export function TableRenderer({
 
         groups[key].count++;
         groupedRows[key].push({
-          rowNum: idx,
+          rowNum: getStableRowId(row, idx),
           data: row,
         });
       }
@@ -339,6 +345,7 @@ export function TableRenderer({
           onShowMore={onShowMore}
           onShowAll={onShowAll}
           onSelectionChange={onSelectionChange}
+          initialSelectedRows={initialSelectedRows}
         />
       )}
 

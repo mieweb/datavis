@@ -209,16 +209,30 @@ export function GroupDetailTable({
     [dataColumns, aggLayout],
   );
 
-  // Format group header label
+  // Format group header label — just the value(s); the group field name is
+  // shown once in the first column header instead of repeated per group.
   const formatGroupLabel = useCallback(
-    (_groupKey: string, meta: GroupMeta): string => {
-      const parts = groupFields.map((field) => {
+    (_groupKey: string, meta: GroupMeta): ReactNode => {
+      return groupFields.map((field, i) => {
         const val = meta.groupValues[field];
-        return `${field}: ${val ?? '(empty)'}`;
+        return (
+          <span key={field} className="wcdv-group-label">
+            {i > 0 && <span className="mx-1.5 text-gray-300 dark:text-neutral-600">/</span>}
+            <span>{String(val ?? '') || '(empty)'}</span>
+          </span>
+        );
       });
-      return parts.join(' / ');
     },
     [groupFields],
+  );
+
+  /** Display name(s) of the grouped field(s), e.g. "Department" */
+  const groupHeaderLabel = useMemo(
+    () =>
+      groupFields
+        .map((field) => columns.find((c) => c.field === field)?.header ?? field)
+        .join(' / '),
+    [groupFields, columns],
   );
 
   // Format a single aggregate value for display in a column cell
@@ -285,10 +299,16 @@ export function GroupDetailTable({
                   <DisclosureGlyphIcon className="h-4 w-4" expanded={allExpanded} />
                 </IconButton>
               </th>
-              {columnLayout.map((col) => {
-                const sortInfo = findSort(sorts, col.field);
-                return (
-                <th
+              {columnLayout.map((col, colIdx) => {
+                // The first column hosts the group labels — title it with the
+                // grouped field name(s) and sort it by the group field.
+                const isGroupCol = colIdx === 0 && groupFields.length > 0;
+                const sortField = isGroupCol ? groupFields[0] : col.field;
+                // e.g. "Department / ID" — group values sit above this
+                // column's own data values in the detail rows
+                const headerText = isGroupCol ? `${groupHeaderLabel} / ${col.header}` : col.header;
+                const sortInfo = findSort(sorts, sortField);
+                return (                <th
                   key={col.field}
                   colSpan={col.span}
                   rowSpan={hasAggSubCols && col.aggFns.length === 0 ? 2 : 1}
@@ -318,15 +338,15 @@ export function GroupDetailTable({
                     }`}
                     onClick={(e) =>
                       handleSort(
-                        col.field,
+                        sortField,
                         sortInfo?.direction === 'asc' ? 'desc' : 'asc',
                         e.shiftKey,
                       )
                     }
-                    aria-label={t('TABLE.SORT_BY', { param0: col.header }) || `Sort by ${col.header}`}
+                    aria-label={t('TABLE.SORT_BY', { param0: headerText }) || `Sort by ${headerText}`}
                     title={t('TABLE.SORT_MULTI_HINT') || 'Click to sort. Shift+click to add to the sort.'}
                   >
-                    <span className="truncate">{col.header}</span>
+                    <span className="truncate">{headerText}</span>
                     {sortInfo && (
                       <SortIndicator
                         direction={sortInfo.direction}
@@ -458,7 +478,7 @@ interface GroupSectionProps {
   columnLayout: ColumnLayout[];
   features: BaseTableProps['features'];
   formatCell?: BaseTableProps['formatCell'];
-  formatGroupLabel: (key: string, meta: GroupMeta) => string;
+  formatGroupLabel: (key: string, meta: GroupMeta) => ReactNode;
   formatAggValue: (fn: string, value: unknown) => ReactNode;
   onToggle: (key: string) => void;
   onRowClick?: BaseTableProps['onRowClick'];

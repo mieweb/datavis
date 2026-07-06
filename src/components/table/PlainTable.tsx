@@ -19,6 +19,7 @@
 
 import { useState, useCallback, useMemo, useRef, useEffect, useLayoutEffect } from 'react';
 import { Button } from '@mieweb/ui/components/Button';
+import { Checkbox } from '@mieweb/ui/components/Checkbox';
 
 import type {
   BaseTableProps,
@@ -29,12 +30,14 @@ import type {
   ContextMenuItem,
 } from './types';
 import { findSort } from './types';
+import { useRowSelection } from './useRowSelection';
 import { useColumnResize } from './useColumnResize';
 import { useKeyboardNav } from './useKeyboardNav';
 import { useColumnDrop } from './ColumnDropContext';
 import { useIsConstrained } from './useAutoHeight';
 import { HeaderContextMenu } from './HeaderContextMenu';
 import { useFilterContext } from '../filters/FilterContext';
+import { HeaderFilterDropdown } from '../filters/HeaderFilterDropdown';
 import { useColumnConfig } from './ColumnConfigContext';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '../../i18n';
@@ -120,6 +123,7 @@ function HeaderCell({
 }: HeaderCellProps) {
   const { t } = useTranslation();
   const thRef = useRef<HTMLTableCellElement>(null);
+  const filterCtx = useFilterContext();
 
   const style: React.CSSProperties = {
     width: column.width,
@@ -194,8 +198,16 @@ function HeaderCell({
           )}
         </Button>
 
-        {/* Filter icon — adds this column to the filter bar */}
-        {onFilterClick && (
+        {/* Filter icon — opens the in-place value-checklist dropdown */}
+        {filterCtx?.setFieldFilter ? (
+          <HeaderFilterDropdown
+            field={column.field}
+            header={column.header}
+            filterActive={filterActive}
+          >
+            <FilterIcon active={filterActive} />
+          </HeaderFilterDropdown>
+        ) : onFilterClick ? (
           <IconButton
             type="button"
             variant="ghost"
@@ -210,7 +222,7 @@ function HeaderCell({
           >
             <FilterIcon active={filterActive} />
           </IconButton>
-        )}
+        ) : null}
       </div>
 
       {/* Resize handle */}
@@ -255,9 +267,11 @@ interface AggregateFooterProps {
   locale?: string;
   pinStyles?: Map<string, React.CSSProperties>;
   pinnedCount?: number;
+  /** Extra leading cells (e.g. the selection checkbox column) */
+  leadingCells?: number;
 }
 
-function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale, pinStyles, pinnedCount = 0 }: AggregateFooterProps) {
+function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale, pinStyles, pinnedCount = 0, leadingCells = 0 }: AggregateFooterProps) {
   const { t } = useTranslation();
   // Group aggregate entries by function name so each fn gets its own row
   const byFn = new Map<string, { field: string | null; value: unknown }[]>();
@@ -279,6 +293,12 @@ function AggregateFooter({ aggregates, aggFnLabels, visibleColumns, locale, pinS
 
         return (
           <tr key={fn} className="border-t border-gray-200 dark:border-neutral-700">
+            {leadingCells > 0 && (
+              <td
+                colSpan={leadingCells}
+                className="px-2 py-1 border-r border-gray-200 dark:border-neutral-700"
+              />
+            )}
             {visibleColumns.map((col, idx) => {
               const val = fieldMap.get(col.field);
               const footPinStyle = pinStyles?.get(col.field);
@@ -345,6 +365,7 @@ export function PlainTable({
   onShowMore,
   onShowAll,
   onSelectionChange,
+  initialSelectedRows,
   className = '',
 }: BaseTableProps) {
   const { t } = useTranslation();
@@ -358,11 +379,9 @@ export function PlainTable({
   const [columns, setColumns] = useState<TableColumn[]>(initialColumns);
 
   // ── Selection state ────────────────────────────
-  const [selection, setSelection] = useState<SelectionState>({
-    selectedRows: new Set(),
-    activeRow: null,
-    activeColumn: null,
-  });
+  const checkboxSelection = features.rowSelection === 'checkbox';
+  const { selection, setSelection, headerState, toggleRow, toggleAll } =
+    useRowSelection(rows, onSelectionChange, initialSelectedRows);
 
   // ── Context menu state ─────────────────────────
   const [contextMenu, setContextMenu] = useState<{
@@ -554,13 +573,7 @@ export function PlainTable({
   const { handleKeyDown } = useKeyboardNav(
     rows,
     selection,
-    useCallback(
-      (sel: SelectionState) => {
-        setSelection(sel);
-        onSelectionChange?.(sel);
-      },
-      [onSelectionChange],
-    ),
+    setSelection,
     useCallback(
       (row: TableRow, event: React.KeyboardEvent) => {
         onRowClick?.(row, event as unknown as React.MouseEvent);
@@ -572,18 +585,21 @@ export function PlainTable({
   // ── Row click handler ─────────────────────────
   const handleRowClick = useCallback(
     (row: TableRow, event: React.MouseEvent) => {
-      const newSelection: SelectionState = {
-        ...selection,
-        activeRow: row.rowNum,
-        selectedRows: event.shiftKey
-          ? new Set([...selection.selectedRows, row.rowNum])
-          : new Set([row.rowNum]),
-      };
+      // Checkbox mode: clicking the row body only moves the active row —
+      // the checkboxes own membership of the selection.
+      const newSelection: SelectionState = checkboxSelection
+        ? { ...selection, activeRow: row.rowNum }
+        : {
+            ...selection,
+            activeRow: row.rowNum,
+            selectedRows: event.shiftKey
+              ? new Set([...selection.selectedRows, row.rowNum])
+              : new Set([row.rowNum]),
+          };
       setSelection(newSelection);
-      onSelectionChange?.(newSelection);
       onRowClick?.(row, event);
     },
-    [selection, onRowClick, onSelectionChange],
+    [selection, checkboxSelection, onRowClick, setSelection],
   );
 
   // ── Context menu handler ──────────────────────
@@ -786,7 +802,7 @@ export function PlainTable({
         data-testid="plain-table-scroll"
         onScroll={handleScroll}
       >
-          <table className="min-w-full border-collapse" role="grid" aria-colcount={visibleColumns.length} aria-rowcount={totalRows ?? rows.length}>
+          <table className="min-w-full border-collapse" role="grid" aria-colcount={visibleColumns.length + (checkboxSelection ? 1 : 0)} aria-rowcount={totalRows ?? rows.length}>
             <caption className="sr-only">{t('TABLE.CAPTION', { param0: t('GRID_TOOLBAR.PLAIN.ROW_MODE') }) || 'Data table: Plain'}</caption>
             {/* ── Header ── */}
             <thead
@@ -798,6 +814,20 @@ export function PlainTable({
               }
             >
               <tr>
+                  {checkboxSelection && (
+                    <th
+                      className="wcdv-th wcdv-th-select w-9 border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-center align-middle"
+                      role="columnheader"
+                      scope="col"
+                    >
+                      <Checkbox
+                        aria-label={t('TABLE.SELECT_ALL_ROWS') || 'Select all rows'}
+                        checked={headerState === 'all'}
+                        indeterminate={headerState === 'some'}
+                        onChange={toggleAll}
+                      />
+                    </th>
+                  )}
                   {visibleColumns.map((col, colIdx) => {
                     const sortInfo = findSort(sorts, col.field);
                     return (
@@ -811,7 +841,11 @@ export function PlainTable({
                         features.columnResize !== false &&
                         col.resizable !== false
                       }
-                      filterActive={filterCtx?.activeFilterFields.has(col.field)}
+                      filterActive={
+                        filterCtx?.filterSpec
+                          ? Boolean(filterCtx.filterSpec[col.field])
+                          : filterCtx?.activeFilterFields.has(col.field)
+                      }
                       pinStyle={pinStyles.get(col.field)}
                       isLastPinned={pinnedCount > 0 && colIdx === pinnedCount - 1}
                       onFilterClick={
@@ -847,7 +881,7 @@ export function PlainTable({
               {rows.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={visibleColumns.length}
+                    colSpan={visibleColumns.length + (checkboxSelection ? 1 : 0)}
                     className="px-4 py-8 text-center text-sm text-gray-400 dark:text-neutral-500"
                   >
                     {t('TABLE.NO_DATA') || 'No data to display'}
@@ -874,7 +908,7 @@ export function PlainTable({
                         ${features.rowMode === 'clipped' ? '' : ''}
                       `}
                       role="row"
-                      aria-rowindex={row.rowNum + 1}
+                      aria-rowindex={rowIdx + 1}
                       aria-selected={isSelected}
                       onClick={(e) => handleRowClick(row, e)}
                       onDoubleClick={
@@ -883,6 +917,19 @@ export function PlainTable({
                           : undefined
                       }
                     >
+                      {checkboxSelection && (
+                        <td
+                          className="wcdv-td wcdv-td-select w-9 border-r border-gray-100 dark:border-neutral-700 px-2 py-1 text-center align-middle"
+                          role="gridcell"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <Checkbox
+                            aria-label={t('TABLE.SELECT_ROW') || 'Select row'}
+                            checked={isSelected}
+                            onChange={() => toggleRow(row.rowNum)}
+                          />
+                        </td>
+                      )}
                       {visibleColumns.map((col, colIdx) => {
                         const bodyPinStyle = pinStyles.get(col.field);
                         const isLastPin = pinnedCount > 0 && colIdx === pinnedCount - 1;
@@ -921,6 +968,7 @@ export function PlainTable({
                 locale={locale}
                 pinStyles={pinStyles}
                 pinnedCount={pinnedCount}
+                leadingCells={checkboxSelection ? 1 : 0}
               />
             )}
           </table>

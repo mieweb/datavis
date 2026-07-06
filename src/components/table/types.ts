@@ -180,8 +180,13 @@ export interface TableFeatures {
   columnReorder?: boolean;
   /** Enable sticky headers */
   stickyHeaders?: boolean;
-  /** Enable row selection */
-  rowSelection?: boolean;
+  /**
+   * Enable row selection.
+   * - `true` — click selects a row, Shift+click extends the selection
+   * - `'checkbox'` — adds a leading checkbox column with a tri-state
+   *   select-all header checkbox (applies to the currently filtered rows)
+   */
+  rowSelection?: boolean | 'checkbox';
   /** Enable context menu on column headers */
   headerContextMenu?: boolean;
   /** Enable zebra striping */
@@ -234,6 +239,9 @@ export interface BaseTableProps {
   aggFnLabels?: Record<string, string>;
   /** Whether to show the "Showing N rows" count in the footer. Defaults to true. */
   showRowCount?: boolean;
+  /** Seed the row selection on mount (stable row ids) — lets a lifted
+      selection survive renderer remounts (e.g. group/pivot round trips) */
+  initialSelectedRows?: Set<number>;
 
   // ── Callbacks ──
   /** Sort requested on a column. When `additive` is true (e.g. shift-click), the column is added to / updated within the existing multi-column sort; otherwise it replaces the current sort. */

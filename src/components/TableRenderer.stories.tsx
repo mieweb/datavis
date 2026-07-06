@@ -16,6 +16,7 @@ import type {
   TableRow,
   SortSpec,
   GroupMeta,
+  SelectionState,
 } from './table/types';
 import type { PivotData } from './table/PivotTable';
 
@@ -99,6 +100,38 @@ export const Plain: StoryFn = () => {
 };
 
 // ── Plain with Limit ────────────────────────────
+
+// ── Checkbox Selection ──────────────────────────
+
+/** Checkbox row selection: a leading checkbox column with a tri-state
+ * select-all header checkbox. Selecting rows individually shows the mixed
+ * (indeterminate) state; the header checkbox selects or clears every
+ * currently rendered (filtered) row. */
+export const CheckboxSelection: StoryFn = () => {
+  const [selection, setSelection] = useState<SelectionState | null>(null);
+
+  return (
+    <div className="space-y-2">
+      <div className="text-sm text-gray-600">
+        {selection?.selectedRows.size ?? 0} row(s) selected
+      </div>
+      <div className="h-[500px] border border-gray-200 rounded-lg overflow-hidden">
+        <PlainTable
+          columns={COLUMNS}
+          rows={ROWS}
+          totalRows={ROWS.length}
+          features={{
+            rowSelection: 'checkbox',
+            stickyHeaders: true,
+            zebraStripe: true,
+          }}
+          onSelectionChange={setSelection}
+        />
+      </div>
+    </div>
+  );
+};
+
 
 export const PlainWithLimit: StoryFn = () => {
   const [visibleCount, setVisibleCount] = useState(5);
