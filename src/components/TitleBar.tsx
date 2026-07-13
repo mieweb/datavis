@@ -10,6 +10,7 @@ import { Spinner } from '@mieweb/ui/components/Spinner';
 import { Tooltip } from '@mieweb/ui/components/Tooltip';
 
 import { useTranslation } from 'react-i18next';
+import type { ReactNode } from 'react';
 import { HelpIcon, InlineActionButton } from './ui';
 import { PrefsToolbar } from './toolbars/PrefsToolbar';
 import { TitleBarActions } from './TitleBarActions';
@@ -35,6 +36,10 @@ export interface TitleBarProps {
    * replaces the inline buttons with the hamburger menu.
    */
   variant?: 'full' | 'default';
+  /** Custom actions rendered in the title bar, right-aligned before the
+      built-in controls. Kept on one line alongside the inline toolbar or
+      hamburger menu — the title bar never wraps. */
+  titleActions?: ReactNode;
   onToggle: () => void;
   onToggleControls: () => void;
   onRefresh: () => void;
@@ -57,6 +62,7 @@ export function TitleBar({
   controlsVisible = false,
   prefs,
   variant = 'full',
+  titleActions,
   onToggle,
   onToggleControls,
   onRefresh,
@@ -147,6 +153,13 @@ export function TitleBar({
 
       {/* Spacer */}
       <span className="flex-1" />
+
+      {/* Custom consumer actions — stay on one line with the built-in controls */}
+      {titleActions && (
+        <span className="wcdv-title-actions flex items-center gap-1 whitespace-nowrap">
+          {titleActions}
+        </span>
+      )}
 
       {isDefault ? (
         /* Default mode — hamburger menu replaces the inline perspective and

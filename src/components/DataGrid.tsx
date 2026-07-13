@@ -260,6 +260,9 @@ export interface DataGridProps {
   /** Expand (true) or collapse (false) all detail rows. Changing the value
       overrides individual toggles; leave undefined for per-row control only. */
   detailRowsExpanded?: boolean;
+  /** Custom actions rendered in the title bar, right-aligned before the
+      built-in controls (hidden in `mode="minimal"`, which has no title bar). */
+  titleActions?: React.ReactNode;
   /** BCP-47 locale for number/date formatting (e.g. 'en-US'). Defaults to browser locale. */
   locale?: string;
   /** Enable debug button */
@@ -350,6 +353,7 @@ export function DataGrid({
   children,
   renderDetailRow,
   detailRowsExpanded,
+  titleActions,
   locale,
   debug: _debug = false,
   preserveChildViewData = false,
@@ -1334,6 +1338,7 @@ export function DataGrid({
           collapsed={collapsed}
           controlsVisible={controlsOpen}
           prefs={prefs}
+          titleActions={titleActions}
           onToggle={handleToggle}
           onToggleControls={handleToggleControls}
           onRefresh={handleRefresh}
