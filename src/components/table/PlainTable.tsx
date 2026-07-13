@@ -399,14 +399,23 @@ export function PlainTable({
   /** Leading utility cells before the data columns (detail toggle + checkbox) */
   const leadingCells = (hasDetailRows ? 1 : 0) + (checkboxSelection ? 1 : 0);
 
-  // Sync with the expand-all/collapse-all prop — overrides individual toggles
-  // whenever it (or the row set) changes; undefined leaves rows uncontrolled.
+  // Sync with the expand-all/collapse-all prop — edge-triggered: it overrides
+  // individual toggles only when the prop value or the row membership (stable
+  // row ids, not array identity) actually changes.
+  const rowsRef = useRef(rows);
+  rowsRef.current = rows;
+  const rowIdsKey = useMemo(
+    () => rows.map((r) => String(r.rowId ?? r.rowNum)).join('\u0000'),
+    [rows],
+  );
   useEffect(() => {
     if (detailRowsExpanded === undefined) return;
     setExpandedDetailRows(
-      detailRowsExpanded ? new Set(rows.map((r) => r.rowNum)) : new Set(),
+      detailRowsExpanded
+        ? new Set(rowsRef.current.map((r) => r.rowNum))
+        : new Set(),
     );
-  }, [detailRowsExpanded, rows]);
+  }, [detailRowsExpanded, rowIdsKey]);
 
   const allDetailsExpanded =
     hasDetailRows && rows.length > 0 && rows.every((r) => expandedDetailRows.has(r.rowNum));
@@ -417,6 +426,20 @@ export function PlainTable({
         : new Set(rows.map((r) => r.rowNum)),
     );
   }, [rows]);
+
+  // ARIA row bookkeeping: expanded detail rows are real grid rows, so they
+  // count toward aria-rowcount and shift subsequent aria-rowindex values.
+  const ariaRowIndexes = useMemo(() => {
+    let expandedSoFar = 0;
+    return rows.map((row, i) => {
+      const index = i + 1 + expandedSoFar;
+      if (hasDetailRows && expandedDetailRows.has(row.rowNum)) expandedSoFar += 1;
+      return index;
+    });
+  }, [rows, hasDetailRows, expandedDetailRows]);
+  const expandedVisibleCount = hasDetailRows
+    ? rows.reduce((n, r) => n + (expandedDetailRows.has(r.rowNum) ? 1 : 0), 0)
+    : 0;
 
   // ── Context menu state ─────────────────────────
   const [contextMenu, setContextMenu] = useState<{
@@ -479,9 +502,11 @@ export function PlainTable({
     const ths = thead.querySelectorAll('th');
     const styles = new Map<string, React.CSSProperties>();
     let cumulativeLeft = 0;
-    for (let i = 0; i < pinnedCount && i < ths.length; i++) {
+    // Skip the leading utility headers (detail toggle, checkbox) — pinned
+    // data columns start after them.
+    for (let i = 0; i < pinnedCount && i + leadingCells < ths.length; i++) {
       const col = visibleColumns[i];
-      const actualWidth = ths[i].offsetWidth;
+      const actualWidth = ths[i + leadingCells].offsetWidth;
       styles.set(col.field, {
         position: 'sticky',
         left: cumulativeLeft,
@@ -490,7 +515,7 @@ export function PlainTable({
       cumulativeLeft += actualWidth;
     }
     setPinStyles(styles);
-  }, [pinnedCount, visibleColumns, columns]);
+  }, [pinnedCount, visibleColumns, columns, leadingCells]);
 
   // ── Column resize ─────────────────────────────
   const { handleResizeMouseDown } = useColumnResize(
@@ -839,7 +864,7 @@ export function PlainTable({
             className="min-w-full border-collapse"
             role="grid"
             aria-colcount={visibleColumns.length + leadingCells}
-            aria-rowcount={totalRows ?? rows.length}
+            aria-rowcount={(totalRows ?? rows.length) + expandedVisibleCount}
             onKeyDown={features.keyboardNav !== false ? handleKeyDown : undefined}
             tabIndex={features.keyboardNav !== false ? 0 : undefined}
           >
@@ -967,7 +992,7 @@ export function PlainTable({
                         ${features.rowMode === 'clipped' ? '' : ''}
                       `}
                       role="row"
-                      aria-rowindex={rowIdx + 1}
+                      aria-rowindex={ariaRowIndexes[rowIdx]}
                       aria-selected={isSelected}
                       onClick={(e) => handleRowClick(row, e)}
                       onDoubleClick={
@@ -1036,6 +1061,7 @@ export function PlainTable({
                       <tr
                         className="wcdv-detail-tr border-b border-gray-100 dark:border-neutral-700"
                         role="row"
+                        aria-rowindex={ariaRowIndexes[rowIdx] + 1}
                       >
                         <td
                           className="wcdv-detail-td bg-gray-50/50 dark:bg-neutral-800/50 px-3 py-2"
