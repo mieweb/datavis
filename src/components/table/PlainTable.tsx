@@ -354,6 +354,7 @@ export function PlainTable({
   limit,
   formatCell,
   renderDetailRow,
+  detailRowsExpanded,
   aggregates,
   aggFnLabels,
   showRowCount = true,
@@ -397,6 +398,25 @@ export function PlainTable({
   }, []);
   /** Leading utility cells before the data columns (detail toggle + checkbox) */
   const leadingCells = (hasDetailRows ? 1 : 0) + (checkboxSelection ? 1 : 0);
+
+  // Sync with the expand-all/collapse-all prop — overrides individual toggles
+  // whenever it (or the row set) changes; undefined leaves rows uncontrolled.
+  useEffect(() => {
+    if (detailRowsExpanded === undefined) return;
+    setExpandedDetailRows(
+      detailRowsExpanded ? new Set(rows.map((r) => r.rowNum)) : new Set(),
+    );
+  }, [detailRowsExpanded, rows]);
+
+  const allDetailsExpanded =
+    hasDetailRows && rows.length > 0 && rows.every((r) => expandedDetailRows.has(r.rowNum));
+  const toggleAllDetailRows = useCallback(() => {
+    setExpandedDetailRows((prev) =>
+      rows.length > 0 && rows.every((r) => prev.has(r.rowNum))
+        ? new Set()
+        : new Set(rows.map((r) => r.rowNum)),
+    );
+  }, [rows]);
 
   // ── Context menu state ─────────────────────────
   const [contextMenu, setContextMenu] = useState<{
@@ -836,11 +856,20 @@ export function PlainTable({
               <tr>
                   {hasDetailRows && (
                     <th
-                      className="wcdv-th wcdv-th-detail w-9 border-r border-gray-200 dark:border-neutral-700 px-2 py-1"
+                      className="wcdv-th wcdv-th-detail w-9 border-r border-gray-200 dark:border-neutral-700 px-1 py-1 text-center align-middle"
                       role="columnheader"
                       scope="col"
                     >
-                      <span className="sr-only">{t('TABLE.DETAIL_COLUMN') || 'Row details'}</span>
+                      <IconButton
+                        aria-expanded={allDetailsExpanded}
+                        aria-label={
+                          t('TABLE.TOGGLE_ALL_DETAILS') ||
+                          (allDetailsExpanded ? 'Collapse all row details' : 'Expand all row details')
+                        }
+                        onClick={toggleAllDetailRows}
+                      >
+                        <DisclosureGlyphIcon className="h-4 w-4" expanded={allDetailsExpanded} />
+                      </IconButton>
                     </th>
                   )}
                   {checkboxSelection && (

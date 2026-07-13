@@ -60,6 +60,9 @@ export interface TableRendererProps {
   /** When provided, each plain-mode row gets a disclosure toggle that expands
       a full-width detail row rendered by this callback. */
   renderDetailRow?: (row: TableRow) => React.ReactNode;
+  /** Expand (true) or collapse (false) all detail rows. Changing the value
+      overrides individual toggles; leave undefined for per-row control only. */
+  detailRowsExpanded?: boolean;
   /** Group mode: 'detail' | 'summary' */
   groupMode?: 'detail' | 'summary';
   /** Whether to show total row (group/pivot) */
@@ -115,6 +118,7 @@ export function TableRenderer({
   loading = false,
   formatCell,
   renderDetailRow,
+  detailRowsExpanded,
   groupMode = 'detail',
   showTotalRow = false,
   showTotalCol = true,
@@ -338,6 +342,7 @@ export function TableRenderer({
           limit={limit}
           formatCell={formatCell}
           renderDetailRow={renderDetailRow}
+          detailRowsExpanded={detailRowsExpanded}
           aggregates={viewData.totalAggregates as Record<string, unknown> | undefined}
           aggFnLabels={aggFnLabels}
           showRowCount={showRowCount}
