@@ -57,6 +57,9 @@ export interface TableRendererProps {
   loading?: boolean;
   /** Custom cell formatter */
   formatCell?: CellFormatter;
+  /** When provided, each plain-mode row gets a disclosure toggle that expands
+      a full-width detail row rendered by this callback. */
+  renderDetailRow?: (row: TableRow) => React.ReactNode;
   /** Group mode: 'detail' | 'summary' */
   groupMode?: 'detail' | 'summary';
   /** Whether to show total row (group/pivot) */
@@ -111,6 +114,7 @@ export function TableRenderer({
   loadedRows,
   loading = false,
   formatCell,
+  renderDetailRow,
   groupMode = 'detail',
   showTotalRow = false,
   showTotalCol = true,
@@ -333,6 +337,7 @@ export function TableRenderer({
           totalRows={totalRows}
           limit={limit}
           formatCell={formatCell}
+          renderDetailRow={renderDetailRow}
           aggregates={viewData.totalAggregates as Record<string, unknown> | undefined}
           aggFnLabels={aggFnLabels}
           showRowCount={showRowCount}

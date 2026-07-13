@@ -232,6 +232,9 @@ export interface BaseTableProps {
   limit?: { limit: number; autoShowMore?: boolean };
   /** Custom cell formatter (overrides default) */
   formatCell?: CellFormatter;
+  /** When provided, each row gets a disclosure toggle that expands a
+      full-width detail row rendered by this callback (plain mode only). */
+  renderDetailRow?: (row: TableRow) => React.ReactNode;
 
   /** Overall aggregate totals — rendered as a sticky footer row */
   aggregates?: Record<string, unknown>;

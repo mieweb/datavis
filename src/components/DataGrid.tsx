@@ -253,6 +253,10 @@ export interface DataGridProps {
   className?: string;
   /** Children rendered in the content area (e.g. table renderer) */
   children?: React.ReactNode;
+  /** When provided, each plain-mode row gets a disclosure toggle that expands
+      a full-width detail row rendered by this callback. Forwarded to the
+      child table renderer (a renderer's own prop takes precedence). */
+  renderDetailRow?: TableRendererProps['renderDetailRow'];
   /** BCP-47 locale for number/date formatting (e.g. 'en-US'). Defaults to browser locale. */
   locale?: string;
   /** Enable debug button */
@@ -341,6 +345,7 @@ export function DataGrid({
   onToggle,
   className = '',
   children,
+  renderDetailRow,
   locale,
   debug: _debug = false,
   preserveChildViewData = false,
@@ -891,6 +896,7 @@ export function DataGrid({
         // Reseed the plain table's selection when it remounts after a
         // group/pivot round trip
         initialSelectedRows: childProps.initialSelectedRows ?? selectedRowNums,
+        renderDetailRow: childProps.renderDetailRow ?? renderDetailRow,
         limit: childProps.limit ?? { limit: rowBatchSize, autoShowMore },
         loadedRows: childProps.loadedRows ?? (limitedViewData?.isPlain && Array.isArray(limitedViewData.data)
           ? limitedViewData.data.length
@@ -921,6 +927,7 @@ export function DataGrid({
       gridMode,
       userRowSelection,
       selectedRowNums,
+      renderDetailRow,
     ],
   );
 
