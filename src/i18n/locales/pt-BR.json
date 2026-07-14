@@ -384,5 +384,8 @@
   "TEMPLATE_EDITOR.TAB_GROUPED": "Agrupado",
   "TEMPLATE_EDITOR.TAB_PIVOT": "Pivô",
   "TEMPLATE_EDITOR.TAB_PLAIN": "Simples",
-  "TEMPLATE_EDITOR.TITLE": "Editor de Modelos"
+  "TEMPLATE_EDITOR.TITLE": "Editor de Modelos",
+  "TABLE.COLLAPSE_DETAIL": "Recolher detalhes da linha",
+  "TABLE.EXPAND_DETAIL": "Expandir detalhes da linha",
+  "TABLE.TOGGLE_ALL_DETAILS": "Alternar detalhes de todas as linhas"
 }

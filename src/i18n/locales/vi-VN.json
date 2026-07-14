@@ -384,5 +384,8 @@
   "TEMPLATE_EDITOR.TAB_GROUPED": "Đã nhóm",
   "TEMPLATE_EDITOR.TAB_PIVOT": "Bảng tổng hợp",
   "TEMPLATE_EDITOR.TAB_PLAIN": "Đơn giản",
-  "TEMPLATE_EDITOR.TITLE": "Trình chỉnh sửa mẫu"
+  "TEMPLATE_EDITOR.TITLE": "Trình chỉnh sửa mẫu",
+  "TABLE.COLLAPSE_DETAIL": "Thu gọn chi tiết hàng",
+  "TABLE.EXPAND_DETAIL": "Mở rộng chi tiết hàng",
+  "TABLE.TOGGLE_ALL_DETAILS": "Bật/tắt chi tiết tất cả các hàng"
 }

@@ -384,5 +384,8 @@
   "TEMPLATE_EDITOR.TAB_GROUPED": "Сгруппированный",
   "TEMPLATE_EDITOR.TAB_PIVOT": "Сводная таблица",
   "TEMPLATE_EDITOR.TAB_PLAIN": "Простой",
-  "TEMPLATE_EDITOR.TITLE": "Редактор шаблонов"
+  "TEMPLATE_EDITOR.TITLE": "Редактор шаблонов",
+  "TABLE.COLLAPSE_DETAIL": "Свернуть сведения о строке",
+  "TABLE.EXPAND_DETAIL": "Развернуть сведения о строке",
+  "TABLE.TOGGLE_ALL_DETAILS": "Переключить сведения обо всех строках"
 }

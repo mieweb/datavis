@@ -384,5 +384,8 @@
   "TEMPLATE_EDITOR.TAB_GROUPED": "จัดกลุ่ม",
   "TEMPLATE_EDITOR.TAB_PIVOT": "ตารางสรุป",
   "TEMPLATE_EDITOR.TAB_PLAIN": "ธรรมดา",
-  "TEMPLATE_EDITOR.TITLE": "ตัวแก้ไขเทมเพลต"
+  "TEMPLATE_EDITOR.TITLE": "ตัวแก้ไขเทมเพลต",
+  "TABLE.COLLAPSE_DETAIL": "ยุบรายละเอียดแถว",
+  "TABLE.EXPAND_DETAIL": "ขยายรายละเอียดแถว",
+  "TABLE.TOGGLE_ALL_DETAILS": "สลับรายละเอียดของทุกแถว"
 }

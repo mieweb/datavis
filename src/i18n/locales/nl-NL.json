@@ -384,5 +384,8 @@
   "TEMPLATE_EDITOR.TAB_GROUPED": "Gegroepeerd",
   "TEMPLATE_EDITOR.TAB_PIVOT": "Draaitabel",
   "TEMPLATE_EDITOR.TAB_PLAIN": "Eenvoudig",
-  "TEMPLATE_EDITOR.TITLE": "Sjablooneditor"
+  "TEMPLATE_EDITOR.TITLE": "Sjablooneditor",
+  "TABLE.COLLAPSE_DETAIL": "Rijdetails samenvouwen",
+  "TABLE.EXPAND_DETAIL": "Rijdetails uitvouwen",
+  "TABLE.TOGGLE_ALL_DETAILS": "Alle rijdetails in-/uitklappen"
 }
