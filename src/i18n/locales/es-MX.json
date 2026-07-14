@@ -384,5 +384,8 @@
   "TEMPLATE_EDITOR.TAB_GROUPED": "Agrupado",
   "TEMPLATE_EDITOR.TAB_PIVOT": "Pivote",
   "TEMPLATE_EDITOR.TAB_PLAIN": "Simple",
-  "TEMPLATE_EDITOR.TITLE": "Editor de plantillas"
+  "TEMPLATE_EDITOR.TITLE": "Editor de plantillas",
+  "TABLE.COLLAPSE_DETAIL": "Contraer detalles de fila",
+  "TABLE.EXPAND_DETAIL": "Expandir detalles de fila",
+  "TABLE.TOGGLE_ALL_DETAILS": "Alternar detalles de todas las filas"
 }

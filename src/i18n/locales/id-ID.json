@@ -384,5 +384,8 @@
   "TEMPLATE_EDITOR.TAB_GROUPED": "Dikelompokkan",
   "TEMPLATE_EDITOR.TAB_PIVOT": "Pivot",
   "TEMPLATE_EDITOR.TAB_PLAIN": "Polos",
-  "TEMPLATE_EDITOR.TITLE": "Editor Templat"
+  "TEMPLATE_EDITOR.TITLE": "Editor Templat",
+  "TABLE.COLLAPSE_DETAIL": "Ciutkan detail baris",
+  "TABLE.EXPAND_DETAIL": "Perluas detail baris",
+  "TABLE.TOGGLE_ALL_DETAILS": "Alihkan semua detail baris"
 }

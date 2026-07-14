@@ -384,5 +384,8 @@
   "TEMPLATE_EDITOR.TAB_GROUPED": "Groupé",
   "TEMPLATE_EDITOR.TAB_PIVOT": "Pivot",
   "TEMPLATE_EDITOR.TAB_PLAIN": "Simple",
-  "TEMPLATE_EDITOR.TITLE": "Éditeur de modèles"
+  "TEMPLATE_EDITOR.TITLE": "Éditeur de modèles",
+  "TABLE.COLLAPSE_DETAIL": "Réduire les détails de la ligne",
+  "TABLE.EXPAND_DETAIL": "Développer les détails de la ligne",
+  "TABLE.TOGGLE_ALL_DETAILS": "Basculer les détails de toutes les lignes"
 }

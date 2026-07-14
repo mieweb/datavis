@@ -17,7 +17,7 @@
  * - Wrapped vs clipped row mode
  */
 
-import { useState, useCallback, useMemo, useRef, useEffect, useLayoutEffect } from 'react';
+import { useState, useCallback, useMemo, useRef, useEffect, useLayoutEffect, Fragment } from 'react';
 import { Button } from '@mieweb/ui/components/Button';
 import { Checkbox } from '@mieweb/ui/components/Checkbox';
 
@@ -42,7 +42,7 @@ import { useColumnConfig } from './ColumnConfigContext';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '../../i18n';
 import { Filter } from 'lucide-react';
-import { CalendarIcon, ChevronGlyphIcon, IconButton, SearchIcon, TableActionButton } from '../ui';
+import { CalendarIcon, ChevronGlyphIcon, DisclosureGlyphIcon, IconButton, SearchIcon, TableActionButton } from '../ui';
 import { SortIndicator } from './SortIndicator';
 import { formatCellValue, formatAggregateNumber, DATE_FORMAT_PRESETS, type DateFormatPreset } from './format-cell';
 import { COLUMN_DRAG_MIME } from '../controls/column-drag';
@@ -353,6 +353,8 @@ export function PlainTable({
   totalRows,
   limit,
   formatCell,
+  renderDetailRow,
+  detailRowsExpanded,
   aggregates,
   aggFnLabels,
   showRowCount = true,
@@ -382,6 +384,62 @@ export function PlainTable({
   const checkboxSelection = features.rowSelection === 'checkbox';
   const { selection, setSelection, headerState, toggleRow, toggleAll } =
     useRowSelection(rows, onSelectionChange, initialSelectedRows);
+
+  // ── Detail row expansion state ──────────────────
+  const hasDetailRows = Boolean(renderDetailRow);
+  const [expandedDetailRows, setExpandedDetailRows] = useState<Set<number>>(new Set());
+  const toggleDetailRow = useCallback((rowNum: number) => {
+    setExpandedDetailRows((prev) => {
+      const next = new Set(prev);
+      if (next.has(rowNum)) next.delete(rowNum);
+      else next.add(rowNum);
+      return next;
+    });
+  }, []);
+  /** Leading utility cells before the data columns (detail toggle + checkbox) */
+  const leadingCells = (hasDetailRows ? 1 : 0) + (checkboxSelection ? 1 : 0);
+
+  // Sync with the expand-all/collapse-all prop — edge-triggered: it overrides
+  // individual toggles only when the prop value or the row membership (stable
+  // row ids, not array identity) actually changes.
+  const rowsRef = useRef(rows);
+  rowsRef.current = rows;
+  const rowIdsKey = useMemo(
+    () => rows.map((r) => String(r.rowId ?? r.rowNum)).join('\u0000'),
+    [rows],
+  );
+  useEffect(() => {
+    if (detailRowsExpanded === undefined) return;
+    setExpandedDetailRows(
+      detailRowsExpanded
+        ? new Set(rowsRef.current.map((r) => r.rowNum))
+        : new Set(),
+    );
+  }, [detailRowsExpanded, rowIdsKey]);
+
+  const allDetailsExpanded =
+    hasDetailRows && rows.length > 0 && rows.every((r) => expandedDetailRows.has(r.rowNum));
+  const toggleAllDetailRows = useCallback(() => {
+    setExpandedDetailRows((prev) =>
+      rows.length > 0 && rows.every((r) => prev.has(r.rowNum))
+        ? new Set()
+        : new Set(rows.map((r) => r.rowNum)),
+    );
+  }, [rows]);
+
+  // ARIA row bookkeeping: expanded detail rows are real grid rows, so they
+  // count toward aria-rowcount and shift subsequent aria-rowindex values.
+  const ariaRowIndexes = useMemo(() => {
+    let expandedSoFar = 0;
+    return rows.map((row, i) => {
+      const index = i + 1 + expandedSoFar;
+      if (hasDetailRows && expandedDetailRows.has(row.rowNum)) expandedSoFar += 1;
+      return index;
+    });
+  }, [rows, hasDetailRows, expandedDetailRows]);
+  const expandedVisibleCount = hasDetailRows
+    ? rows.reduce((n, r) => n + (expandedDetailRows.has(r.rowNum) ? 1 : 0), 0)
+    : 0;
 
   // ── Context menu state ─────────────────────────
   const [contextMenu, setContextMenu] = useState<{
@@ -444,9 +502,11 @@ export function PlainTable({
     const ths = thead.querySelectorAll('th');
     const styles = new Map<string, React.CSSProperties>();
     let cumulativeLeft = 0;
-    for (let i = 0; i < pinnedCount && i < ths.length; i++) {
+    // Skip the leading utility headers (detail toggle, checkbox) — pinned
+    // data columns start after them.
+    for (let i = 0; i < pinnedCount && i + leadingCells < ths.length; i++) {
       const col = visibleColumns[i];
-      const actualWidth = ths[i].offsetWidth;
+      const actualWidth = ths[i + leadingCells].offsetWidth;
       styles.set(col.field, {
         position: 'sticky',
         left: cumulativeLeft,
@@ -455,7 +515,7 @@ export function PlainTable({
       cumulativeLeft += actualWidth;
     }
     setPinStyles(styles);
-  }, [pinnedCount, visibleColumns, columns]);
+  }, [pinnedCount, visibleColumns, columns, leadingCells]);
 
   // ── Column resize ─────────────────────────────
   const { handleResizeMouseDown } = useColumnResize(
@@ -803,8 +863,8 @@ export function PlainTable({
           <table
             className="min-w-full border-collapse"
             role="grid"
-            aria-colcount={visibleColumns.length + (checkboxSelection ? 1 : 0)}
-            aria-rowcount={totalRows ?? rows.length}
+            aria-colcount={visibleColumns.length + leadingCells}
+            aria-rowcount={(totalRows ?? rows.length) + expandedVisibleCount}
             onKeyDown={features.keyboardNav !== false ? handleKeyDown : undefined}
             tabIndex={features.keyboardNav !== false ? 0 : undefined}
           >
@@ -819,6 +879,24 @@ export function PlainTable({
               }
             >
               <tr>
+                  {hasDetailRows && (
+                    <th
+                      className="wcdv-th wcdv-th-detail w-9 border-r border-gray-200 dark:border-neutral-700 px-1 py-1 text-center align-middle"
+                      role="columnheader"
+                      scope="col"
+                    >
+                      <IconButton
+                        aria-expanded={allDetailsExpanded}
+                        aria-label={
+                          t('TABLE.TOGGLE_ALL_DETAILS') ||
+                          (allDetailsExpanded ? 'Collapse all row details' : 'Expand all row details')
+                        }
+                        onClick={toggleAllDetailRows}
+                      >
+                        <DisclosureGlyphIcon className="h-4 w-4" expanded={allDetailsExpanded} />
+                      </IconButton>
+                    </th>
+                  )}
                   {checkboxSelection && (
                     <th
                       className="wcdv-th wcdv-th-select w-9 border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-center align-middle"
@@ -886,7 +964,7 @@ export function PlainTable({
               {rows.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={visibleColumns.length + (checkboxSelection ? 1 : 0)}
+                    colSpan={visibleColumns.length + leadingCells}
                     className="px-4 py-8 text-center text-sm text-gray-400 dark:text-neutral-500"
                   >
                     {t('TABLE.NO_DATA') || 'No data to display'}
@@ -896,14 +974,15 @@ export function PlainTable({
                 rows.map((row, rowIdx) => {
                   const isActive = selection.activeRow === row.rowNum;
                   const isSelected = selection.selectedRows.has(row.rowNum);
+                  const isExpanded = hasDetailRows && expandedDetailRows.has(row.rowNum);
                   const zebraClass =
                     features.zebraStripe !== false && rowIdx % 2 === 1
                       ? 'bg-gray-50/50 dark:bg-neutral-800/50'
                       : '';
 
                   return (
+                    <Fragment key={row.rowId ?? row.rowNum}>
                     <tr
-                      key={row.rowId ?? row.rowNum}
                       data-row-num={row.rowNum}
                       className={`wcdv-tr border-b border-gray-100 dark:border-neutral-700 transition-colors
                         ${zebraClass}
@@ -913,7 +992,7 @@ export function PlainTable({
                         ${features.rowMode === 'clipped' ? '' : ''}
                       `}
                       role="row"
-                      aria-rowindex={rowIdx + 1}
+                      aria-rowindex={ariaRowIndexes[rowIdx]}
                       aria-selected={isSelected}
                       onClick={(e) => handleRowClick(row, e)}
                       onDoubleClick={
@@ -922,6 +1001,25 @@ export function PlainTable({
                           : undefined
                       }
                     >
+                      {hasDetailRows && (
+                        <td
+                          className="wcdv-td wcdv-td-detail-toggle w-9 border-r border-gray-100 dark:border-neutral-700 px-1 py-1 text-center align-middle"
+                          role="gridcell"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          <IconButton
+                            aria-expanded={isExpanded}
+                            aria-label={
+                              isExpanded
+                                ? (t('TABLE.COLLAPSE_DETAIL') || 'Collapse row details')
+                                : (t('TABLE.EXPAND_DETAIL') || 'Expand row details')
+                            }
+                            onClick={() => toggleDetailRow(row.rowNum)}
+                          >
+                            <DisclosureGlyphIcon className="h-4 w-4" expanded={isExpanded} />
+                          </IconButton>
+                        </td>
+                      )}
                       {checkboxSelection && (
                         <td
                           className="wcdv-td wcdv-td-select w-9 border-r border-gray-100 dark:border-neutral-700 px-2 py-1 text-center align-middle"
@@ -959,6 +1057,22 @@ export function PlainTable({
                         );
                       })}
                     </tr>
+                    {isExpanded && renderDetailRow && (
+                      <tr
+                        className="wcdv-detail-tr border-b border-gray-100 dark:border-neutral-700"
+                        role="row"
+                        aria-rowindex={ariaRowIndexes[rowIdx] + 1}
+                      >
+                        <td
+                          className="wcdv-detail-td bg-gray-50/50 dark:bg-neutral-800/50 px-3 py-2"
+                          colSpan={visibleColumns.length + leadingCells}
+                          role="gridcell"
+                        >
+                          {renderDetailRow(row)}
+                        </td>
+                      </tr>
+                    )}
+                    </Fragment>
                   );
                 })
               )}
@@ -973,7 +1087,7 @@ export function PlainTable({
                 locale={locale}
                 pinStyles={pinStyles}
                 pinnedCount={pinnedCount}
-                leadingCells={checkboxSelection ? 1 : 0}
+                leadingCells={leadingCells}
               />
             )}
           </table>

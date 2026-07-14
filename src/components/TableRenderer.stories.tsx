@@ -101,6 +101,33 @@ export const Plain: StoryFn = () => {
 
 // ── Plain with Limit ────────────────────────────
 
+// ── Detail Row ──────────────────────────────────
+
+/** Expandable detail rows: passing `renderDetailRow` adds a leading
+ * disclosure-toggle column. Expanding a row inserts a full-width row
+ * beneath it rendered by the callback — useful for showing document
+ * bodies, notes, or any per-row drill-in content inline. */
+export const DetailRow: StoryFn = () => (
+  <div className="h-[500px] border border-gray-200 rounded-lg overflow-hidden">
+    <PlainTable
+      columns={COLUMNS}
+      rows={ROWS}
+      totalRows={ROWS.length}
+      features={{ zebraStripe: true, stickyHeaders: true }}
+      renderDetailRow={(row) => (
+        <div className="text-sm text-gray-600 dark:text-neutral-300">
+          <div className="font-medium">{String(row.data.name)}</div>
+          <p>
+            {String(row.data.role)} in {String(row.data.department)} since{' '}
+            {String(row.data.startDate)}. Any custom React content can render
+            here — fetched lazily by the consumer if desired.
+          </p>
+        </div>
+      )}
+    />
+  </div>
+);
+
 // ── Checkbox Selection ──────────────────────────
 
 /** Checkbox row selection: a leading checkbox column with a tri-state

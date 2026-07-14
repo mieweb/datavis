@@ -403,5 +403,8 @@
   "TEMPLATE_EDITOR.TAB_GROUPED": "Grouped",
   "TEMPLATE_EDITOR.TAB_PIVOT": "Pivot",
   "TEMPLATE_EDITOR.TAB_PLAIN": "Plain",
-  "TEMPLATE_EDITOR.TITLE": "Template Editor"
+  "TEMPLATE_EDITOR.TITLE": "Template Editor",
+  "TABLE.COLLAPSE_DETAIL": "Collapse row details",
+  "TABLE.EXPAND_DETAIL": "Expand row details",
+  "TABLE.TOGGLE_ALL_DETAILS": "Toggle all row details"
 }
