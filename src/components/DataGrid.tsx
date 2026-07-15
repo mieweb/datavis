@@ -36,6 +36,7 @@ import { GridToolbar } from './GridToolbar';
 import { ControlPanel } from './controls/ControlPanel';
 import { type ControlFieldItem } from './controls/ControlSection';
 import { type AggregateEntry, type AggregateFunction } from './controls/AggregateSection';
+import { isAggregateEntryCommitted } from './controls/aggregate-utils';
 import { type ColumnFilterConfig, type FieldFilterSpec, type FilterSpec } from './filters/types';
 import { FilterContext, columnToFilterConfig, type FilterContextValue } from './filters/FilterContext';
 import { getStableRowId } from './table/row-identity';
@@ -130,6 +131,10 @@ function parseGroupSpec(spec: unknown): Array<{ field: string; fun?: string }> {
   });
 }
 
+/**
+ * Reconstruct control-panel aggregate entries from the view's committed legacy
+ * aggregate spec (used when syncing state from the view).
+ */
 function parseAggregateEntries(spec: unknown): AggregateEntry[] {
   if (!spec || typeof spec !== 'object') {
     return [];
@@ -681,6 +686,15 @@ export function DataGrid({
   /** Per-field pivot function map: field → function name */
   const [pivotFunMap, setPivotFunMap] = useState<Record<string, string>>({});
 
+  /**
+   * Default and minimal modes start without an aggregate footer, so we strip
+   * the default aggregate the view seeds — but only once. Re-stripping on every
+   * sync would wipe user-added aggregates the moment they're applied. This ref
+   * marks the seeded aggregate as already stripped; it resets on prefsReset so a
+   * reset returns to the clean seeded-then-stripped starting state.
+   */
+  const seededAggregateStrippedRef = useRef(false);
+
   const syncControlStateFromView = useCallback(() => {
     const groupSpecs = parseGroupSpec(view.getGroup?.() ?? null);
     const pivotSpecs = parseGroupSpec(view.getPivot?.() ?? null);
@@ -709,29 +723,42 @@ export function DataGrid({
       ),
     );
 
-    setAggregateEntries(
-      gridMode === 'full'
-        ? parseAggregateEntries(view.getAggregate?.() ?? null)
-        : [],
-    );
+    // Default and minimal modes hide the aggregate footer (e.g. the count row)
+    // that the view seeds by default. Strip that seeded aggregate exactly once
+    // so the table starts without a footer; afterwards the aggregate control
+    // stays in sync with the view in every mode so users can add and edit
+    // aggregates (which would otherwise be wiped on the next sync). The strip is
+    // guarded because clearing the aggregate can trigger a prefs save before the
+    // prefs backend has been primed (e.g. on initial mount).
+    const shouldStripSeededAggregate =
+      gridMode !== 'full' &&
+      !seededAggregateStrippedRef.current &&
+      !!view.getAggregate?.();
+
+    if (shouldStripSeededAggregate) {
+      try {
+        view.setAggregate?.(null);
+        seededAggregateStrippedRef.current = true;
+      } catch {
+        // Prefs backend not ready yet. syncControlStateFromView re-runs on the
+        // `primed`/`perspectiveChanged` events; leave the ref unset so the strip
+        // retries once the save can succeed.
+      }
+      setAggregateEntries([]);
+    } else {
+      const committed = parseAggregateEntries(view.getAggregate?.() ?? null);
+      // Merge the view's committed aggregates with any locally-added entries
+      // that haven't been committed yet (an in-progress entry awaiting its
+      // field, or a hidden one), so a re-sync never drops them.
+      setAggregateEntries((prev) => [
+        ...committed,
+        ...prev.filter((e) => !isAggregateEntryCommitted(e)),
+      ]);
+    }
+
     setInitialFilterSpec(parseFilterSpec(view.getFilter?.() ?? null));
     setCurrentFilterSpec(parseFilterSpec(view.getFilter?.() ?? null));
     setSyntheticPivot(false);
-
-    // Default and minimal modes hide the aggregate footer (e.g. the count row)
-    // by default. Strip any default aggregate the view seeds so the table starts
-    // without a footer; the user can still turn aggregates on via the aggregate
-    // control. Guarded because clearing the aggregate can trigger a prefs save
-    // before the prefs backend has been primed (e.g. on initial mount).
-    if (gridMode !== 'full' && view.getAggregate?.()) {
-      try {
-        view.setAggregate?.(null);
-      } catch {
-        // Prefs backend not ready yet. syncControlStateFromView re-runs on the
-        // `primed`/`perspectiveChanged` events, which will strip the aggregate
-        // once the save can succeed.
-      }
-    }
   }, [view, controlFields, gridMode]);
 
   useEffect(() => {
@@ -744,6 +771,7 @@ export function DataGrid({
   });
 
   useDataVisEvent(prefs, 'prefsReset', () => {
+    seededAggregateStrippedRef.current = false;
     syncControlStateFromView();
     view.getData();
   });
@@ -1078,15 +1106,17 @@ export function DataGrid({
   const handleAggregateChange = useCallback(
     (entries: AggregateEntry[]) => {
       setAggregateEntries(entries);
-      if (entries.length === 0) {
+      // Only commit aggregates whose required field arguments are all filled.
+      // Incomplete entries (e.g. a freshly added sum awaiting its field) stay in
+      // the control so the user can finish them, but are never sent to the view.
+      const committable = entries.filter(isAggregateEntryCommitted);
+      if (committable.length === 0) {
         viewState.setAggregate(null);
       } else {
-        const spec = entries
-          .filter((e) => e.visible)
-          .map((e) => ({
-            fn: e.functionName,
-            fields: e.fields,
-          }));
+        const spec = committable.map((e) => ({
+          fn: e.functionName,
+          fields: e.fields,
+        }));
         viewState.setAggregate(toLegacyAggregateSpec(spec));
       }
     },

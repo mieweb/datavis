@@ -39,8 +39,13 @@ declare global {
   }
 }
 
-export async function gotoHarness(page: Page, scenario = 'default') {
-  await page.goto(`/?e2e=${scenario}`);
+export async function gotoHarness(
+  page: Page,
+  scenario = 'default',
+  params: Record<string, string> = {},
+) {
+  const query = new URLSearchParams({ e2e: scenario, ...params });
+  await page.goto(`/?${query.toString()}`);
   await page.waitForFunction(() => Boolean(window.__wcdv));
   await page.waitForFunction(() => {
     if (!window.__wcdv) return false;

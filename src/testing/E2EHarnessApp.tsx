@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 
 import { DataGrid } from '../components/DataGrid';
+import type { GridMode } from '../components/DataGrid';
 import { DetailSlider } from '../components/DetailSlider';
 import { TableRenderer } from '../components/table/TableRenderer';
 import type { SelectionState, TableColumn } from '../components/table/types';
@@ -323,6 +324,19 @@ function getScenarioFromSearch(): HarnessScenario {
   return 'default';
 }
 
+/**
+ * Grid display mode for the harness, read from `?mode=`. Defaults to `full`
+ * (the historical harness behavior) so existing specs are unaffected; the
+ * `default` and `minimal` values let specs exercise the compact modes.
+ */
+function getModeFromSearch(): GridMode {
+  const mode = new URLSearchParams(window.location.search).get('mode');
+  if (mode === 'default' || mode === 'minimal') {
+    return mode;
+  }
+  return 'full';
+}
+
 function getScenarioConfig(scenario: HarnessScenario): HarnessConfig {
   if (scenario === 'allow-html') {
     return {
@@ -491,10 +505,12 @@ function HarnessGrid({
   config,
   scenario,
   registerApi = true,
+  mode = 'full',
 }: {
   config: HarnessConfig;
   scenario: HarnessScenario;
   registerApi?: boolean;
+  mode?: GridMode;
 }) {
   const view = useMemo(() => createMockView(config.data, config.columns), [config.columns, config.data]);
   const [viewData, setViewData] = useState<NormalizedViewData>(() => ({ isPlain: true, isGroup: false, isPivot: false, data: config.data }));
@@ -674,7 +690,7 @@ function HarnessGrid({
         tableDef={tableDef}
         title={config.title}
         helpText={`E2E harness scenario: ${scenario}`}
-        mode="full"
+        mode={mode}
         showToolbar={true}
         showControls={true}
         debug={true}
@@ -868,7 +884,7 @@ export function E2EHarnessApp() {
     );
   }
 
-  return <HarnessGrid config={config} scenario={scenario} />;
+  return <HarnessGrid config={config} scenario={scenario} mode={getModeFromSearch()} />;
 }
 
 export function isE2EMode() {
