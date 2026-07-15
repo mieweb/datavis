@@ -7,6 +7,7 @@
  * perspective dropdown on a second row, and the perspective buttons beneath.
  */
 
+import { useState } from 'react';
 import { Button } from '@mieweb/ui/components/Button';
 import { Dropdown, DropdownContent } from '@mieweb/ui/components/Dropdown';
 import { Menu } from 'lucide-react';
@@ -52,6 +53,22 @@ export function MinimalMenu({
   onToggle = () => {},
 }: MinimalMenuProps) {
   const { t } = useTranslation();
+  const [open, setOpen] = useState(false);
+
+  // Selecting any menu action closes the menu. Afterwards its contents are
+  // either redundant (toggling the controls surfaces the same buttons inline in
+  // the title bar) or the action moved focus elsewhere (dialog, download), so a
+  // lingering-open menu is never what the user wants.
+  function closeThen(fn: () => void): () => void;
+  function closeThen(fn: (() => void) | undefined): (() => void) | undefined;
+  function closeThen(fn?: () => void) {
+    return fn
+      ? () => {
+          setOpen(false);
+          fn();
+        }
+      : undefined;
+  }
 
   const wrapperClassName = floating
     ? 'wcdv-minimal-menu absolute right-3 top-11 z-20'
@@ -64,6 +81,8 @@ export function MinimalMenu({
   return (
     <div className={wrapperClassName}>
       <Dropdown
+        open={open}
+        onOpenChange={setOpen}
         placement="bottom-end"
         trigger={(
           <Button
@@ -82,18 +101,18 @@ export function MinimalMenu({
               default mode where a title bar remains visible) */}
           <TitleBarActions
             collapsed={collapsed}
-            onToggle={onToggle}
+            onToggle={closeThen(onToggle)}
             showCollapse={showCollapse}
-            onToggleControls={onToggleControls}
-            onRefresh={onRefresh}
-            onOpenPerspective={onOpenPerspective}
-            onExportCsv={onExportCsv}
-            onCopyClipboard={onCopyClipboard}
+            onToggleControls={closeThen(onToggleControls)}
+            onRefresh={closeThen(onRefresh)}
+            onOpenPerspective={closeThen(onOpenPerspective)}
+            onExportCsv={closeThen(onExportCsv)}
+            onCopyClipboard={closeThen(onCopyClipboard)}
           />
 
           {/* Rows 2 & 3 — perspective dropdown + perspective buttons */}
           {prefs && (
-            <PrefsToolbar prefs={prefs} onOpenPerspective={onOpenPerspective} layout="stacked" />
+            <PrefsToolbar prefs={prefs} onOpenPerspective={closeThen(onOpenPerspective)} layout="stacked" />
           )}
         </DropdownContent>
       </Dropdown>
