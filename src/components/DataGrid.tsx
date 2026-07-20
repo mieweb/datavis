@@ -54,6 +54,11 @@ import { GroupFunctionDialog } from './dialogs/GroupFunctionDialog';
 import type { GroupFunction as GroupFunctionDef } from './dialogs/GroupFunctionDialog';
 import { PerspectiveManagerDialog } from './dialogs/PerspectiveManagerDialog';
 import type { TableRendererProps } from './table/TableRenderer';
+import type { DateFormatPreset } from './table/format-cell';
+import {
+  createSearchTextIndex,
+  filterPlainViewData,
+} from './global-search/search-utils';
 
 const DEFAULT_ROW_BATCH_SIZE = 100;
 
@@ -367,7 +372,7 @@ export function DataGrid({
   controlFields = [],
   aggregateFields = [],
   aggregateFunctions = [],
-  columnConfigs: columnConfigsProp = [],
+  columnConfigs: columnConfigsProp,
   onColumnConfigSave,
   templates: _templates = {},
   onTemplateSave: _onTemplateSave,
@@ -561,6 +566,11 @@ export function DataGrid({
     effectiveTableDef.limit?.autoShowMore ?? true,
   );
   const [visibleRowCount, setVisibleRowCount] = useState(rowBatchSize);
+  const [globalSearchQuery, setGlobalSearchQuery] = useState('');
+  const [dateFormats, setDateFormats] = useState<Record<string, DateFormatPreset>>({});
+  const clearGlobalSearch = useCallback(() => {
+    setGlobalSearchQuery('');
+  }, []);
 
   // ── Control panel state ────────────────────────
   const [groupFields, setGroupFields] = useState<ControlFieldItem[]>([]);
@@ -580,7 +590,7 @@ export function DataGrid({
   // Derive effective column configs: saved state > explicit prop > auto-derived from allColumns
   const columnConfigs = useMemo<ColumnConfig[]>(() => {
     const base = savedColumnConfigs
-      ?? (columnConfigsProp.length > 0
+      ?? (columnConfigsProp && columnConfigsProp.length > 0
         ? columnConfigsProp
         : allColumns.map((c) => ({
             field: c.field,
@@ -772,6 +782,7 @@ export function DataGrid({
 
   useDataVisEvent(prefs, 'prefsReset', () => {
     seededAggregateStrippedRef.current = false;
+    clearGlobalSearch();
     syncControlStateFromView();
     view.getData();
   });
@@ -803,6 +814,45 @@ export function DataGrid({
     if (viewState.data.isGroup) return 'group';
     return 'plain';
   }, [viewState.data, syntheticPivot]);
+
+  useEffect(() => {
+    if (dataMode === 'plain') return;
+    setGlobalSearchQuery('');
+  }, [dataMode]);
+
+  const visibleSearchColumns = useMemo(
+    () => columnOrder
+      .map((field) => allColumns.find((column) => column.field === field))
+      .filter((column): column is TableColumn => column != null),
+    [columnOrder, allColumns],
+  );
+
+  const searchTextIndex = useMemo(() => {
+    if (!viewState.data?.isPlain || !Array.isArray(viewState.data.data)) return null;
+    return createSearchTextIndex(
+      viewState.data.data as Record<string, unknown>[],
+      visibleSearchColumns,
+      { locale, dateFormats },
+    );
+  }, [viewState.data, visibleSearchColumns, locale, dateFormats]);
+
+  const visuallyFilteredViewData = useMemo(
+    () => filterPlainViewData(
+      viewState.data,
+      globalSearchQuery,
+      searchTextIndex,
+      locale,
+    ),
+    [viewState.data, globalSearchQuery, searchTextIndex, locale],
+  );
+
+  const globalSearchResultCount = visuallyFilteredViewData?.isPlain && Array.isArray(visuallyFilteredViewData.data)
+    ? visuallyFilteredViewData.data.length
+    : 0;
+
+  const handleDateFormatChange = useCallback((field: string, preset: DateFormatPreset) => {
+    setDateFormats((current) => ({ ...current, [field]: preset }));
+  }, []);
 
   // ── Handlers ───────────────────────────────────
   const handleToggle = useCallback(() => {
@@ -862,14 +912,14 @@ export function DataGrid({
   }, []);
 
   const handleShowMoreRows = useCallback(() => {
-    const totalVisibleRows = Array.isArray(viewState.data?.data) ? viewState.data.data.length : 0;
+    const totalVisibleRows = Array.isArray(visuallyFilteredViewData?.data) ? visuallyFilteredViewData.data.length : 0;
     setVisibleRowCount((current) => Math.min(current + rowBatchSize, totalVisibleRows));
-  }, [rowBatchSize, viewState.data]);
+  }, [rowBatchSize, visuallyFilteredViewData]);
 
   const handleShowAllRows = useCallback(() => {
-    const totalVisibleRows = Array.isArray(viewState.data?.data) ? viewState.data.data.length : 0;
+    const totalVisibleRows = Array.isArray(visuallyFilteredViewData?.data) ? visuallyFilteredViewData.data.length : 0;
     setVisibleRowCount(totalVisibleRows);
-  }, [viewState.data]);
+  }, [visuallyFilteredViewData]);
 
   useEffect(() => {
     setAutoShowMore(effectiveTableDef.limit?.autoShowMore ?? true);
@@ -877,11 +927,11 @@ export function DataGrid({
 
   useEffect(() => {
     setVisibleRowCount(rowBatchSize);
-  }, [rowBatchSize, viewState.data]);
+  }, [rowBatchSize, visuallyFilteredViewData]);
 
   const limitedViewData = useMemo(
-    () => limitPlainViewData(viewState.data, visibleRowCount),
-    [viewState.data, visibleRowCount],
+    () => limitPlainViewData(visuallyFilteredViewData, visibleRowCount),
+    [visuallyFilteredViewData, visibleRowCount],
   );
 
   /** Row numbers selected in the child table — lifted so the operations
@@ -914,6 +964,12 @@ export function DataGrid({
 
       return cloneElement(child as React.ReactElement<TableRendererProps>, {
         viewData: preserveChildViewData && childProps.viewData !== undefined ? childProps.viewData : limitedViewData,
+        dateFormats,
+        onDateFormatChange: handleDateFormatChange,
+        globalSearchQuery,
+        ...(limitedViewData?.isPlain && globalSearchQuery
+          ? { totalRows: globalSearchResultCount }
+          : {}),
         // User-enabled multi-row selection (table options dialog) — only
         // applied when the embedding code didn't set rowSelection itself
         ...(childProps.features?.rowSelection === undefined && userRowSelection
@@ -966,6 +1022,10 @@ export function DataGrid({
       selectedRowNums,
       renderDetailRow,
       detailRowsExpanded,
+      dateFormats,
+      handleDateFormatChange,
+      globalSearchQuery,
+      globalSearchResultCount,
     ],
   );
 
@@ -1284,18 +1344,19 @@ export function DataGrid({
     // Check if view has an active filter
     try {
       const filterSpec = (view as unknown as Record<string, unknown>).filterSpec;
-      return filterSpec != null;
+      return filterSpec != null || Boolean(globalSearchQuery.trim());
     } catch {
       return false;
     }
-  }, [viewState.data]);
+  }, [viewState.data, globalSearchQuery]);
 
   const clearFilter = useCallback(() => {
     viewState.clearFilter();
+    clearGlobalSearch();
     // Keep the filter bar widgets and header funnel popups in sync
     setCurrentFilterSpec({});
     setInitialFilterSpec({});
-  }, [viewState]);
+  }, [viewState, clearGlobalSearch]);
 
   /** Auto-open controls when a column header drag starts or enters the grid */
   const handleColumnDragStart = useCallback(() => {
@@ -1399,13 +1460,17 @@ export function DataGrid({
                 onShowAllRows={handleShowAllRows}
                 onOpenColumnConfig={openColumnConfig}
                 onOpenTableOptions={openTableOpts}
+                globalSearchQuery={globalSearchQuery}
+                globalSearchResultCount={globalSearchResultCount}
+                onGlobalSearchChange={setGlobalSearchQuery}
+                onGlobalSearchClear={clearGlobalSearch}
               />
             )}
 
             {/* Control Panel */}
             <ControlPanel
               filterColumns={mergedFilterColumns}
-              allFilterableFields={allColumns.map((c) => ({ field: c.field, displayName: c.header ?? c.field }))}
+                allFilterableFields={allColumns.map((c) => ({ field: c.field, displayName: c.header ?? c.field }))}
               rowData={viewState.data?.data}
               initialFilterSpec={initialFilterSpec}
               availableFields={controlFields}

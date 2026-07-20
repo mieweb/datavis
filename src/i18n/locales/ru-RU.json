@@ -355,6 +355,7 @@
   "TABLE.NO_DATA": "Нет данных для отображения",
   "TABLE.OF": "из",
   "TABLE.RESIZE_COLUMN": "Изменить размер столбца {{param0}}",
+  "TABLE.ROW": "строка",
   "TABLE.ROWS": "строки",
   "TABLE.SELECT_ALL_ROWS": "Выбрать все строки",
   "TABLE.SELECT_ROW": "Выбрать строку",

@@ -355,6 +355,7 @@
   "TABLE.NO_DATA": "无数据可显示",
   "TABLE.OF": "/",
   "TABLE.RESIZE_COLUMN": "调整列 {{param0}} 大小",
+  "TABLE.ROW": "行",
   "TABLE.ROWS": "行",
   "TABLE.SELECT_ALL_ROWS": "选择所有行",
   "TABLE.SELECT_ROW": "选择行",

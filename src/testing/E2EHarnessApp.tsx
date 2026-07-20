@@ -27,7 +27,6 @@ import {
   DrilldownScenario,
   GoogleChartScenario,
   NoAutoSaveScenario,
-  OmnifilterScenario,
   PaginationScenario,
   PrefsScenario,
   RowCustomizationScenario,
@@ -273,7 +272,6 @@ type HarnessScenario =
   | 'matrix'
   | 'auto-limit'
   | 'pagination'
-  | 'omnifilter'
   | 'prefs'
   | 'no-auto-save'
   | 'source-params'
@@ -307,7 +305,6 @@ function getScenarioFromSearch(): HarnessScenario {
     || scenario === 'matrix'
     || scenario === 'auto-limit'
     || scenario === 'pagination'
-    || scenario === 'omnifilter'
     || scenario === 'prefs'
     || scenario === 'no-auto-save'
     || scenario === 'source-params'
@@ -864,7 +861,6 @@ export function E2EHarnessApp() {
 
   if (scenario === 'auto-limit') return <AutoLimitScenario />;
   if (scenario === 'pagination') return <PaginationScenario />;
-  if (scenario === 'omnifilter') return <OmnifilterScenario />;
   if (scenario === 'prefs') return <PrefsScenario />;
   if (scenario === 'no-auto-save') return <NoAutoSaveScenario />;
   if (scenario === 'source-params') return <SourceParamsScenario />;

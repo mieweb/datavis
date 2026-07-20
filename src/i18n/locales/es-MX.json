@@ -355,6 +355,7 @@
   "TABLE.NO_DATA": "Sin datos para mostrar",
   "TABLE.OF": "de",
   "TABLE.RESIZE_COLUMN": "Redimensionar columna {{param0}}",
+  "TABLE.ROW": "fila",
   "TABLE.ROWS": "filas",
   "TABLE.SELECT_ALL_ROWS": "Seleccionar todas las filas",
   "TABLE.SELECT_ROW": "Seleccionar fila",

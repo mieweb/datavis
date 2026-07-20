@@ -140,6 +140,7 @@ src/
 | `DataGrid` | Top-level component composing title bar, toolbar, control panel, filter bar, table, and dialogs |
 | `TitleBar` | Grid header with title, row count badge, and action buttons (debug, export, refresh, controls toggle) |
 | `GridToolbar` | Shows the right toolbar based on data mode — plain, grouped, or pivot |
+| `GlobalSearchControl` | Plain-mode visual search across visible columns with highlighting and an accessible result count |
 | `DetailSlider` | Slide-in panel from the right edge for row detail content |
 | `OperationsPalette` | Inline toolbar of icon buttons for row-level operations |
 | `LoadingOverlay` | Block-UI overlay with `@mieweb/ui` Spinner |
@@ -164,6 +165,12 @@ src/
 | `DateFilter` | Date filter with on/before/after/between/every/current/last operators |
 | `BooleanFilter` | Checkbox filter for boolean columns |
 | `FilterContext` | React context for dynamic filter management (add/remove from column headers) |
+
+### Plain-Mode Global Search
+
+The plain grid toolbar includes a debounced global search that visually narrows the rows already returned by ACE. It searches formatted display text across visible columns before NITRO's row display limit, so matches beyond the first rendered batch are included. Existing per-column ACE filters run first, and global search narrows their result without changing the ACE filter specification or rerunning grouping, pivoting, aggregation, sorting, or data acquisition.
+
+The feature is intentionally visual-only and plain-mode-only. It is hidden and cleared in grouped or pivoted output, and it does not change ACE counts, aggregates, CSV exports, clipboard exports, preferences, or other consumers of the underlying view. Custom cell renderers can provide exact searchable display text through `TableColumn.getSearchText`.
 
 ### Table Renderers
 

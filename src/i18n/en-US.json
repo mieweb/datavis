@@ -372,6 +372,7 @@
   "TABLE.OF": "of",
   "TABLE.PIN_COLUMN": "Pin Column",
   "TABLE.RESIZE_COLUMN": "Resize column {{param0}}",
+  "TABLE.ROW": "row",
   "TABLE.ROWS": "rows",
   "TABLE.SELECT_ALL_ROWS": "Select all rows",
   "TABLE.SELECT_ROW": "Select row",

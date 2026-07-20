@@ -27,6 +27,7 @@ import { useSortContext } from './SortContext';
 import { getStableRowId } from './row-identity';
 import type { ViewData } from '../../adapters/use-data';
 import { useTranslation } from 'react-i18next';
+import type { DateFormatPreset } from './format-cell';
 
 function serializeGroupKey(groupFields: string[], row: Record<string, unknown>): string {
   return groupFields
@@ -57,6 +58,12 @@ export interface TableRendererProps {
   loading?: boolean;
   /** Custom cell formatter */
   formatCell?: CellFormatter;
+  /** Per-column date display formats. */
+  dateFormats?: Record<string, DateFormatPreset>;
+  /** Update a column's date display format. */
+  onDateFormatChange?: (field: string, preset: DateFormatPreset) => void;
+  /** Applied plain-mode visual search query. */
+  globalSearchQuery?: string;
   /** When provided, each plain-mode row gets a disclosure toggle that expands
       a full-width detail row rendered by this callback. */
   renderDetailRow?: (row: TableRow) => React.ReactNode;
@@ -117,6 +124,9 @@ export function TableRenderer({
   loadedRows,
   loading = false,
   formatCell,
+  dateFormats,
+  onDateFormatChange,
+  globalSearchQuery,
   renderDetailRow,
   detailRowsExpanded,
   groupMode = 'detail',
@@ -341,6 +351,9 @@ export function TableRenderer({
           totalRows={totalRows}
           limit={limit}
           formatCell={formatCell}
+          dateFormats={dateFormats}
+          onDateFormatChange={onDateFormatChange}
+          globalSearchQuery={globalSearchQuery}
           renderDetailRow={renderDetailRow}
           detailRowsExpanded={detailRowsExpanded}
           aggregates={viewData.totalAggregates as Record<string, unknown> | undefined}

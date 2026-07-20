@@ -6,6 +6,7 @@
  */
 
 import type React from 'react';
+import type { DateFormatPreset } from './format-cell';
 
 // ───────────────────────────────────────────────────────────
 // Column configuration
@@ -47,6 +48,8 @@ export interface TableColumn {
   resizable?: boolean;
   /** Whether this column is reorderable */
   reorderable?: boolean;
+  /** Searchable display text for custom-rendered cells. */
+  getSearchText?: (value: unknown, row: RowData, column: TableColumn) => string;
 }
 
 // ───────────────────────────────────────────────────────────
@@ -232,6 +235,12 @@ export interface BaseTableProps {
   limit?: { limit: number; autoShowMore?: boolean };
   /** Custom cell formatter (overrides default) */
   formatCell?: CellFormatter;
+  /** Per-column date display formats. */
+  dateFormats?: Record<string, DateFormatPreset>;
+  /** Update a column's date display format. */
+  onDateFormatChange?: (field: string, preset: DateFormatPreset) => void;
+  /** Applied plain-mode visual search query. */
+  globalSearchQuery?: string;
   /** When provided, each row gets a disclosure toggle that expands a
       full-width detail row rendered by this callback (plain mode only). */
   renderDetailRow?: (row: TableRow) => React.ReactNode;

@@ -355,6 +355,7 @@
   "TABLE.NO_DATA": "Geen gegevens om weer te geven",
   "TABLE.OF": "van",
   "TABLE.RESIZE_COLUMN": "Kolom {{param0}} vergroten/verkleinen",
+  "TABLE.ROW": "rij",
   "TABLE.ROWS": "rijen",
   "TABLE.SELECT_ALL_ROWS": "Alle rijen selecteren",
   "TABLE.SELECT_ROW": "Rij selecteren",

@@ -25,16 +25,6 @@ test.describe('Legacy Scenario Expanded', () => {
     await expect(page.getByRole('dialog', { name: /detail panel/i })).toBeVisible();
   });
 
-  test('omnifilter.js: clear button restores the full result count', async ({ page }) => {
-    await page.goto('/?e2e=omnifilter');
-
-    await page.getByRole('button', { name: 'Toggle Omnifilter' }).click();
-    await page.getByLabel('Omnifilter input').fill('engineering');
-    await expect(page.getByTestId('omnifilter-count')).toHaveText('3');
-    await page.getByRole('button', { name: 'Clear omnifilter' }).click();
-    await expect(page.getByTestId('omnifilter-count')).toHaveText('8');
-  });
-
   test('pagination.js: current page button is marked as current', async ({ page }) => {
     await page.goto('/?e2e=pagination');
 

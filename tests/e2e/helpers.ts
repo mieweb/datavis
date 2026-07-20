@@ -32,6 +32,7 @@ declare global {
         clearSort: () => void;
         setGroup: (fields: string[]) => void;
         clearGroup: () => void;
+        setPivot: (fields: string[]) => void;
         setAggregate: (spec: Array<{ fn: string; fields: string[] }> | null) => void;
         refresh: () => void;
       };

@@ -11,6 +11,24 @@
   box-shadow: 0 2px 4px -1px rgba(0, 0, 0, 0.1);
 }
 
+.wcdv-search-match {
+  background: #fde68a;
+  color: inherit;
+  padding: 0;
+}
+
+.wcdv-search-cell-match {
+  box-shadow: inset 0 0 0 2px #fbbf24;
+}
+
+.dark .wcdv-search-match {
+  background: #854d0e;
+}
+
+.dark .wcdv-search-cell-match {
+  box-shadow: inset 0 0 0 2px #ca8a04;
+}
+
 /* Title bar action embedding — the inline action/perspective cluster only
    shows when the title bar is wide enough to fit every button; otherwise
    the hamburger popup is used (mobile & narrow containers). */

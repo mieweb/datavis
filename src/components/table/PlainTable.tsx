@@ -46,6 +46,7 @@ import { CalendarIcon, ChevronGlyphIcon, DisclosureGlyphIcon, IconButton, Search
 import { SortIndicator } from './SortIndicator';
 import { formatCellValue, formatAggregateNumber, DATE_FORMAT_PRESETS, type DateFormatPreset } from './format-cell';
 import { COLUMN_DRAG_MIME } from '../controls/column-drag';
+import { cellMatchesGlobalSearch, splitHighlightedText } from '../global-search/search-utils';
 
 // ───────────────────────────────────────────────────────────
 // Sort icon
@@ -353,6 +354,9 @@ export function PlainTable({
   totalRows,
   limit,
   formatCell,
+  dateFormats: controlledDateFormats,
+  onDateFormatChange,
+  globalSearchQuery = '',
   renderDetailRow,
   detailRowsExpanded,
   aggregates,
@@ -449,11 +453,16 @@ export function PlainTable({
   }>({ open: false, position: { x: 0, y: 0 }, field: '' });
 
   // ── Per-column date format overrides ──────────
-  const [dateFormats, setDateFormats] = useState<Record<string, DateFormatPreset>>({});
+  const [internalDateFormats, setInternalDateFormats] = useState<Record<string, DateFormatPreset>>({});
+  const dateFormats = controlledDateFormats ?? internalDateFormats;
 
   const setDateFormat = useCallback((field: string, preset: DateFormatPreset) => {
-    setDateFormats((prev) => ({ ...prev, [field]: preset }));
-  }, []);
+    if (onDateFormatChange) {
+      onDateFormatChange(field, preset);
+      return;
+    }
+    setInternalDateFormats((prev) => ({ ...prev, [field]: preset }));
+  }, [onDateFormatChange]);
 
   const tableRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
@@ -829,9 +838,20 @@ export function PlainTable({
       if (formatCell) {
         return formatCell(value, row.data, column);
       }
-      return formatCellValue(value, column.typeInfo, locale, dateFormats[column.field]);
+      const displayText = formatCellValue(value, column.typeInfo, locale, dateFormats[column.field]);
+      if (!globalSearchQuery) return displayText;
+
+      return splitHighlightedText(displayText, globalSearchQuery, locale).map((part, index) =>
+        part.match ? (
+          <mark key={index} className="wcdv-search-match">
+            {part.text}
+          </mark>
+        ) : (
+          <Fragment key={index}>{part.text}</Fragment>
+        ),
+      );
     },
-    [formatCell, locale, dateFormats],
+    [formatCell, locale, dateFormats, globalSearchQuery],
   );
 
   // ── Cell alignment ────────────────────────────
@@ -1036,6 +1056,10 @@ export function PlainTable({
                       {visibleColumns.map((col, colIdx) => {
                         const bodyPinStyle = pinStyles.get(col.field);
                         const isLastPin = pinnedCount > 0 && colIdx === pinnedCount - 1;
+                        const customCellMatches = Boolean(
+                          formatCell
+                            && cellMatchesGlobalSearch(row.data, col, globalSearchQuery, { locale, dateFormats }),
+                        );
                         return (
                         <td
                           key={col.field}
@@ -1043,7 +1067,7 @@ export function PlainTable({
                             features.rowMode === 'clipped'
                               ? 'truncate max-w-0'
                               : ''
-                          } ${col.className ?? ''}${bodyPinStyle ? ' bg-white dark:bg-neutral-900' : ''}${isLastPin ? ' wcdv-pin-separator' : ''}`}
+                          } ${col.className ?? ''}${bodyPinStyle ? ' bg-white dark:bg-neutral-900' : ''}${isLastPin ? ' wcdv-pin-separator' : ''}${customCellMatches ? ' wcdv-search-cell-match' : ''}`}
                           style={{
                             width: col.width,
                             minWidth: col.minWidth ?? 50,

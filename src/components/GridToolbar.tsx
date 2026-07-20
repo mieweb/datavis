@@ -12,6 +12,7 @@ import type { GridTableDef } from './DataGrid';
 import { PlainToolbar } from './toolbars/PlainToolbar';
 import { GroupToolbar } from './toolbars/GroupToolbar';
 import { PivotToolbar } from './toolbars/PivotToolbar';
+import { GlobalSearchControl } from './global-search/GlobalSearchControl';
 
 export interface GridToolbarProps {
   autoShowMore: boolean;
@@ -25,6 +26,10 @@ export interface GridToolbarProps {
   onShowAllRows: () => void;
   onOpenColumnConfig?: () => void;
   onOpenTableOptions?: () => void;
+  globalSearchQuery?: string;
+  globalSearchResultCount?: number;
+  onGlobalSearchChange?: (query: string) => void;
+  onGlobalSearchClear?: () => void;
 }
 
 export function GridToolbar({
@@ -39,6 +44,10 @@ export function GridToolbar({
   onShowAllRows,
   onOpenColumnConfig,
   onOpenTableOptions,
+  globalSearchQuery = '',
+  globalSearchResultCount = 0,
+  onGlobalSearchChange,
+  onGlobalSearchClear,
 }: GridToolbarProps) {
   const { t } = useTranslation();
 
@@ -48,6 +57,15 @@ export function GridToolbar({
       role="toolbar"
       aria-label={t('GRID_TOOLBAR.LABEL') || 'Grid Toolbar'}
     >
+      {dataMode === 'plain' && onGlobalSearchChange && onGlobalSearchClear && (
+        <GlobalSearchControl
+          query={globalSearchQuery}
+          resultCount={globalSearchResultCount}
+          onQueryChange={onGlobalSearchChange}
+          onClear={onGlobalSearchClear}
+        />
+      )}
+
       {dataMode === 'plain' && (
         <PlainToolbar
           tableDef={tableDef}

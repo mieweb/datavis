@@ -355,6 +355,7 @@
   "TABLE.NO_DATA": "ไม่มีข้อมูลที่จะแสดง",
   "TABLE.OF": "จาก",
   "TABLE.RESIZE_COLUMN": "ปรับขนาดคอลัมน์ {{param0}}",
+  "TABLE.ROW": "แถว",
   "TABLE.ROWS": "แถว",
   "TABLE.SELECT_ALL_ROWS": "เลือกทุกแถว",
   "TABLE.SELECT_ROW": "เลือกแถว",

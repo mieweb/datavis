@@ -6,6 +6,31 @@ Implement global search entirely within DataVis NITRO as a visual filter for pla
 
 This replaces the earlier ACE-backed plan. No DataVis ACE changes or dependency release are required.
 
+## Progress
+
+- [x] Phase 1: Search utilities and `TableColumn.getSearchText` contract implemented; focused tests pass.
+- [x] Phase 2: Shared plain display-text state implemented; typecheck passes.
+- [x] Phase 3: `DataGrid` visual filtering and lifecycle implemented; browser verification pending.
+- [x] Phase 4: Plain-only toolbar and highlighting implemented; browser verification pending.
+- [x] Phase 5: Production E2E coverage, legacy cleanup, documentation, and full-suite validation complete.
+
+Validation completed on 2026-07-20:
+
+- TypeScript typecheck passed.
+- ESLint and i18n key validation passed across all ten locales.
+- Vitest passed: 52 tests across 7 files.
+- Playwright passed: 258 tests, including 9 production global-search tests.
+- Production JavaScript and declaration builds passed.
+- `git diff --check` passed.
+
+Performance follow-up on 2026-07-20:
+
+- Moved immediate input state and the 100 ms debounce into `GlobalSearchControl`, so draft keystrokes no longer rerender the 5K-row grid.
+- Kept an omitted `columnConfigs` prop referentially stable, preventing the 165K-cell display-text index from rebuilding twice on every applied query.
+- Live 5K-row demo measurements improved raw input updates from 1.2-2.3 seconds to 51-62 ms.
+- Applied-result latency improved from 1.1-4.7 seconds to 245-618 ms, depending on match breadth.
+- Tracked in-flight debounced query echoes so delayed parent commits cannot overwrite newer draft text; a ten-round 5K-row stress test preserved every character typed across debounce boundaries.
+
 ## Rationale
 
 Applying each debounced query through ACE would rerun ACE's full `filter -> group -> pivot -> aggregate -> sort` pipeline. On non-trivial datasets, grouping, pivoting, and aggregate calculation can take seconds, making an interactive search field feel unresponsive even when text matching itself is inexpensive.
@@ -80,7 +105,7 @@ This distinction must be documented in the public API and reflected in tests so 
 ```ts
 const visuallyFilteredViewData = filterPlainViewData(
   viewState.data,
-  appliedGlobalSearchQuery,
+  globalSearchQuery,
   visibleSearchColumns,
   searchTextIndex,
 );
@@ -185,10 +210,14 @@ If local filtering still produces a long task, consider building or scanning the
 
 ## State and Lifecycle
 
+`GlobalSearchControl` owns:
+
+- The immediate draft input value.
+- The 100 ms debounce that commits a normalized query to `DataGrid`.
+
 `DataGrid` owns:
 
-- `globalSearchQuery`: the immediate input value.
-- `appliedGlobalSearchQuery`: the trimmed query used after debounce.
+- `globalSearchQuery`: the normalized query applied to the plain data.
 - Shared plain-mode date formats.
 - The current row-text cache.
 
@@ -270,7 +299,7 @@ Only `PlainTable` needs highlighting in this phase. Group-detail, group-summary,
 
 ### Phase 3: DataGrid Visual Filtering
 
-8. Add raw and applied query state with a 100 ms trailing debounce.
+8. Keep immediate draft state and the 100 ms trailing debounce inside `GlobalSearchControl`; commit only settled queries to `DataGrid`.
 9. Derive searchable visible columns from `columnConfigs` and `allColumns`.
 10. Build or reuse the normalized row-text cache for the full plain ACE result.
 11. Compute `visuallyFilteredViewData` without mutating `viewState.data`.

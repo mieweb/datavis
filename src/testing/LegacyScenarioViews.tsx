@@ -60,55 +60,6 @@ export function AutoLimitScenario() {
   );
 }
 
-export function OmnifilterScenario() {
-  const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
-  const inputRef = useRef<HTMLInputElement>(null);
-  const filteredRows = useMemo(() => {
-    if (!query.trim()) return SIMPLE_DATA;
-    const needle = query.toLowerCase();
-    return SIMPLE_DATA.filter((row) => Object.values(row).some((value) => String(value).toLowerCase().includes(needle)));
-  }, [query]);
-
-  useEffect(() => {
-    if (open) inputRef.current?.focus();
-  }, [open]);
-
-  return (
-    <div className="min-h-screen bg-slate-100 p-6 space-y-4">
-      <h1 className="text-xl font-semibold">Omnifilter Scenario</h1>
-      <Button type="button" variant="outline" onClick={() => setOpen((value) => !value)}>
-        Toggle Omnifilter
-      </Button>
-      {open && (
-        <div className="flex items-center gap-2">
-          <Input
-            hideLabel
-            label="Omnifilter input"
-            ref={inputRef}
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            onKeyDown={(event) => {
-              if (event.key === 'Escape') {
-                setQuery('');
-                setOpen(false);
-              }
-            }}
-            aria-label="Omnifilter input"
-          />
-          {query && (
-            <Button type="button" size="sm" variant="outline" onClick={() => setQuery('')} aria-label="Clear omnifilter">
-              Clear
-            </Button>
-          )}
-        </div>
-      )}
-      <div data-testid="omnifilter-count">{filteredRows.length}</div>
-      <SimpleTable rows={filteredRows} />
-    </div>
-  );
-}
-
 export function PaginationScenario() {
   const pageSize = 3;
   const [page, setPage] = useState(1);

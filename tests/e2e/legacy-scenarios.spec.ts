@@ -64,17 +64,6 @@ test.describe('Legacy Scenario Ports', () => {
     await expect(page.getByTestId('current-perspective')).not.toContainText('[*]');
   });
 
-  test('omnifilter.js: global text search filters rows and escapes cleanly', async ({ page }) => {
-    await page.goto('/?e2e=omnifilter');
-
-    await page.getByRole('button', { name: 'Toggle Omnifilter' }).click();
-    const input = page.getByLabel('Omnifilter input');
-    await input.fill('engineering');
-    await expect(page.getByTestId('omnifilter-count')).toHaveText('3');
-    await input.press('Escape');
-    await expect(input).toBeHidden();
-  });
-
   test('pagination.js: changing page changes the visible slice of rows', async ({ page }) => {
     await page.goto('/?e2e=pagination');
 
