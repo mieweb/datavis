@@ -84,3 +84,24 @@ export {
   type OperationsPaletteProps,
   type LoadingOverlayProps,
 } from './components';
+
+// Grid assistant ("Hey Ozwell") — natural-language grid control
+export {
+  GridAssistant,
+  useGridAssistant,
+  GRID_TOOLS,
+  getGridTool,
+  executeGridTool,
+  buildGridSystemPrompt,
+  parseAssistantReply,
+  ASSISTANT_SPEC_CHANGE_EVENT,
+  ASSISTANT_GLOBAL_SEARCH_EVENT,
+  type GridAssistantProps,
+  type GridAssistantColumn,
+  type GridToolContext,
+  type GridToolResult,
+  type GridToolDefinition,
+  type UseGridAssistantOptions,
+  type UseGridAssistantReturn,
+  type ParsedToolCall,
+} from './assistant';

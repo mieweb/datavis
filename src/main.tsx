@@ -26,7 +26,25 @@ import type { PrefsInstance } from './adapters/use-prefs';
 import { E2EHarnessApp, isE2EMode } from './testing/E2EHarnessApp';
 import { createMockView, DEMO_AGG_FUNCTIONS, demoTrans } from './demo/mock-grid';
 import { LanguageSelector } from './components/LanguageSelector';
+import { GridAssistant } from './assistant';
+import type { GridAssistantColumn } from './assistant';
 import { toLegacyAggregateSpec } from './adapters/wcdatavis-interop';
+
+// Seed the Ozwell runtime config from Vite env vars (see .env.example).
+// @mieweb/ui reads `window.__ozwell` (which takes precedence over the
+// `ozwellConfig` localStorage key). Values set on `window.__ozwell` before
+// this runs (e.g. from the console) still win.
+const ozwellEnv = Object.fromEntries(
+  Object.entries({
+    apiKey: import.meta.env.VITE_OZWELL_API_KEY,
+    baseURL: import.meta.env.VITE_OZWELL_BASE_URL,
+    model: import.meta.env.VITE_OZWELL_MODEL,
+  }).filter(([, value]) => Boolean(value)),
+);
+if (Object.keys(ozwellEnv).length > 0) {
+  const w = window as unknown as { __ozwell?: Record<string, unknown> };
+  w.__ozwell = { ...ozwellEnv, ...w.__ozwell };
+}
 
 import {
   SIMPLE_DATA, SIMPLE_COLUMNS, SIMPLE_FILTERS,
@@ -254,6 +272,13 @@ function GridDemo({
   const viewState = useView(view);
   const graphConfigHydratedRef = useRef(false);
 
+  // "Hey Ozwell" grid assistant
+  const [assistantOpen, setAssistantOpen] = useState(false);
+  const assistantColumns = useMemo<GridAssistantColumn[]>(
+    () => columns.map((c) => ({ field: c.field, header: c.header, type: c.typeInfo?.type })),
+    [columns],
+  );
+
   const onGraphConfigChangeRef = useRef(onGraphConfigChange);
 
   useEffect(() => {
@@ -295,7 +320,19 @@ function GridDemo({
         onConfigChange={onGraphConfigChange}
       />
 
-      <DataGrid
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => setAssistantOpen((open) => !open)}
+          aria-expanded={assistantOpen}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-indigo-600 border border-indigo-300 rounded-md hover:bg-indigo-50 transition-colors"
+        >
+          {assistantOpen ? 'Hide Ozwell Assistant' : 'Hey Ozwell'}
+        </button>
+      </div>
+
+      <div className={assistantOpen ? 'grid gap-4 lg:grid-cols-[minmax(0,1fr)_24rem]' : undefined}>
+        <DataGrid
         view={view}
         prefs={prefs}
         title={title}
@@ -328,6 +365,18 @@ function GridDemo({
           onRowClick={(row) => console.log('Row clicked:', row.data)}
         />
       </DataGrid>
+
+        {assistantOpen && (
+          <GridAssistant
+            view={view}
+            prefs={prefs}
+            columns={assistantColumns}
+            height="36rem"
+            className="self-start"
+            onClose={() => setAssistantOpen(false)}
+          />
+        )}
+      </div>
     </div>
   );
 }

@@ -26,6 +26,7 @@ import {
   needsGroupFunction,
 } from '../adapters/group-adapter';
 import { toLegacyAggregateSpec } from '../adapters/wcdatavis-interop';
+import { ASSISTANT_SPEC_CHANGE_EVENT, ASSISTANT_GLOBAL_SEARCH_EVENT, registerAssistantEvents } from '../assistant/grid-tools';
 import { useTranslation } from 'react-i18next';
 import { LocaleProvider } from '../i18n';
 import { COLUMN_DRAG_MIME } from './controls/column-drag';
@@ -178,6 +179,24 @@ function parseAggregateEntries(spec: unknown): AggregateEntry[] {
       fields,
       visible: true,
     } satisfies AggregateEntry];
+  });
+}
+
+/**
+ * Reconstruct the React MultiSortSpec from the view's committed legacy sort
+ * spec (`{ vertical: [{ field, dir }] }` — dir is 'ASC'/'DESC'; a single
+ * object is also accepted). Used when syncing external spec changes.
+ */
+function parseLegacySortSpec(spec: unknown): MultiSortSpec {
+  if (!spec || typeof spec !== 'object') return [];
+  const vertical = (spec as { vertical?: unknown }).vertical;
+  const entries = Array.isArray(vertical) ? vertical : vertical ? [vertical] : [];
+  return entries.flatMap((entry) => {
+    if (!entry || typeof entry !== 'object') return [];
+    const { field, dir } = entry as { field?: unknown; dir?: unknown };
+    if (typeof field !== 'string') return [];
+    const direction: SortDirection = typeof dir === 'string' && dir.toLowerCase() === 'desc' ? 'desc' : 'asc';
+    return [{ field, direction }];
   });
 }
 
@@ -785,6 +804,20 @@ export function DataGrid({
     clearGlobalSearch();
     syncControlStateFromView();
     view.getData();
+  });
+
+  // Assistant-driven (external) spec changes: re-sync the control panel and
+  // sort indicators from the view's committed specs. The custom events must be
+  // added to the datavis-ace event allowlist before subscribing.
+  registerAssistantEvents(view);
+  useDataVisEvent(view, ASSISTANT_SPEC_CHANGE_EVENT, () => {
+    syncControlStateFromView();
+    setSorts(parseLegacySortSpec(view.getSort?.() ?? null));
+  });
+
+  // Assistant-driven global search ('' clears).
+  useDataVisEvent(view, ASSISTANT_GLOBAL_SEARCH_EVENT, (query) => {
+    setGlobalSearchQuery(typeof query === 'string' ? query : '');
   });
 
   // Enrich group fields with function subtitles
