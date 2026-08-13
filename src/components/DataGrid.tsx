@@ -419,10 +419,11 @@ export function DataGrid({
 
   // ── Local UI state ─────────────────────────────
   // Default mode is the compact/clean view: controls start hidden regardless
-  // of the `showControls` prop.
+  // of the `showControls` prop (the user opens them from the hamburger menu).
   const controlsInitiallyVisible = gridMode === 'default' ? false : initialShowControls;
   const [collapsed, setCollapsed] = useState(false);
   const controlsVisibleRef = useRef(controlsInitiallyVisible);
+  const [controlsOpen, setControlsOpen] = useState(controlsInitiallyVisible);
   const controlsWrapperRef = useRef<HTMLDivElement>(null);
   const gridTableRef = useRef<HTMLDivElement>(null);
   const setControlsVisible = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
@@ -430,6 +431,7 @@ export function DataGrid({
     if (next === controlsVisibleRef.current) return;
     controlsVisibleRef.current = next;
     controlsWrapperRef.current?.classList.toggle('hidden', !next);
+    setControlsOpen(next);
   }, []);
 
   // ── Dynamic filter columns ─────────────────────
@@ -1457,6 +1459,7 @@ export function DataGrid({
           hasActiveFilter={hasActiveFilter}
           cancellable={sourceState.source.isCancellable()}
           collapsed={collapsed}
+          controlsVisible={controlsOpen}
           prefs={prefs}
           titleActions={titleActions}
           onToggle={handleToggle}
