@@ -1030,6 +1030,7 @@ export function DataGrid({
         groupMode: childProps.groupMode ?? effectiveTableDef.groupMode,
         showTotalRow: childProps.showTotalRow ?? effectiveTableDef.whenGroup?.showTotalRow,
         showTotalCol: childProps.showTotalCol ?? effectiveTableDef.whenPivot?.showTotalCol,
+        hideBottomValueAggResults: childProps.hideBottomValueAggResults ?? effectiveTableDef.whenPivot?.hideBottomValueAggResults,
         groupsExpanded: childProps.groupsExpanded ?? effectiveTableDef.whenGroup?.showExpandedGroups,
         syntheticPivot,
         onShowMore: childProps.onShowMore ?? handleShowMoreRows,

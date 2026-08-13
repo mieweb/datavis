@@ -57,6 +57,7 @@ export function PivotTable({
   sorts,
   features = {},
   showTotalCol = true,
+  hideBottomValueAggResults = false,
   onSort,
   className = '',
 }: PivotTableProps) {
@@ -112,6 +113,11 @@ export function PivotTable({
       current?.direction === 'asc' ? 'desc' : 'asc';
     onSort?.(field, nextDir, additive);
   };
+
+  const renderAggregateValue = (value: unknown) =>
+    value == null || (hideBottomValueAggResults && value === 0)
+      ? ''
+      : String(value);
 
   const [containerScrolled, setContainerScrolled] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -261,9 +267,7 @@ export function PivotTable({
                           className="border-r border-gray-100 dark:border-neutral-700 px-2 py-1.5 text-sm text-right"
                           role="gridcell"
                         >
-                          {matrix[rowIdx]?.[colIdx]?.[fn] != null
-                            ? String(matrix[rowIdx][colIdx][fn])
-                            : ''}
+                          {renderAggregateValue(matrix[rowIdx]?.[colIdx]?.[fn])}
                         </td>
                       )),
                     )}
@@ -276,9 +280,7 @@ export function PivotTable({
                           className="border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-2 py-1.5 text-sm text-right font-medium"
                           role="gridcell"
                         >
-                          {totalCol?.[rowIdx]?.[fn] != null
-                            ? String(totalCol[rowIdx][fn])
-                            : ''}
+                          {renderAggregateValue(totalCol?.[rowIdx]?.[fn])}
                         </td>
                       ))}
                   </tr>
@@ -303,9 +305,7 @@ export function PivotTable({
                       key={`total_${colIdx}_${fn}`}
                       className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm text-right"
                     >
-                      {totalRow[colIdx]?.[fn] != null
-                        ? String(totalRow[colIdx][fn])
-                        : ''}
+                      {renderAggregateValue(totalRow[colIdx]?.[fn])}
                     </td>
                   )),
                 )}
@@ -315,7 +315,7 @@ export function PivotTable({
                       key={`grand_${fn}`}
                       className="border-r border-gray-200 dark:border-neutral-700 bg-gray-200 dark:bg-neutral-700 px-2 py-1 text-sm text-right font-bold"
                     >
-                      {grandTotal?.[fn] != null ? String(grandTotal[fn]) : ''}
+                      {renderAggregateValue(grandTotal?.[fn])}
                     </td>
                   ))}
               </tr>
