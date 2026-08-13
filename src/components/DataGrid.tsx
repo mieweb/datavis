@@ -961,18 +961,85 @@ export function DataGrid({
       ) as FilterSpec;
       const nextFilterSpec = { ...currentFilterSpec, ...exactFilters };
 
-      setCurrentFilterSpec(nextFilterSpec);
-      setInitialFilterSpec(nextFilterSpec);
-      setGroupFields([]);
-      setPivotFields([]);
-      setGroupFunMap({});
-      setPivotFunMap({});
-      setSyntheticPivot(false);
-      viewState.clearPivot();
-      viewState.clearGroup();
-      viewState.setFilter(nextFilterSpec);
+      const drillDown = () => {
+        setCurrentFilterSpec(nextFilterSpec);
+        setInitialFilterSpec(nextFilterSpec);
+        setGroupFields([]);
+        setPivotFields([]);
+        setGroupFunMap({});
+        setPivotFunMap({});
+        setSyntheticPivot(false);
+        const options = { updateData: false, savePrefs: false };
+        view.clearPivot(options);
+        view.clearGroup(options);
+        view.setFilter(nextFilterSpec, null, options);
+        view.getData();
+      };
+
+      if (!prefs) {
+        drillDown();
+        return;
+      }
+
+      const addDrillDownPerspective = () => {
+        const currentConfig = prefs.currentPerspective?.config;
+        const sourceConfig = currentConfig
+          && typeof currentConfig === 'object'
+          && !Array.isArray(currentConfig)
+          ? currentConfig as Record<string, unknown>
+          : {};
+        const sourceViewConfig = sourceConfig.view
+          && typeof sourceConfig.view === 'object'
+          && !Array.isArray(sourceConfig.view)
+          ? sourceConfig.view as Record<string, unknown>
+          : {};
+        const plainViewConfig = { ...sourceViewConfig };
+        delete plainViewConfig.group;
+        delete plainViewConfig.pivot;
+
+        prefs.addPerspective(
+          null,
+          t('PERSPECTIVE.DRILL_DOWN') || 'Drill Down',
+          { ...sourceConfig, view: { ...plainViewConfig, filter: nextFilterSpec } },
+          null,
+          drillDown,
+          { loadAfterSwitch: false, sendEvent: false },
+        );
+      };
+
+      const snapshotAndAddPerspective = () => {
+        const currentPerspective = prefs.currentPerspective;
+        if (currentPerspective) {
+          const existingConfig = currentPerspective.config
+            && typeof currentPerspective.config === 'object'
+            && !Array.isArray(currentPerspective.config)
+            ? currentPerspective.config as Record<string, unknown>
+            : {};
+          const config = {
+            ...existingConfig,
+            view: {
+              filter: view.getFilter(),
+              group: view.getGroup(),
+              pivot: view.getPivot(),
+              aggregate: view.getAggregate(),
+              sort: view.getSort(),
+            },
+          };
+          currentPerspective.config = config;
+          if (prefs.perspectives?.[currentPerspective.id]) {
+            prefs.perspectives[currentPerspective.id].config = config;
+          }
+        }
+        addDrillDownPerspective();
+      };
+
+      if (prefs.isPrimed || typeof prefs.prime !== 'function') {
+        snapshotAndAddPerspective();
+      } else {
+        prefs.prime(snapshotAndAddPerspective);
+      }
     },
-    [currentFilterSpec, viewState],
+    [currentFilterSpec, prefs, t, view, viewState],
   );
 
   useEffect(() => {

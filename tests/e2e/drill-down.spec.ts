@@ -51,6 +51,38 @@ test.describe('Aggregate cell drill-down', () => {
     expect(drillDownState.rowCount).toBe(2);
   });
 
+  test('the perspective Back action restores the view before drill-down', async ({ page }) => {
+    await gotoHarness(page, 'default', { prefs: 'true' });
+    await expect.poll(async () => (await getState(page)).prefsReady).toBe(true);
+    await runActionWithArg(page, ['department'], (fields) => window.__wcdv!.actions.setGroup(fields));
+    await runAction(page, () => {
+      window.__wcdv!.actions.setAggregate([{ fn: 'count', fields: [] }]);
+    });
+    await runActionWithArg(page, ['active'], (fields) => window.__wcdv!.actions.setPivot(fields));
+
+    const pivotState = await getState(page);
+    const rowIndex = pivotState.rowVals.findIndex((row) => row.department === 'Engineering');
+    const colIndex = pivotState.colVals.findIndex((value) => String(value) === 'true');
+    expect(rowIndex).toBeGreaterThanOrEqual(0);
+    expect(colIndex).toBeGreaterThanOrEqual(0);
+
+    let previousRevision = pivotState.revision;
+    await page.getByTestId(`pivot-aggregate-cell-${rowIndex}-${colIndex}-count`).dblclick();
+    await waitForIdle(page, previousRevision);
+    await expect(page.getByRole('button', { name: 'Back' })).toBeEnabled();
+
+    previousRevision = (await getState(page)).revision;
+    await page.getByRole('button', { name: 'Back' }).click();
+    await waitForIdle(page, previousRevision);
+
+    const restoredState = await getState(page);
+    expect(restoredState.mode).toBe('pivot');
+    expect(restoredState.currentPerspectiveViewConfig).toEqual(expect.objectContaining({
+      group: { fieldNames: [{ field: 'department' }] },
+      pivot: { fieldNames: [{ field: 'active' }] },
+    }));
+  });
+
   test('double-clicking a grouped total shows all contributing plain rows', async ({ page }) => {
     await gotoHarness(page);
     await runActionWithArg(page, ['department'], (fields) => window.__wcdv!.actions.setGroup(fields));

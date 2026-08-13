@@ -50,7 +50,7 @@ export interface ViewInstance extends EventEmitter {
   getTypeInfo(cont?: (ok: boolean, typeInfo: unknown) => void): void;
 
   setSort(spec: unknown, opts?: Record<string, unknown>): void;
-  setFilter(spec: unknown, opts?: Record<string, unknown>): void;
+  setFilter(spec: unknown, progress?: unknown, opts?: Record<string, unknown>): void;
   setGroup(spec: unknown, opts?: Record<string, unknown>): void;
   setPivot(spec: unknown, opts?: Record<string, unknown>): void;
   setAggregate(spec: unknown, opts?: Record<string, unknown>): void;

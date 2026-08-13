@@ -19,6 +19,8 @@ export type HarnessState = {
   sort: { vertical?: { field: string; dir: string } } | null;
   busy: boolean;
   revision: number;
+  prefsReady: boolean;
+  currentPerspectiveViewConfig: unknown;
 };
 
 declare global {
