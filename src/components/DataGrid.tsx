@@ -426,13 +426,17 @@ export function DataGrid({
   /** Mirrors controlsVisibleRef so the title bar can embed actions inline while open */
   const [controlsOpen, setControlsOpen] = useState(controlsInitiallyVisible);
   const controlsWrapperRef = useRef<HTMLDivElement>(null);
+  const controlsOpenedForColumnDragRef = useRef(false);
   const gridTableRef = useRef<HTMLDivElement>(null);
-  const setControlsVisible = useCallback((value: boolean | ((prev: boolean) => boolean)) => {
+  const setControlsVisible = useCallback((
+    value: boolean | ((prev: boolean) => boolean),
+    syncTitleBar = true,
+  ) => {
     const next = typeof value === 'function' ? value(controlsVisibleRef.current) : value;
     if (next === controlsVisibleRef.current) return;
     controlsVisibleRef.current = next;
     controlsWrapperRef.current?.classList.toggle('hidden', !next);
-    setControlsOpen(next);
+    if (syncTitleBar) setControlsOpen(next);
   }, []);
 
   // ── Dynamic filter columns ─────────────────────
@@ -1391,22 +1395,32 @@ export function DataGrid({
     setInitialFilterSpec({});
   }, [viewState, clearGlobalSearch]);
 
-  /** Auto-open controls when a column header drag starts or enters the grid */
-  const handleColumnDragStart = useCallback(() => {
-    if (!controlsVisibleRef.current) setControlsVisible(true);
+  /** Auto-open controls without moving the table beneath an active native drag. */
+  const showControlsForColumnDrag = useCallback(() => {
+    if (controlsVisibleRef.current) return;
+    controlsOpenedForColumnDragRef.current = true;
+    controlsWrapperRef.current?.classList.add('absolute', 'inset-x-0', 'top-0', 'z-20');
+    setControlsVisible(true, false);
+  }, [setControlsVisible]);
+
+  const restoreControlsAfterColumnDrag = useCallback(() => {
+    if (!controlsOpenedForColumnDragRef.current) return;
+    controlsOpenedForColumnDragRef.current = false;
+    controlsWrapperRef.current?.classList.remove('absolute', 'inset-x-0', 'top-0', 'z-20');
+    setControlsOpen(true);
   }, []);
 
   const handleGridDragOver = useCallback(
     (e: React.DragEvent) => {
       if (!e.dataTransfer.types.includes(COLUMN_DRAG_MIME)) return;
-      if (!controlsVisibleRef.current) setControlsVisible(true);
+      showControlsForColumnDrag();
     },
-    [],
+    [showControlsForColumnDrag],
   );
 
   const columnDropContextValue = useMemo<ColumnDropContextValue>(
-    () => ({ onColumnDragStart: handleColumnDragStart }),
-    [handleColumnDragStart],
+    () => ({ onColumnDragStart: showControlsForColumnDrag }),
+    [showControlsForColumnDrag],
   );
 
   /** Memoised provider-wrapped table content — isolates the table subtree from
@@ -1436,6 +1450,8 @@ export function DataGrid({
       role="region"
       aria-label={title || t('GRID.TITLEBAR.TITLE')}
       onDragOver={handleGridDragOver}
+      onDragEnd={restoreControlsAfterColumnDrag}
+      onDrop={restoreControlsAfterColumnDrag}
     >
       {/* Skip to data table */}
       <a
@@ -1476,7 +1492,7 @@ export function DataGrid({
 
       {/* Collapsible Content */}
       {!collapsed && (
-        <div className="wcdv-grid-content flex flex-col flex-1 min-h-0">
+        <div className="wcdv-grid-content relative flex flex-col flex-1 min-h-0">
           {/* Controls area — toggled via CSS class, not React state */}
           <div ref={controlsWrapperRef} className={controlsInitiallyVisible ? undefined : 'hidden'}>
             {/* Toolbar */}
