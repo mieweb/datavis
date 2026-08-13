@@ -143,6 +143,7 @@ src/
 | `GlobalSearchControl` | Plain-mode visual search across visible columns with highlighting and an accessible result count |
 | `DetailSlider` | Slide-in panel from the right edge for row detail content |
 | `OperationsPalette` | Inline toolbar of icon buttons for row-level operations |
+| `RowEditorDialog` | eSheet row editor opened from a pencil button, double-click, or keyboard activation |
 | `LoadingOverlay` | Block-UI overlay with `@mieweb/ui` Spinner |
 | `LanguageSelector` | Locale picker supporting 10 languages |
 
@@ -171,6 +172,29 @@ src/
 The plain grid toolbar includes a debounced global search that visually narrows the rows already returned by ACE. It searches formatted display text across visible columns before NITRO's row display limit, so matches beyond the first rendered batch are included. Existing per-column ACE filters run first, and global search narrows their result without changing the ACE filter specification or rerunning grouping, pivoting, aggregation, sorting, or data acquisition.
 
 The feature is intentionally visual-only and plain-mode-only. It is hidden and cleared in grouped or pivoted output, and it does not change ACE counts, aggregates, CSV exports, clipboard exports, preferences, or other consumers of the underlying view. Custom cell renderers can provide exact searchable display text through `TableColumn.getSearchText`.
+
+### Editable Rows
+
+Set `editableRows` on `DataGrid` to add a pencil action to each plain row. Users can also open the editor by double-clicking a row or selecting it and pressing Enter or Space. DataVis generates an eSheet from visible column names and types by default, or the embedding application can supply a `FormDefinition` or per-row form factory.
+
+Use `onRowSave` for immediate persistence. The callback receives the stable row identity, original row, updated row, and changed fields, so a TSV-backed application can use the row's file column to update YAML frontmatter in the corresponding Markdown file. Return the persisted row when the server normalizes values; DataVis refreshes the source after the callback resolves.
+
+```tsx
+<DataGrid
+    view={view}
+    allColumns={columns}
+    editableRows={{
+        fields: ['status', 'issueType', 'redmineReference'],
+        onRowSave: async ({ originalRow, changes }) => {
+            return updateMarkdownFrontmatter(String(originalRow.file), changes);
+        },
+    }}
+>
+    <TableRenderer viewData={null} columns={columns} />
+</DataGrid>
+```
+
+For staged editing, provide `onSave` instead. Edited values appear in the grid immediately, and a **Save changes** action sends all pending `RowEditChange` records in one call.
 
 ### Table Renderers
 
@@ -271,11 +295,12 @@ Aggregate values appear in group header rows, aligned under matching column head
 
 ## Demo App
 
-The demo (`src/main.tsx`) provides three tabbed example grids with mock data:
+The demo (`src/main.tsx`) provides tabbed example grids with mock data:
 
 | Tab | Rows | Columns | Description |
 |-----|------|---------|-------------|
 | Simple | 8 | 8 | Employee directory |
+| Editable Markdown | 3 | 6 | Ticket overview backed by Markdown YAML frontmatter |
 | Wide (50 columns) | 20 | 50 | Contact + appointment + location data |
 | Large (5K rows) | 5,000 | 33 | Financial ledger + inventory |
 

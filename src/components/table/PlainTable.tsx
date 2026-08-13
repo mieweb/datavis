@@ -41,7 +41,7 @@ import { HeaderFilterDropdown } from '../filters/HeaderFilterDropdown';
 import { useColumnConfig } from './ColumnConfigContext';
 import { useTranslation } from 'react-i18next';
 import { useLocale } from '../../i18n';
-import { Filter } from 'lucide-react';
+import { Filter, Pencil } from 'lucide-react';
 import { CalendarIcon, ChevronGlyphIcon, DisclosureGlyphIcon, IconButton, SearchIcon, TableActionButton } from '../ui';
 import { SortIndicator } from './SortIndicator';
 import { formatCellValue, formatAggregateNumber, DATE_FORMAT_PRESETS, type DateFormatPreset } from './format-cell';
@@ -365,6 +365,7 @@ export function PlainTable({
   onSort,
   onRowClick,
   onRowDoubleClick,
+  onRowEdit,
   onColumnResize,
   onColumnReorder,
   onHeaderContextMenu,
@@ -400,8 +401,8 @@ export function PlainTable({
       return next;
     });
   }, []);
-  /** Leading utility cells before the data columns (detail toggle + checkbox) */
-  const leadingCells = (hasDetailRows ? 1 : 0) + (checkboxSelection ? 1 : 0);
+  /** Leading utility cells before the data columns (edit + detail toggle + checkbox) */
+  const leadingCells = (onRowEdit ? 1 : 0) + (hasDetailRows ? 1 : 0) + (checkboxSelection ? 1 : 0);
 
   // Sync with the expand-all/collapse-all prop — edge-triggered: it overrides
   // individual toggles only when the prop value or the row membership (stable
@@ -649,6 +650,7 @@ export function PlainTable({
       },
       [onRowClick],
     ),
+    onRowEdit,
   );
 
   // ── Row click handler ─────────────────────────
@@ -899,6 +901,15 @@ export function PlainTable({
               }
             >
               <tr>
+                  {onRowEdit && (
+                    <th
+                      className="wcdv-th wcdv-th-edit w-9 border-r border-gray-200 dark:border-neutral-700 px-1 py-1"
+                      role="columnheader"
+                      scope="col"
+                    >
+                      <span className="sr-only">{t('ROW_EDITOR.EDIT_COLUMN') || 'Edit row'}</span>
+                    </th>
+                  )}
                   {hasDetailRows && (
                     <th
                       className="wcdv-th wcdv-th-detail w-9 border-r border-gray-200 dark:border-neutral-700 px-1 py-1 text-center align-middle"
@@ -1021,6 +1032,20 @@ export function PlainTable({
                           : undefined
                       }
                     >
+                      {onRowEdit && (
+                        <td
+                          className="wcdv-td wcdv-td-edit w-9 border-r border-gray-100 dark:border-neutral-700 px-1 py-1 text-center align-middle"
+                          role="gridcell"
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          <IconButton
+                            aria-label={t('ROW_EDITOR.EDIT_ROW') || 'Edit row'}
+                            onClick={() => onRowEdit(row)}
+                          >
+                            <Pencil className="h-4 w-4" aria-hidden="true" />
+                          </IconButton>
+                        </td>
+                      )}
                       {hasDetailRows && (
                         <td
                           className="wcdv-td wcdv-td-detail-toggle w-9 border-r border-gray-100 dark:border-neutral-700 px-1 py-1 text-center align-middle"

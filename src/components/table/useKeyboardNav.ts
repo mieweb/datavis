@@ -30,6 +30,7 @@ export function useKeyboardNav(
   selection: SelectionState,
   onSelectionChange?: (selection: SelectionState) => void,
   onRowClick?: (row: TableRow, event: React.KeyboardEvent) => void,
+  onRowActivate?: (row: TableRow) => void,
 ) {
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
@@ -98,7 +99,8 @@ export function useKeyboardNav(
             event.preventDefault();
             const row = rows.find((r) => r.rowNum === activeRow);
             if (row) {
-              onRowClick?.(row, event);
+              if (onRowActivate) onRowActivate(row);
+              else onRowClick?.(row, event);
             }
           }
           break;
@@ -129,7 +131,7 @@ export function useKeyboardNav(
         scrollActiveRowIntoView(nextRow);
       }
     },
-    [rows, selection, onSelectionChange, onRowClick],
+    [rows, selection, onSelectionChange, onRowClick, onRowActivate],
   );
 
   return { handleKeyDown };

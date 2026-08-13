@@ -33,6 +33,7 @@ export default defineConfig({
         /^use-sync-external-store\//,
         'lucide-react',
         /^@mieweb\/ui/,
+        /^@esheet\//,
       ],
       output: {
         globals: {

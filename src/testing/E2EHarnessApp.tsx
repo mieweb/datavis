@@ -33,6 +33,7 @@ import {
   SourceParamsScenario,
 } from './LegacyScenarioViews';
 import { BellIcon, CloseGlyphIcon } from '../components/ui';
+import { EditableMarkdownTickets } from '../demo/EditableMarkdownTickets';
 
 type HarnessAggregateSpec = Array<{ fn: string; fields: string[] }>;
 
@@ -281,7 +282,9 @@ type HarnessScenario =
   | 'row-customization'
   | 'sticky-viewport'
   | 'sticky-container'
-  | 'checkbox';
+  | 'checkbox'
+  | 'editable'
+  | 'editable-batch';
 
 interface HarnessConfig {
   id: string;
@@ -315,6 +318,8 @@ function getScenarioFromSearch(): HarnessScenario {
     || scenario === 'sticky-viewport'
     || scenario === 'sticky-container'
     || scenario === 'checkbox'
+    || scenario === 'editable'
+    || scenario === 'editable-batch'
   ) {
     return scenario;
   }
@@ -870,6 +875,8 @@ export function E2EHarnessApp() {
   if (scenario === 'sticky-viewport') return <StickyViewportScenario />;
   if (scenario === 'sticky-container') return <StickyContainerScenario />;
   if (scenario === 'row-customization') return <RowCustomizationScenario />;
+  if (scenario === 'editable') return <EditableMarkdownTickets />;
+  if (scenario === 'editable-batch') return <EditableMarkdownTickets saveMode="batch" />;
 
   if (scenario === 'multi-grid') {
     return (

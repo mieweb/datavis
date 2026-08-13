@@ -29,6 +29,7 @@ import { LanguageSelector } from './components/LanguageSelector';
 import { GridAssistant } from './assistant';
 import type { GridAssistantColumn } from './assistant';
 import { toLegacyAggregateSpec } from './adapters/wcdatavis-interop';
+import { EditableMarkdownTickets } from './demo/EditableMarkdownTickets';
 
 // Seed the Ozwell runtime config from Vite env vars (see .env.example).
 // @mieweb/ui reads `window.__ozwell` (which takes precedence over the
@@ -56,7 +57,7 @@ import {
 // Tab definitions
 // ───────────────────────────────────────────────────────────
 
-type TabKey = 'simple' | 'wide' | 'large' | 'constrained' | 'graph-only';
+type TabKey = 'simple' | 'editable' | 'wide' | 'large' | 'constrained' | 'graph-only';
 
 interface TabDef {
   key: TabKey;
@@ -66,6 +67,7 @@ interface TabDef {
 
 const TABS: TabDef[] = [
   { key: 'simple', label: 'Simple', badge: '8 rows × 8 cols' },
+  { key: 'editable', label: 'Editable Markdown', badge: '3 tickets' },
   { key: 'wide', label: 'Wide (50 columns)', badge: '20 rows × 50 cols' },
   { key: 'large', label: 'Large (5K rows)', badge: '5 000 rows × 33 cols' },
   { key: 'constrained', label: 'Constrained', badge: '500px container' },
@@ -74,6 +76,7 @@ const TABS: TabDef[] = [
 
 const DEFAULT_GRAPH_CONFIGS: Record<TabKey, Partial<GraphConfig>> = {
   simple: { chartType: 'bar' },
+  editable: { chartType: 'bar' },
   wide: { chartType: 'bar' },
   large: { chartType: 'bar' },
   constrained: { chartType: 'bar' },
@@ -431,7 +434,7 @@ function GraphOnlyDemo({
 
 function getTabFromHash(): TabKey {
   const hash = window.location.hash.replace('#', '').toLowerCase();
-  if (hash === 'wide' || hash === 'large' || hash === 'constrained' || hash === 'graph-only') return hash;
+  if (hash === 'editable' || hash === 'wide' || hash === 'large' || hash === 'constrained' || hash === 'graph-only') return hash;
   return 'simple';
 }
 
@@ -587,6 +590,8 @@ function App() {
             mode={mode}
           />
         )}
+
+        {activeTab === 'editable' && <EditableMarkdownTickets />}
 
         {activeTab === 'wide' && (
           <GridDemo

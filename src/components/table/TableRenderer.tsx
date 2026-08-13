@@ -94,6 +94,8 @@ export interface TableRendererProps {
   onRowClick?: (row: TableRow, event: React.MouseEvent) => void;
   /** Row double-clicked (drill-down) */
   onRowDoubleClick?: (row: TableRow, event: React.MouseEvent) => void;
+  /** Row editing requested from the edit button or keyboard activation. */
+  onRowEdit?: (row: TableRow) => void;
   /** Column resized */
   onColumnResize?: (field: string, width: number) => void;
   /** Columns reordered */
@@ -140,6 +142,7 @@ export function TableRenderer({
   onSort,
   onRowClick,
   onRowDoubleClick,
+  onRowEdit,
   onColumnResize,
   onColumnReorder,
   onHeaderContextMenu,
@@ -362,6 +365,7 @@ export function TableRenderer({
           onSort={effectiveOnSort}
           onRowClick={onRowClick}
           onRowDoubleClick={onRowDoubleClick}
+          onRowEdit={onRowEdit}
           onColumnResize={onColumnResize}
           onColumnReorder={onColumnReorder}
           onHeaderContextMenu={onHeaderContextMenu}

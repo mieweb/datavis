@@ -46,6 +46,8 @@ import { SortContext, type SortContextValue } from './table/SortContext';
 import { ColumnConfigContext, type ColumnConfigContextValue } from './table/ColumnConfigContext';
 import { ColumnDropProvider, type ColumnDropContextValue } from './table/ColumnDropContext';
 import { OperationsPalette, type Operation } from './OperationsPalette';
+import { RowEditorDialog } from './dialogs/RowEditorDialog';
+import type { EditableRowsConfig, RowEditChange } from './row-editing';
 import { DetailSlider } from './DetailSlider';
 import { LoadingOverlay } from './LoadingOverlay';
 import { ColumnConfigDialog, type ColumnConfig } from './dialogs/ColumnConfigDialog';
@@ -55,6 +57,9 @@ import { GroupFunctionDialog } from './dialogs/GroupFunctionDialog';
 import type { GroupFunction as GroupFunctionDef } from './dialogs/GroupFunctionDialog';
 import { PerspectiveManagerDialog } from './dialogs/PerspectiveManagerDialog';
 import type { TableRendererProps } from './table/TableRenderer';
+import type { TableRow } from './table/types';
+import { Button } from '@mieweb/ui/components/Button';
+import { Save } from 'lucide-react';
 import type { DateFormatPreset } from './table/format-cell';
 import {
   createSearchTextIndex,
@@ -62,6 +67,14 @@ import {
 } from './global-search/search-utils';
 
 const DEFAULT_ROW_BATCH_SIZE = 100;
+const EMPTY_OPERATIONS: Operation[] = [];
+const EMPTY_FILTER_COLUMNS: ColumnFilterConfig[] = [];
+const EMPTY_TABLE_COLUMNS: TableColumn[] = [];
+const EMPTY_CONTROL_FIELDS: NonNullable<DataGridProps['controlFields']> = [];
+const EMPTY_AGGREGATE_FIELDS: NonNullable<DataGridProps['aggregateFields']> = [];
+const EMPTY_AGGREGATE_FUNCTIONS: AggregateFunction[] = [];
+const EMPTY_TEMPLATES: TemplateData = {};
+const EMPTY_GROUP_FUNCTIONS: GroupFunctionDef[] = [];
 
 function limitPlainViewData(viewData: ViewData | null, visibleRowCount: number): ViewData | null {
   if (!viewData?.isPlain || !Array.isArray(viewData.data)) {
@@ -276,6 +289,8 @@ export interface DataGridProps {
   height?: string;
   /** Operations for the operations palette */
   operations?: Operation[];
+  /** Enable row editing with generated or developer-supplied eSheets. */
+  editableRows?: EditableRowsConfig;
   /** Callback when grid visibility is toggled */
   onToggle?: (visible: boolean) => void;
   /** Custom className */
@@ -376,7 +391,8 @@ export function DataGrid({
   mode = 'default',
   minimalMode = false,
   height,
-  operations = [],
+  operations = EMPTY_OPERATIONS,
+  editableRows,
   onToggle,
   className = '',
   children,
@@ -386,18 +402,18 @@ export function DataGrid({
   locale,
   debug: _debug = false,
   preserveChildViewData = false,
-  filterColumns = [],
-  allColumns = [],
-  controlFields = [],
-  aggregateFields = [],
-  aggregateFunctions = [],
+  filterColumns = EMPTY_FILTER_COLUMNS,
+  allColumns = EMPTY_TABLE_COLUMNS,
+  controlFields = EMPTY_CONTROL_FIELDS,
+  aggregateFields = EMPTY_AGGREGATE_FIELDS,
+  aggregateFunctions = EMPTY_AGGREGATE_FUNCTIONS,
   columnConfigs: columnConfigsProp,
   onColumnConfigSave,
-  templates: _templates = {},
+  templates: _templates = EMPTY_TEMPLATES,
   onTemplateSave: _onTemplateSave,
   displayFormat,
   onDisplayFormatSave,
-  groupFunctionDefs = [],
+  groupFunctionDefs = EMPTY_GROUP_FUNCTIONS,
   onGroupFunctionSelect,
 }: DataGridProps) {
   // ── i18n via react-i18next ─
@@ -422,6 +438,11 @@ export function DataGrid({
   // of the `showControls` prop (the user opens them from the hamburger menu).
   const controlsInitiallyVisible = gridMode === 'default' ? false : initialShowControls;
   const [collapsed, setCollapsed] = useState(false);
+  const [editingRow, setEditingRow] = useState<TableRow | null>(null);
+  const [rowChanges, setRowChanges] = useState<Map<number, Record<string, unknown>>>(() => new Map());
+  const [pendingRowEdits, setPendingRowEdits] = useState<Map<number, RowEditChange>>(() => new Map());
+  const [savingRowEdits, setSavingRowEdits] = useState(false);
+  const committedRowChangesRef = useRef<Set<number>>(new Set());
   const controlsVisibleRef = useRef(controlsInitiallyVisible);
   /** Mirrors controlsVisibleRef so the title bar can embed actions inline while open */
   const [controlsOpen, setControlsOpen] = useState(controlsInitiallyVisible);
@@ -860,23 +881,37 @@ export function DataGrid({
     [columnOrder, allColumns],
   );
 
+  const editedViewData = useMemo(() => {
+    if (!viewState.data?.isPlain || !Array.isArray(viewState.data.data) || rowChanges.size === 0) {
+      return viewState.data;
+    }
+
+    return {
+      ...viewState.data,
+      data: viewState.data.data.map((row, index) => {
+        const changes = rowChanges.get(getStableRowId(row, index));
+        return changes ? { ...(row as Record<string, unknown>), ...changes } : row;
+      }),
+    };
+  }, [viewState.data, rowChanges]);
+
   const searchTextIndex = useMemo(() => {
-    if (!viewState.data?.isPlain || !Array.isArray(viewState.data.data)) return null;
+    if (!editedViewData?.isPlain || !Array.isArray(editedViewData.data)) return null;
     return createSearchTextIndex(
-      viewState.data.data as Record<string, unknown>[],
+      editedViewData.data as Record<string, unknown>[],
       visibleSearchColumns,
       { locale, dateFormats },
     );
-  }, [viewState.data, visibleSearchColumns, locale, dateFormats]);
+  }, [editedViewData, visibleSearchColumns, locale, dateFormats]);
 
   const visuallyFilteredViewData = useMemo(
     () => filterPlainViewData(
-      viewState.data,
+      editedViewData,
       globalSearchQuery,
       searchTextIndex,
       locale,
     ),
-    [viewState.data, globalSearchQuery, searchTextIndex, locale],
+    [editedViewData, globalSearchQuery, searchTextIndex, locale],
   );
 
   const globalSearchResultCount = visuallyFilteredViewData?.isPlain && Array.isArray(visuallyFilteredViewData.data)
@@ -987,6 +1022,69 @@ export function DataGrid({
     return data.filter((row, idx) => selectedRowNums.has(getStableRowId(row, idx)));
   }, [selectedRowNums, limitedViewData]);
 
+  useDataVisEvent(view, 'workEnd', () => {
+    if (committedRowChangesRef.current.size === 0) return;
+    const committedRows = new Set(committedRowChangesRef.current);
+    committedRowChangesRef.current.clear();
+    setRowChanges((current) => {
+      const next = new Map(current);
+      for (const rowNum of committedRows) next.delete(rowNum);
+      return next;
+    });
+  });
+
+  const openRowEditor = useCallback((row: TableRow) => {
+    if (editableRows) setEditingRow(row);
+  }, [editableRows]);
+
+  const handleRowEditorSave = useCallback(async (
+    row: TableRow,
+    changes: Record<string, unknown>,
+  ) => {
+    if (!editableRows) return;
+
+    const priorEdit = pendingRowEdits.get(row.rowNum);
+    const originalRow = priorEdit?.originalRow ?? row.data;
+    const combinedChanges = { ...priorEdit?.changes, ...changes };
+    const nextRow = { ...originalRow, ...combinedChanges };
+    const change: RowEditChange = {
+      rowId: row.rowId,
+      rowNum: row.rowNum,
+      originalRow,
+      row: nextRow,
+      changes: combinedChanges,
+    };
+
+    if (editableRows.onRowSave) {
+      const persistedRow = await editableRows.onRowSave(change);
+      setRowChanges((current) => new Map(current).set(row.rowNum, {
+        ...combinedChanges,
+        ...(persistedRow ?? {}),
+      }));
+      committedRowChangesRef.current.add(row.rowNum);
+      viewState.refresh();
+      return;
+    }
+
+    setRowChanges((current) => new Map(current).set(row.rowNum, combinedChanges));
+    setPendingRowEdits((current) => new Map(current).set(row.rowNum, change));
+  }, [editableRows, pendingRowEdits, viewState]);
+
+  const handleSaveAllRowEdits = useCallback(async () => {
+    if (!editableRows?.onSave || pendingRowEdits.size === 0) return;
+    setSavingRowEdits(true);
+    try {
+      await editableRows.onSave(Array.from(pendingRowEdits.values()));
+      for (const rowNum of pendingRowEdits.keys()) {
+        committedRowChangesRef.current.add(rowNum);
+      }
+      setPendingRowEdits(new Map());
+      viewState.refresh();
+    } finally {
+      setSavingRowEdits(false);
+    }
+  }, [editableRows, pendingRowEdits, viewState]);
+
   const renderedChildren = useMemo(
     () => Children.map(children, (child) => {
       if (!isValidElement(child) || typeof child.type === 'string') {
@@ -1018,6 +1116,18 @@ export function DataGrid({
           }
           childProps.onSelectionChange?.(sel);
         },
+        onRowEdit: editableRows
+          ? (row: TableRow) => {
+              childProps.onRowEdit?.(row);
+              openRowEditor(row);
+            }
+          : childProps.onRowEdit,
+        onRowDoubleClick: editableRows
+          ? (row: TableRow, event: React.MouseEvent) => {
+              childProps.onRowDoubleClick?.(row, event);
+              openRowEditor(row);
+            }
+          : childProps.onRowDoubleClick,
         // Reseed the plain table's selection when it remounts after a
         // group/pivot round trip
         initialSelectedRows: childProps.initialSelectedRows ?? selectedRowNums,
@@ -1059,6 +1169,8 @@ export function DataGrid({
       handleDateFormatChange,
       globalSearchQuery,
       globalSearchResultCount,
+      editableRows,
+      openRowEditor,
     ],
   );
 
@@ -1462,7 +1574,22 @@ export function DataGrid({
           collapsed={collapsed}
           controlsVisible={controlsOpen}
           prefs={prefs}
-          titleActions={titleActions}
+          titleActions={
+            <>
+              {titleActions}
+              {editableRows?.onSave && pendingRowEdits.size > 0 && (
+                <Button
+                  size="sm"
+                  onClick={handleSaveAllRowEdits}
+                  disabled={savingRowEdits}
+                  aria-label={t('ROW_EDITOR.SAVE_ALL') || 'Save changes'}
+                >
+                  <Save className="h-4 w-4" aria-hidden="true" />
+                  <span>{savingRowEdits ? (t('ROW_EDITOR.SAVING') || 'Saving...') : (t('ROW_EDITOR.SAVE_ALL') || 'Save changes')}</span>
+                </Button>
+              )}
+            </>
+          }
           onToggle={handleToggle}
           onToggleControls={handleToggleControls}
           onRefresh={handleRefresh}
@@ -1569,6 +1696,19 @@ export function DataGrid({
       >
         {sliderContent}
       </DetailSlider>
+
+      {editableRows && (
+        <RowEditorDialog
+          open={editingRow != null}
+          row={editingRow}
+          columns={allColumns}
+          config={editableRows}
+          onOpenChange={(open) => {
+            if (!open) setEditingRow(null);
+          }}
+          onSave={handleRowEditorSave}
+        />
+      )}
 
       {/* ── Dialogs (Phase 3) ── */}
       <ColumnConfigDialog

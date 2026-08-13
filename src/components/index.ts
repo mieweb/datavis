@@ -3,6 +3,7 @@
  */
 
 export { DataGrid, type DataGridProps, type GridTableDef } from './DataGrid';
+export type { EditableRowsConfig, RowEditChange, RowEditorDefinitionConfig, RowEditorFormContext } from './row-editing';
 export { GraphView, type GraphViewProps } from './GraphView';
 export { TitleBar, type TitleBarProps } from './TitleBar';
 export { GridToolbar, type GridToolbarProps } from './GridToolbar';
