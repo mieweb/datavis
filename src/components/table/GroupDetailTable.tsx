@@ -418,7 +418,9 @@ export function GroupDetailTable({
                     <td
                       key={col.field}
                       colSpan={col.span}
+                      data-drilldown-cell
                       className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm"
+                      onDoubleClick={(event) => onAggregateCellDoubleClick?.({}, event)}
                     >
                       {(() => {
                         const aggregateValue = getAggregateValueForField(totalAggregates, col.field);

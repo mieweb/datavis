@@ -285,8 +285,11 @@ export function PivotTable({
                       aggFunctions.map((fn) => (
                         <td
                           key={`total_${fn}`}
+                          data-testid={`pivot-row-total-cell-${rowIdx}-${fn}`}
+                          data-drilldown-cell
                           className="border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-2 py-1.5 text-sm text-right font-medium"
                           role="gridcell"
+                          onDoubleClick={(event) => onAggregateCellDoubleClick?.(rowVal, event)}
                         >
                           {totalCol?.[rowIdx]?.[fn] != null
                             ? String(totalCol[rowIdx][fn])
@@ -309,11 +312,19 @@ export function PivotTable({
                     {idx === 0 ? t('TABLE.TOTAL') || 'Total' : ''}
                   </td>
                 ))}
-                {colVals.map((_, colIdx) =>
+                {colVals.map((colVal, colIdx) =>
                   aggFunctions.map((fn) => (
                     <td
                       key={`total_${colIdx}_${fn}`}
+                      data-testid={`pivot-column-total-cell-${colIdx}-${fn}`}
+                      data-drilldown-cell
                       className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm text-right"
+                      onDoubleClick={(event) => onAggregateCellDoubleClick?.(
+                        Object.fromEntries(
+                          pivotData.colFields.map((field) => [field, colVal]),
+                        ),
+                        event,
+                      )}
                     >
                       {totalRow[colIdx]?.[fn] != null
                         ? String(totalRow[colIdx][fn])
@@ -325,7 +336,10 @@ export function PivotTable({
                   aggFunctions.map((fn) => (
                     <td
                       key={`grand_${fn}`}
+                      data-testid={`pivot-grand-total-cell-${fn}`}
+                      data-drilldown-cell
                       className="border-r border-gray-200 dark:border-neutral-700 bg-gray-200 dark:bg-neutral-700 px-2 py-1 text-sm text-right font-bold"
+                      onDoubleClick={(event) => onAggregateCellDoubleClick?.({}, event)}
                     >
                       {grandTotal?.[fn] != null ? String(grandTotal[fn]) : ''}
                     </td>

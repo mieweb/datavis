@@ -223,7 +223,11 @@ export function GroupSummaryTable({
                 {summaryColumns.map((col, idx) => (
                   <td
                     key={col.field}
+                    data-drilldown-cell={!groupFields.includes(col.field) ? '' : undefined}
                     className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm"
+                    onDoubleClick={!groupFields.includes(col.field)
+                      ? (event) => onAggregateCellDoubleClick?.({}, event)
+                      : undefined}
                   >
                     {idx === 0
                       ? `${t('TABLE.TOTAL') || 'Total'} (${groupOrder.length})`
