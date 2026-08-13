@@ -137,6 +137,7 @@ export function GroupDetailTable({
   onSort,
   onRowClick,
   onRowDoubleClick,
+  onAggregateCellDoubleClick,
   onSelectionChange,
   onShowMore,
   onShowAll,
@@ -401,6 +402,7 @@ export function GroupDetailTable({
                   onToggle={toggleGroup}
                   onRowClick={onRowClick}
                   onRowDoubleClick={onRowDoubleClick}
+                  onAggregateCellDoubleClick={onAggregateCellDoubleClick}
                   onSelectionChange={onSelectionChange}
                 />
               );
@@ -483,6 +485,7 @@ interface GroupSectionProps {
   onToggle: (key: string) => void;
   onRowClick?: BaseTableProps['onRowClick'];
   onRowDoubleClick?: BaseTableProps['onRowDoubleClick'];
+  onAggregateCellDoubleClick?: BaseTableProps['onAggregateCellDoubleClick'];
   onSelectionChange?: (selection: SelectionState) => void;
 }
 
@@ -499,6 +502,7 @@ function GroupSection({
   onToggle,
   onRowClick,
   onRowDoubleClick,
+  onAggregateCellDoubleClick,
   onSelectionChange,
 }: GroupSectionProps) {
   const locale = useLocale();
@@ -544,10 +548,15 @@ function GroupSection({
             return first.aggFns.map((fn, fi) => (
               <td
                 key={`${first.field}-${fn}`}
+                data-drilldown-cell
                 className={`border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm ${
                   fi === 0 ? 'font-semibold text-gray-700 dark:text-neutral-300' : 'text-center text-gray-600 dark:text-neutral-400 text-xs'
                 }`}
                 style={fi === 0 ? { minWidth: first.minWidth ?? 50 } : undefined}
+                              onDoubleClick={(event) => {
+                                event.stopPropagation();
+                                onAggregateCellDoubleClick?.(meta.groupValues, event);
+                              }}
               >
                 {fi === 0 && (
                   <>
@@ -586,7 +595,12 @@ function GroupSection({
               return (
                 <td
                   key={`${col.field}-${fn}`}
+                  data-drilldown-cell
                   className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-center text-sm text-gray-600 dark:text-neutral-400"
+                  onDoubleClick={(event) => {
+                    event.stopPropagation();
+                    onAggregateCellDoubleClick?.(meta.groupValues, event);
+                  }}
                 >
                   {match ? formatAggValue('', match.value) : ''}
                 </td>

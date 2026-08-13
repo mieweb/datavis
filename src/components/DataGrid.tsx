@@ -954,6 +954,27 @@ export function DataGrid({
     setVisibleRowCount(totalVisibleRows);
   }, [visuallyFilteredViewData]);
 
+  const handleAggregateCellDoubleClick = useCallback(
+    (filters: Record<string, unknown>) => {
+      const exactFilters = Object.fromEntries(
+        Object.entries(filters).map(([field, value]) => [field, { $eq: value }]),
+      ) as FilterSpec;
+      const nextFilterSpec = { ...currentFilterSpec, ...exactFilters };
+
+      setCurrentFilterSpec(nextFilterSpec);
+      setInitialFilterSpec(nextFilterSpec);
+      setGroupFields([]);
+      setPivotFields([]);
+      setGroupFunMap({});
+      setPivotFunMap({});
+      setSyntheticPivot(false);
+      viewState.clearPivot();
+      viewState.clearGroup();
+      viewState.setFilter(nextFilterSpec);
+    },
+    [currentFilterSpec, viewState],
+  );
+
   useEffect(() => {
     setAutoShowMore(effectiveTableDef.limit?.autoShowMore ?? true);
   }, [effectiveTableDef.limit?.autoShowMore]);
@@ -1034,6 +1055,10 @@ export function DataGrid({
         syntheticPivot,
         onShowMore: childProps.onShowMore ?? handleShowMoreRows,
         onShowAll: childProps.onShowAll ?? handleShowAllRows,
+        onAggregateCellDoubleClick: (filters, event) => {
+          handleAggregateCellDoubleClick(filters);
+          childProps.onAggregateCellDoubleClick?.(filters, event);
+        },
         // Default mode shows the row count next to the title, so suppress the
         // "Showing N rows" footer count in the table.
         showRowCount: childProps.showRowCount ?? gridMode !== 'default',
@@ -1050,6 +1075,7 @@ export function DataGrid({
       syntheticPivot,
       handleShowMoreRows,
       handleShowAllRows,
+      handleAggregateCellDoubleClick,
       gridMode,
       userRowSelection,
       selectedRowNums,

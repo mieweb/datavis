@@ -6,7 +6,7 @@
  */
 
 import { useMemo, useCallback, useRef, useState } from 'react';
-import type { BaseTableProps, PivotHeader, SortDirection } from './types';
+import type { AggregateCellFilters, BaseTableProps, PivotHeader, SortDirection } from './types';
 import { findSort } from './types';
 import { useIsConstrained, useViewportSticky } from './useAutoHeight';
 import { useTranslation } from 'react-i18next';
@@ -58,6 +58,7 @@ export function PivotTable({
   features = {},
   showTotalCol = true,
   onSort,
+  onAggregateCellDoubleClick,
   className = '',
 }: PivotTableProps) {
   const { t } = useTranslation();
@@ -254,12 +255,23 @@ export function PivotTable({
                     ))}
 
                     {/* Data cells: matrix[rowIdx][colIdx][aggFn] */}
-                    {colVals.map((_, colIdx) =>
+                    {colVals.map((colVal, colIdx) =>
                       aggFunctions.map((fn) => (
                         <td
                           key={`${colIdx}_${fn}`}
+                          data-testid={`pivot-aggregate-cell-${rowIdx}-${colIdx}-${fn}`}
+                          data-drilldown-cell
                           className="border-r border-gray-100 dark:border-neutral-700 px-2 py-1.5 text-sm text-right"
                           role="gridcell"
+                          onDoubleClick={(event) => {
+                            const filters: AggregateCellFilters = {
+                              ...rowVal,
+                              ...Object.fromEntries(
+                                pivotData.colFields.map((field) => [field, colVal]),
+                              ),
+                            };
+                            onAggregateCellDoubleClick?.(filters, event);
+                          }}
                         >
                           {matrix[rowIdx]?.[colIdx]?.[fn] != null
                             ? String(matrix[rowIdx][colIdx][fn])

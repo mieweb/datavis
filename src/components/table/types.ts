@@ -159,6 +159,9 @@ export interface GroupMeta {
   aggregates?: Record<string, unknown>;
 }
 
+/** Field values identifying the source rows for an aggregate cell. */
+export type AggregateCellFilters = Record<string, unknown>;
+
 /** Pivot column header — includes row/col val combination */
 export interface PivotHeader {
   /** Column value (top-level) */
@@ -265,6 +268,8 @@ export interface BaseTableProps {
   onRowClick?: (row: TableRow, event: React.MouseEvent) => void;
   /** Row double-clicked (drill-down) */
   onRowDoubleClick?: (row: TableRow, event: React.MouseEvent) => void;
+  /** Aggregate cell double-clicked with the coordinates of its source rows */
+  onAggregateCellDoubleClick?: (filters: AggregateCellFilters, event: React.MouseEvent) => void;
   /** Column resized */
   onColumnResize?: (field: string, width: number) => void;
   /** Columns reordered */

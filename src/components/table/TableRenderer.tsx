@@ -94,6 +94,8 @@ export interface TableRendererProps {
   onRowClick?: (row: TableRow, event: React.MouseEvent) => void;
   /** Row double-clicked (drill-down) */
   onRowDoubleClick?: (row: TableRow, event: React.MouseEvent) => void;
+  /** Aggregate cell double-clicked with the coordinates of its source rows */
+  onAggregateCellDoubleClick?: (filters: Record<string, unknown>, event: React.MouseEvent) => void;
   /** Column resized */
   onColumnResize?: (field: string, width: number) => void;
   /** Columns reordered */
@@ -140,6 +142,7 @@ export function TableRenderer({
   onSort,
   onRowClick,
   onRowDoubleClick,
+  onAggregateCellDoubleClick,
   onColumnResize,
   onColumnReorder,
   onHeaderContextMenu,
@@ -386,6 +389,7 @@ export function TableRenderer({
             showTotalRow={showTotalRow}
             totalAggregates={viewData.totalAggregates as Record<string, unknown> | undefined}
             onSort={effectiveOnSort}
+            onAggregateCellDoubleClick={onAggregateCellDoubleClick}
           />
         ) : (
           <GroupDetailTable
@@ -406,6 +410,7 @@ export function TableRenderer({
             onSort={effectiveOnSort}
             onRowClick={onRowClick}
             onRowDoubleClick={onRowDoubleClick}
+            onAggregateCellDoubleClick={onAggregateCellDoubleClick}
             onColumnResize={onColumnResize}
             onColumnReorder={onColumnReorder}
             onHeaderContextMenu={onHeaderContextMenu}
@@ -425,6 +430,7 @@ export function TableRenderer({
           features={features}
           showTotalCol={showTotalCol}
           onSort={effectiveOnSort}
+          onAggregateCellDoubleClick={onAggregateCellDoubleClick}
         />
       )}
 
@@ -437,6 +443,7 @@ export function TableRenderer({
           features={features}
           showTotalCol={showTotalCol}
           onSort={effectiveOnSort}
+          onAggregateCellDoubleClick={onAggregateCellDoubleClick}
         />
       )}
     </div>
