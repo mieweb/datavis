@@ -44,7 +44,6 @@ import { getStableRowId } from './table/row-identity';
 import type { TableColumn, MultiSortSpec, SortDirection, SelectionState } from './table/types';
 import { SortContext, type SortContextValue } from './table/SortContext';
 import { ColumnConfigContext, type ColumnConfigContextValue } from './table/ColumnConfigContext';
-import { ColumnDropProvider, type ColumnDropContextValue } from './table/ColumnDropContext';
 import { OperationsPalette, type Operation } from './OperationsPalette';
 import { DetailSlider } from './DetailSlider';
 import { LoadingOverlay } from './LoadingOverlay';
@@ -1413,13 +1412,9 @@ export function DataGrid({
   const handleGridDragOver = useCallback(
     (e: React.DragEvent) => {
       if (!e.dataTransfer.types.includes(COLUMN_DRAG_MIME)) return;
+      if (!(e.target as HTMLElement).closest('.wcdv-title-bar')) return;
       showControlsForColumnDrag();
     },
-    [showControlsForColumnDrag],
-  );
-
-  const columnDropContextValue = useMemo<ColumnDropContextValue>(
-    () => ({ onColumnDragStart: showControlsForColumnDrag }),
     [showControlsForColumnDrag],
   );
 
@@ -1430,14 +1425,12 @@ export function DataGrid({
       <SortContext.Provider value={sortContextValue}>
       <FilterContext.Provider value={filterContextValue}>
       <ColumnConfigContext.Provider value={columnConfigContextValue}>
-      <ColumnDropProvider value={columnDropContextValue}>
         {renderedChildren}
-      </ColumnDropProvider>
       </ColumnConfigContext.Provider>
       </FilterContext.Provider>
       </SortContext.Provider>
     ),
-    [sortContextValue, filterContextValue, columnConfigContextValue, columnDropContextValue, renderedChildren],
+    [sortContextValue, filterContextValue, columnConfigContextValue, renderedChildren],
   );
 
   // ── Render ─────────────────────────────────────

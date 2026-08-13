@@ -3,15 +3,19 @@ import { expect, test } from '@playwright/test';
 import { getState, gotoHarness } from './helpers';
 
 test.describe('Column drag into hidden controls', () => {
-  test('keeps the active drag stable while controls open and drops into Group', async ({ page }) => {
+  test('opens on title-bar entry without interrupting the drop into Group', async ({ page }) => {
     await gotoHarness(page, 'default', { mode: 'default' });
 
     const header = page.getByRole('columnheader', { name: /Sort by Department/ });
+    const titleBar = page.locator('.wcdv-title-bar');
     const groupDropZone = page.getByRole('group', { name: 'Group' });
     const headerTop = await header.evaluate((element) => element.getBoundingClientRect().top);
     const dataTransfer = await page.evaluateHandle(() => new DataTransfer());
 
     await header.dispatchEvent('dragstart', { dataTransfer });
+    await expect(page.getByLabel('Data controls')).toBeHidden();
+
+    await titleBar.dispatchEvent('dragover', { dataTransfer });
 
     await expect(page.getByLabel('Data controls')).toBeVisible();
     expect(await header.evaluate((element) => element.getBoundingClientRect().top)).toBe(headerTop);
