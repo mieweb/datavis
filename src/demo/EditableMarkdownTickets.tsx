@@ -54,23 +54,26 @@ const TICKET_FORM: FormDefinition = {
   id: 'ticket-metadata',
   title: 'Edit ticket metadata',
   description: 'Saving updates the YAML frontmatter in the linked Markdown file.',
-  fields: [
-    { id: 'title', fieldType: 'text', question: 'Title', required: true },
-    {
-      id: 'status',
-      fieldType: 'dropdown',
-      question: 'Status',
-      options: ['Backlog', 'In progress', 'Review', 'Done'].map((value) => ({ id: value, value })),
-    },
-    {
-      id: 'issueType',
-      fieldType: 'dropdown',
-      question: 'Issue type',
-      options: ['Feature', 'Improvement', 'Bug'].map((value) => ({ id: value, value })),
-    },
-    { id: 'redmineReference', fieldType: 'text', question: 'Redmine reference' },
-    { id: 'owner', fieldType: 'text', question: 'Owner' },
-  ],
+  pages: [{
+    id: 'ticket-fields',
+    fields: [
+      { id: 'title', fieldType: 'text', question: 'Title', required: true },
+      {
+        id: 'status',
+        fieldType: 'dropdown',
+        question: 'Status',
+        options: ['Backlog', 'In progress', 'Review', 'Done'].map((value) => ({ id: value, value })),
+      },
+      {
+        id: 'issueType',
+        fieldType: 'dropdown',
+        question: 'Issue type',
+        options: ['Feature', 'Improvement', 'Bug'].map((value) => ({ id: value, value })),
+      },
+      { id: 'redmineReference', fieldType: 'text', question: 'Redmine reference' },
+      { id: 'owner', fieldType: 'text', question: 'Owner' },
+    ],
+  }],
 };
 
 function splitFrontmatter(markdown: string) {

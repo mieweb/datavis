@@ -88,7 +88,7 @@ export function buildRowFormDefinition(
   return {
     id: `datavis-row-${row.rowId ?? row.rowNum}`,
     title: 'Edit row',
-    fields,
+    pages: [{ id: 'row-fields', fields }],
   };
 }
 
@@ -98,6 +98,10 @@ function flattenFields(fields: FieldDefinition[]): FieldDefinition[] {
       ? flattenFields(field.fields ?? [])
       : [field],
   );
+}
+
+function getFormFields(form: FormDefinition): FieldDefinition[] {
+  return form.pages.flatMap((page) => flattenFields(page.fields ?? []));
 }
 
 function selectedOption(field: FieldDefinition, value: unknown): SelectedOption | undefined {
@@ -113,7 +117,7 @@ export function rowToFormResponses(
   form: FormDefinition,
 ): FormResponse {
   return Object.fromEntries(
-    flattenFields(form.fields).flatMap((field): Array<[string, FieldResponse]> => {
+    getFormFields(form).flatMap((field): Array<[string, FieldResponse]> => {
       const value = row[field.id];
       if (value == null) return [];
 
@@ -167,7 +171,7 @@ export function formResponsesToChanges(
   originalRow: Record<string, unknown>,
 ): Record<string, unknown> {
   return Object.fromEntries(
-    flattenFields(form.fields).flatMap((field): Array<[string, unknown]> => {
+    getFormFields(form).flatMap((field): Array<[string, unknown]> => {
       const response = responses[field.id];
       if (!response) return [];
       const value = responseValue(field, response);

@@ -24,7 +24,7 @@ describe('row editing eSheet conversion', () => {
   it('generates typed fields and honors the editable field list', () => {
     const form = buildRowFormDefinition(row, columns, { fields: ['points', 'active'] });
 
-    expect(form.fields).toEqual([
+    expect(form.pages[0].fields).toEqual([
       { id: 'points', fieldType: 'text', question: 'Points', inputType: 'number' },
       {
         id: 'active',
