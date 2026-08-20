@@ -19,9 +19,7 @@
     "resolveJsonModule": true,
     "paths": {
       "@/*": ["./src/*"]
-    },
-    "baseUrl": ".",
-    "ignoreDeprecations": "6.0"
+    }
   },
   "include": ["src", "vite-env.d.ts"]
 }
