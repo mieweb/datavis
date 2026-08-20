@@ -423,7 +423,6 @@ export function DataGrid({
   const controlsInitiallyVisible = gridMode === 'default' ? false : initialShowControls;
   const [collapsed, setCollapsed] = useState(false);
   const controlsVisibleRef = useRef(controlsInitiallyVisible);
-  /** Mirrors controlsVisibleRef so the title bar can embed actions inline while open */
   const [controlsOpen, setControlsOpen] = useState(controlsInitiallyVisible);
   const controlsWrapperRef = useRef<HTMLDivElement>(null);
   const gridTableRef = useRef<HTMLDivElement>(null);
