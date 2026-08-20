@@ -33,7 +33,6 @@ import { findSort } from './types';
 import { useRowSelection } from './useRowSelection';
 import { useColumnResize } from './useColumnResize';
 import { useKeyboardNav } from './useKeyboardNav';
-import { useColumnDrop } from './ColumnDropContext';
 import { useIsConstrained } from './useAutoHeight';
 import { HeaderContextMenu } from './HeaderContextMenu';
 import { useFilterContext } from '../filters/FilterContext';
@@ -467,7 +466,6 @@ export function PlainTable({
   const tableRef = useRef<HTMLDivElement>(null);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const pendingAutoShowRef = useRef(false);
-  const columnDropCtx = useColumnDrop();
   const isConstrained = useIsConstrained(scrollContainerRef);
 
   /** Whether the scroll container has scrolled (for header shadow) */
@@ -564,9 +562,8 @@ export function PlainTable({
       // Set a semi-transparent drag image from the <th>
       const th = (e.target as HTMLElement).closest('th');
       if (th) e.dataTransfer.setDragImage(th, th.offsetWidth / 2, th.offsetHeight / 2);
-      columnDropCtx.onColumnDragStart?.();
     },
-    [columnDropCtx],
+    [],
   );
 
   const handleHeaderDragOver = useCallback(
