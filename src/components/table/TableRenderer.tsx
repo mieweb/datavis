@@ -76,6 +76,8 @@ export interface TableRendererProps {
   showTotalRow?: boolean;
   /** Whether to show total column (pivot) */
   showTotalCol?: boolean;
+  /** Whether to hide zero-valued aggregate results (pivot) */
+  hideBottomValueAggResults?: boolean;
   /** Whether to start groups expanded */
   groupsExpanded?: boolean;
   /** Map of aggregate function internal names to display labels */
@@ -132,6 +134,7 @@ export function TableRenderer({
   groupMode = 'detail',
   showTotalRow = false,
   showTotalCol = true,
+  hideBottomValueAggResults = false,
   groupsExpanded = true,
   aggFnLabels,
   className = '',
@@ -424,6 +427,7 @@ export function TableRenderer({
           sorts={effectiveSorts}
           features={features}
           showTotalCol={showTotalCol}
+          hideBottomValueAggResults={hideBottomValueAggResults}
           onSort={effectiveOnSort}
         />
       )}
@@ -436,6 +440,7 @@ export function TableRenderer({
           sorts={effectiveSorts}
           features={features}
           showTotalCol={showTotalCol}
+          hideBottomValueAggResults={hideBottomValueAggResults}
           onSort={effectiveOnSort}
         />
       )}

@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { getState, gotoHarness } from './helpers';
+import { getState, gotoHarness, runAction, runActionWithArg } from './helpers';
 
 /**
  * The aggregate control must work outside `mode="full"`. Previously, selecting a
@@ -93,4 +93,32 @@ test.describe('Aggregate control in minimal mode', () => {
     await expect(page.getByRole('combobox', { name: /Sum field/ })).toBeVisible();
     expect(invalidAggregateErrors).toEqual([]);
   });
+});
+
+test('hide zero values clears zero-valued pivot aggregates', async ({ page }) => {
+  await gotoHarness(page, 'matrix', { mode: 'minimal' });
+
+  await runActionWithArg(page, 'category', (field) => {
+    window.__wcdv!.actions.setGroup([field]);
+  });
+  await runAction(page, () => {
+    window.__wcdv!.actions.setAggregate([{ fn: 'sum', fields: ['int1'] }] as never);
+  });
+  await runActionWithArg(page, 'country', (field) => {
+    window.__wcdv!.actions.setPivot([field]);
+  });
+
+  const pivotTable = page.getByRole('grid', { name: 'Data table: Pivot' });
+  const vegetablesRow = pivotTable.getByRole('row').filter({ hasText: 'Vegetables' });
+  const aggregateCells = vegetablesRow.getByRole('gridcell');
+
+  await expect(aggregateCells.nth(0)).toHaveText('0');
+  await expect(aggregateCells.nth(3)).toHaveText('0');
+
+  await page.getByRole('switch', { name: 'Hide Zero Values' }).click();
+
+  await expect(aggregateCells.nth(0)).toBeEmpty();
+  await expect(aggregateCells.nth(3)).toBeEmpty();
+  await expect(aggregateCells.nth(1)).toHaveText('40');
+  await expect(aggregateCells.nth(2)).toHaveText('60');
 });

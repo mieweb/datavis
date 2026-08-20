@@ -65,8 +65,11 @@ export function PivotToolbar({
   const handleHideZeroValues = useCallback(
     (checked: boolean) => {
       setHideZeroValues(checked);
-      if (tableDef?.whenPivot) {
-        tableDef.whenPivot.hideBottomValueAggResults = checked;
+      if (tableDef) {
+        tableDef.whenPivot = {
+          ...tableDef.whenPivot,
+          hideBottomValueAggResults: checked,
+        };
       }
       onRedraw();
     },
