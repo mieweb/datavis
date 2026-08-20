@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Prefs } from 'datavis-ace';
 
 import { DataGrid } from '../components/DataGrid';
 import type { GridMode } from '../components/DataGrid';
@@ -20,6 +21,7 @@ import {
   generateLedgerData,
 } from '../demo/data';
 import { createMockView, DEMO_AGG_FUNCTIONS, demoTrans, type MockView } from '../demo/mock-grid';
+import type { PrefsInstance } from '../adapters/use-prefs';
 import { LEGACY_MATRIX_COLUMNS, LEGACY_MATRIX_FILTERS, LEGACY_MATRIX_ROWS } from './legacyMatrixData';
 import {
   AutoLimitScenario,
@@ -170,6 +172,19 @@ function decodeHarnessRows(rows: Array<Record<string, unknown>>, columns: TableC
       Object.entries(row).map(([field, value]) => [field, decodeHarnessValue(value, columnsByField.get(field))]),
     ),
   );
+}
+
+function getHarnessGroupFields(spec: unknown): string[] {
+  if (!spec || typeof spec !== 'object' || Array.isArray(spec)) return [];
+  const fieldNames = (spec as { fieldNames?: unknown }).fieldNames;
+  if (!Array.isArray(fieldNames)) return [];
+  return fieldNames.flatMap((field) => {
+    if (typeof field === 'string') return [field];
+    if (field && typeof field === 'object' && typeof (field as { field?: unknown }).field === 'string') {
+      return [(field as { field: string }).field];
+    }
+    return [];
+  });
 }
 
 function computeLegacyAggregateValue(rows: Array<Record<string, unknown>>, spec: { fn: string; fields: string[] }) {
@@ -439,6 +454,8 @@ interface WindowWithHarness extends Window {
       totalAggregates: Record<string, unknown>;
       busy: boolean;
       revision: number;
+      prefsReady: boolean;
+      currentPerspectiveViewConfig: unknown;
     };
     actions: {
       setFilter: (spec: FilterSpec | null) => void;
@@ -503,13 +520,24 @@ function HarnessGrid({
   scenario,
   registerApi = true,
   mode = 'full',
+  enablePrefs = false,
 }: {
   config: HarnessConfig;
   scenario: HarnessScenario;
   registerApi?: boolean;
   mode?: GridMode;
+  enablePrefs?: boolean;
 }) {
   const view = useMemo(() => createMockView(config.data, config.columns), [config.columns, config.data]);
+  const prefs = useMemo(() => {
+    if (!enablePrefs) return undefined;
+    const nextPrefs = new Prefs(`e2e:${scenario}`, null, {
+      backend: { type: 'temporary' },
+    }) as unknown as PrefsInstance;
+    view.setPrefs(nextPrefs);
+    return nextPrefs;
+  }, [enablePrefs, scenario, view]);
+  const [prefsReady, setPrefsReady] = useState(!enablePrefs);
   const [viewData, setViewData] = useState<NormalizedViewData>(() => ({ isPlain: true, isGroup: false, isPivot: false, data: config.data }));
   const [busy, setBusy] = useState(false);
   const [revision, setRevision] = useState(1);
@@ -537,6 +565,11 @@ function HarnessGrid({
     [config.columns],
   );
   const preserveChildViewData = scenario === 'allow-html' || scenario === 'format-strings';
+
+  useEffect(() => {
+    if (!prefs) return;
+    prefs.prime?.(() => setPrefsReady(true));
+  }, [prefs]);
 
   useEffect(() => {
     const handleWorkBegin = () => {
@@ -588,8 +621,8 @@ function HarnessGrid({
           selectedRows: [...selection.selectedRows.values()],
           visibleRows: decodedVisibleRows,
           filterSpec,
-          groupFields: viewData.isGroup ? [...(viewData.groupFields ?? [])] : [],
-          pivotFields: viewData.isPivot ? [...(viewData.pivotFields ?? [])] : [],
+          groupFields: viewData.isGroup ? getHarnessGroupFields(view.getGroup()) : [],
+          pivotFields: viewData.isPivot ? getHarnessGroupFields(view.getPivot()) : [],
           groupMetadata: synthesizedGroupMetadata,
           rowVals: viewData.isPivot ? ((viewData.rowVals ?? []) as Record<string, unknown>[]) : [],
           colVals: viewData.isPivot ? (viewData.colVals ?? []) : [],
@@ -601,6 +634,12 @@ function HarnessGrid({
           sort: view.getSort() as { field?: string; dir?: string } | null,
           busy,
           revision,
+          prefsReady,
+          currentPerspectiveViewConfig: prefs?.currentPerspective?.config
+            && typeof prefs.currentPerspective.config === 'object'
+            && !Array.isArray(prefs.currentPerspective.config)
+            ? (prefs.currentPerspective.config as Record<string, unknown>).view
+            : null,
         };
       },
       actions: {
@@ -649,7 +688,7 @@ function HarnessGrid({
     return () => {
       delete win.__wcdv;
     };
-  }, [aggregateSpec, busy, config.columns, config.data, filterSpec, groupSpec, registerApi, revision, scenario, selection, view, viewData]);
+  }, [aggregateSpec, busy, config.columns, config.data, filterSpec, groupSpec, prefsReady, registerApi, revision, scenario, selection, view, viewData]);
 
   const operations = useMemo(
     () => scenario === 'operations'
@@ -684,6 +723,7 @@ function HarnessGrid({
     <div className="min-h-screen bg-slate-100 p-6">
       <DataGrid
         view={view}
+        prefs={prefs}
         tableDef={tableDef}
         title={config.title}
         helpText={`E2E harness scenario: ${scenario}`}
@@ -858,6 +898,7 @@ function StickyContainerScenario() {
 export function E2EHarnessApp() {
   const scenario = getScenarioFromSearch();
   const config = useMemo(() => getScenarioConfig(scenario), [scenario]);
+  const enablePrefs = new URLSearchParams(window.location.search).get('prefs') === 'true';
 
   if (scenario === 'auto-limit') return <AutoLimitScenario />;
   if (scenario === 'pagination') return <PaginationScenario />;
@@ -880,7 +921,7 @@ export function E2EHarnessApp() {
     );
   }
 
-  return <HarnessGrid config={config} scenario={scenario} mode={getModeFromSearch()} />;
+  return <HarnessGrid config={config} scenario={scenario} mode={getModeFromSearch()} enablePrefs={enablePrefs} />;
 }
 
 export function isE2EMode() {

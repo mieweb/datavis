@@ -49,6 +49,7 @@ export function GroupSummaryTable({
   showTotalRow = false,
   totalAggregates,
   onSort,
+  onAggregateCellDoubleClick,
   className = '',
 }: GroupSummaryTableProps) {
   const { t } = useTranslation();
@@ -195,12 +196,14 @@ export function GroupSummaryTable({
                       return (
                         <td
                           key={col.field}
+                          data-drilldown-cell
                           className="border-r border-gray-100 dark:border-neutral-700 px-2 py-1 text-sm text-right"
                           style={{
                             width: col.width,
                             minWidth: col.minWidth ?? 50,
                           }}
                           role="gridcell"
+                          onDoubleClick={(event) => onAggregateCellDoubleClick?.(meta.groupValues, event)}
                         >
                           {(() => {
                             const aggregateValue = getAggregateValueForField(meta.aggregates, col.field);
@@ -220,7 +223,11 @@ export function GroupSummaryTable({
                 {summaryColumns.map((col, idx) => (
                   <td
                     key={col.field}
+                    data-drilldown-cell={!groupFields.includes(col.field) ? '' : undefined}
                     className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm"
+                    onDoubleClick={!groupFields.includes(col.field)
+                      ? (event) => onAggregateCellDoubleClick?.({}, event)
+                      : undefined}
                   >
                     {idx === 0
                       ? `${t('TABLE.TOTAL') || 'Total'} (${groupOrder.length})`

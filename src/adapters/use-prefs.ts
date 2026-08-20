@@ -30,6 +30,7 @@ interface RawPerspective {
 }
 
 export interface PrefsInstance extends EventEmitter {
+  isPrimed?: boolean;
   reset(): void;
   back(): void;
   forward(): void;
@@ -171,7 +172,7 @@ export function usePrefs(prefs: PrefsInstance): UsePrefsReturn {
     prefsSaved: () => {
       setState((s) => ({ ...s, isUnsaved: false }));
     },
-    prefsHistoryStatus: (forward: unknown, back: unknown) => {
+    prefsHistoryStatus: (back: unknown, forward: unknown) => {
       setState((s) => ({
         ...s,
         canGoBack: !!back,

@@ -356,6 +356,7 @@
   "PERSPECTIVE.CREATE": "Create",
   "PERSPECTIVE.CURRENT": "Current",
   "PERSPECTIVE.DELETE": "Delete",
+  "PERSPECTIVE.DRILL_DOWN": "Drill Down",
   "PERSPECTIVE.LIST_HEADING": "Perspectives",
   "PERSPECTIVE.MODIFIED": "Modified",
   "PERSPECTIVE.NEW_HEADING": "New Perspective",
