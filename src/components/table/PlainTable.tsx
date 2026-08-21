@@ -646,6 +646,7 @@ export function PlainTable({
       },
       [onRowClick],
     ),
+    tableRef,
   );
 
   // ── Row click handler ─────────────────────────
