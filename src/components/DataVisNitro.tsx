@@ -1,9 +1,16 @@
-import React, { createContext, useContext, useMemo, useRef } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { ComputedView, Source } from 'datavis-ace';
 
 import {
   buildAggregateFunctions,
   getBuiltinGroupFunctions,
+  toLegacyAggregateSpec,
   useView,
   type ViewInstance,
 } from '../adapters';
@@ -22,21 +29,37 @@ type TranslateFn = (key: string, ...args: unknown[]) => string;
 
 type DataVisNitroSourceType = 'http' | 'local' | 'file';
 
-interface HttpDataVisNitroSourceProps {
+export interface DataVisNitroGroupField {
+  field: string;
+  functionName?: string;
+}
+
+export interface DataVisNitroAggregate {
+  functionName: string;
+  fields: string[];
+}
+
+interface DataVisNitroSourceConfigurationProps {
+  children?: React.ReactNode;
+  groupBy?: Array<string | DataVisNitroGroupField>;
+  aggregates?: DataVisNitroAggregate[];
+}
+
+interface HttpDataVisNitroSourceProps
+  extends DataVisNitroSourceConfigurationProps {
   type: 'http';
   url: string;
-  children?: React.ReactNode;
 }
 
-interface LocalDataVisNitroSourceProps {
+interface LocalDataVisNitroSourceProps
+  extends DataVisNitroSourceConfigurationProps {
   type: 'local';
   varName?: string;
-  children?: React.ReactNode;
 }
 
-interface FileDataVisNitroSourceProps {
+interface FileDataVisNitroSourceProps
+  extends DataVisNitroSourceConfigurationProps {
   type: 'file';
-  children?: React.ReactNode;
 }
 
 export type DataVisNitroSourceProps =
@@ -48,6 +71,7 @@ type TrackedViewInstance = ViewInstance & {
   _dvType: DataVisNitroSourceType;
   _dvUrl: string | undefined;
   _dvVarName?: string;
+  _dvConfigurationSignature?: string;
 };
 
 export type { DataVisNitroColumn } from './nitro-columns';
@@ -118,7 +142,7 @@ function mergeTableDef(
 }
 
 function DataVisNitroSource(props: DataVisNitroSourceProps) {
-  const { type, children } = props;
+  const { type, children, groupBy, aggregates } = props;
   const url = props.type === 'http' ? props.url : undefined;
   const varName = props.type === 'local' ? props.varName : undefined;
   const viewRef = useRef<TrackedViewInstance | null>(null);
@@ -143,6 +167,48 @@ function DataVisNitroSource(props: DataVisNitroSourceProps) {
       { _dvType: type, _dvUrl: url, _dvVarName: varName },
     );
   }
+
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view || (groupBy === undefined && aggregates === undefined)) return;
+
+    const configurationSignature = JSON.stringify({ groupBy, aggregates });
+    if (view._dvConfigurationSignature === configurationSignature) return;
+    view._dvConfigurationSignature = configurationSignature;
+
+    if (groupBy !== undefined) {
+      if (groupBy.length > 0) {
+        view.setGroup({
+          fieldNames: groupBy.map((entry) =>
+            typeof entry === 'string'
+              ? { field: entry }
+              : {
+                  field: entry.field,
+                  ...(entry.functionName ? { fun: entry.functionName } : {}),
+                },
+          ),
+        });
+      } else {
+        view.clearGroup();
+      }
+    }
+
+    if (aggregates !== undefined) {
+      const aggregateSpec = toLegacyAggregateSpec(
+        aggregates.map((aggregate) => ({
+          fn: aggregate.functionName,
+          fields: aggregate.fields,
+        })),
+      );
+      if (aggregateSpec) {
+        view.setAggregate(aggregateSpec);
+      } else {
+        view.clearAggregate();
+      }
+    }
+
+    view.getData();
+  }, [aggregates, groupBy]);
 
   return (
     <DataVisNitroContext.Provider value={viewRef.current}>

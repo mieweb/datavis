@@ -8,7 +8,9 @@ export {
   DataVisNitroContext,
   DataVisNitroGrid,
   DataVisNitroSource,
+  type DataVisNitroAggregate,
   type DataVisNitroColumn,
+  type DataVisNitroGroupField,
   type DataVisNitroGridProps,
   type DataVisNitroSourceProps,
 } from './DataVisNitro';
