@@ -16,18 +16,22 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/datavis-react.js"
     },
+    "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },
-  "sideEffects": false,
+  "sideEffects": [
+    "**/*.css"
+  ],
   "publishConfig": {
     "access": "public"
   },
   "scripts": {
     "dev": "vite",
-    "build": "npm run build:clean && npm run build:js && npm run build:types",
+    "build": "npm run build:clean && npm run build:js && npm run build:types && npm run build:styles",
     "build:clean": "rm -rf dist",
     "build:js": "vite build",
     "build:types": "tsc -p tsconfig.build.json",
+    "build:styles": "cp src/styles.css dist/styles.css",
     "preview": "vite preview",
     "lint:eslint": "eslint src/",
     "lint:i18n": "node scripts/check-i18n-keys.mjs",

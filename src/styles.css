@@ -1,0 +1,160 @@
+:root {
+  --color-datavis-a11y-text: var(--color-neutral-600);
+}
+
+:is(.dark, [data-theme='dark']) {
+  --color-datavis-a11y-text: var(--color-neutral-400);
+}
+
+.wcdv-pin-separator {
+  box-shadow: 2px 0 4px -1px rgb(0 0 0 / 10%);
+}
+
+.wcdv-thead-shadow {
+  box-shadow: 0 2px 4px -1px rgb(0 0 0 / 10%);
+}
+
+.wcdv-search-match {
+  background: var(--color-warning-200, #fde68a);
+  color: inherit;
+  padding: 0;
+}
+
+.wcdv-search-cell-match {
+  box-shadow: inset 0 0 0 2px var(--color-warning-400, #fbbf24);
+}
+
+:is(.dark, [data-theme='dark']) .wcdv-search-match {
+  background: var(--color-warning-900, #854d0e);
+}
+
+:is(.dark, [data-theme='dark']) .wcdv-search-cell-match {
+  box-shadow: inset 0 0 0 2px var(--color-warning-600, #ca8a04);
+}
+
+.wcdv-th,
+.wcdv-grid td.text-gray-500,
+.wcdv-grid td.text-gray-600,
+.wcdv-table-footer span,
+.wcdv-agg-footer span {
+  color: var(--color-datavis-a11y-text) !important;
+}
+
+:is(.dark, [data-theme='dark'])
+  :is(.wcdv-grid, .wcdv-slider, .wcdv-graph section) {
+  background-color: var(--color-background) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-foreground) !important;
+}
+
+:is(.dark, [data-theme='dark'])
+  :is(
+    .wcdv-title-bar,
+    .wcdv-th,
+    .wcdv-grid thead,
+    .wcdv-table-footer,
+    .wcdv-agg-footer,
+    .wcdv-control-panel,
+    .wcdv-filter-bar,
+    .wcdv-slider-header,
+    .wcdv-group-header,
+    .wcdv-field-pill,
+    .wcdv-aggregate-entry,
+    .wcdv-pivot-table thead th
+  ) {
+  background-color: var(--color-card) !important;
+  border-color: var(--color-border) !important;
+}
+
+:is(.dark, [data-theme='dark'])
+  :is(.wcdv-title, .wcdv-td, .wcdv-grid table, .wcdv-group-header) {
+  color: var(--color-foreground) !important;
+}
+
+:is(.dark, [data-theme='dark'])
+  :is(
+    .wcdv-status-info,
+    .wcdv-th,
+    .wcdv-table-footer,
+    .wcdv-pivot-table thead th
+  ) {
+  color: var(--color-muted-foreground) !important;
+}
+
+:is(.dark, [data-theme='dark']) :is(.wcdv-tr, .wcdv-td) {
+  border-color: var(--color-border) !important;
+}
+
+:is(.dark, [data-theme='dark']) .wcdv-tr:nth-child(even) {
+  background-color: color-mix(
+    in srgb,
+    var(--color-card) 50%,
+    transparent
+  ) !important;
+}
+
+:is(.dark, [data-theme='dark']) :is(.wcdv-toolbar, .wcdv-operations-palette) {
+  background-color: var(--color-background) !important;
+  border-color: var(--color-border) !important;
+}
+
+:is(.dark, [data-theme='dark']) .wcdv-loading-overlay {
+  background-color: color-mix(
+    in srgb,
+    var(--color-background) 70%,
+    transparent
+  ) !important;
+}
+
+:is(.dark, [data-theme='dark']) .wcdv-table-progress {
+  background-color: color-mix(
+    in srgb,
+    var(--color-primary) 10%,
+    var(--color-background)
+  ) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--color-primary) 20%,
+    var(--color-border)
+  ) !important;
+}
+
+:is(.dark, [data-theme='dark']) .wcdv-graph .border-gray-200 {
+  border-color: var(--color-border) !important;
+}
+
+:is(.dark, [data-theme='dark'])
+  .wcdv-graph
+  :is(
+    .text-gray-800,
+    .text-gray-700,
+    .recharts-legend-item-text,
+    .recharts-tooltip-label
+  ) {
+  color: var(--color-foreground) !important;
+}
+
+:is(.dark, [data-theme='dark'])
+  .wcdv-graph
+  :is(.text-gray-600, .text-gray-500) {
+  color: var(--color-datavis-a11y-text) !important;
+}
+
+:is(.dark, [data-theme='dark']) .wcdv-graph .recharts-cartesian-grid line {
+  stroke: var(--color-border) !important;
+}
+
+:is(.dark, [data-theme='dark'])
+  .wcdv-graph
+  :is(
+    .recharts-cartesian-axis-tick-value,
+    .recharts-cartesian-axis-tick-value tspan
+  ) {
+  fill: var(--color-datavis-a11y-text) !important;
+}
+
+:is(.dark, [data-theme='dark']) .wcdv-graph .recharts-default-tooltip {
+  background-color: var(--color-card) !important;
+  border-color: var(--color-border) !important;
+  color: var(--color-foreground) !important;
+}
