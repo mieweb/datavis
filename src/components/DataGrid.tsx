@@ -244,6 +244,8 @@ export type GridMode = 'default' | 'full' | 'minimal';
 export interface DataGridProps {
   /** ComputedView instance from wcdatavis core */
   view: ViewInstance;
+  /** Whether the grid requests data when mounted. */
+  autoFetch?: boolean;
   /** Optional Prefs instance for perspective management */
   prefs?: PrefsInstance;
   /** Grid table definition */
@@ -366,6 +368,7 @@ function PerspectiveDialogHost({ prefs, open, onOpenChange }: PerspectiveDialogH
 
 export function DataGrid({
   view,
+  autoFetch = true,
   prefs,
   tableDef,
   title = '',
@@ -413,7 +416,7 @@ export function DataGrid({
   const effectiveTableDef = tableDef ?? internalTableDef;
 
   // ── Adapter hooks ──────────────────────────────
-  const viewState = useView(view);
+  const viewState = useView(view, autoFetch);
   const sourceState = useSource(view.source);
 
   // ── Local UI state ─────────────────────────────

@@ -170,7 +170,7 @@ function DataVisNitroSource(props: DataVisNitroSourceProps) {
 
   useEffect(() => {
     const view = viewRef.current;
-    if (!view || (groupBy === undefined && aggregates === undefined)) return;
+    if (!view) return;
 
     const configurationSignature = JSON.stringify({ groupBy, aggregates });
     if (view._dvConfigurationSignature === configurationSignature) return;
@@ -305,6 +305,7 @@ function DataVisNitroGridInner({
     <div style={style}>
       <DataGrid
         {...dataGridProps}
+        autoFetch={false}
         view={computedView}
         tableDef={effectiveTableDef}
         allColumns={resolvedAllColumns}
