@@ -4,6 +4,18 @@
 
 export { DataGrid, type DataGridProps, type GridTableDef } from './DataGrid';
 export { GraphView, type GraphViewProps } from './GraphView';
+export {
+  DataVisNitroContext,
+  DataVisNitroGrid,
+  DataVisNitroSource,
+  type DataVisNitroColumn,
+  type DataVisNitroGridProps,
+  type DataVisNitroSourceProps,
+} from './DataVisNitro';
+export {
+  DataVisNitroGraph,
+  type DataVisNitroGraphProps,
+} from './DataVisNitroGraph';
 export { TitleBar, type TitleBarProps } from './TitleBar';
 export { GridToolbar, type GridToolbarProps } from './GridToolbar';
 export { DetailSlider, type DetailSliderProps } from './DetailSlider';
