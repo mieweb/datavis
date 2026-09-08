@@ -19,17 +19,14 @@ import {
   User,
   X,
 } from 'lucide-react';
-
-function joinClassNames(...parts: Array<string | undefined>) {
-  return parts.filter(Boolean).join(' ');
-}
+import { cn } from '@mieweb/ui/utils';
 
 export interface MiewebIconProps {
   className?: string;
 }
 
 function iconClassName(className?: string) {
-  return joinClassNames('h-4 w-4 shrink-0', className);
+  return cn('h-4 w-4 shrink-0', className);
 }
 
 export function HelpIcon({ className }: MiewebIconProps) {

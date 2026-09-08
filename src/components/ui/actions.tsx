@@ -1,10 +1,7 @@
 import { forwardRef, type ReactNode } from 'react';
 import { Button, type ButtonProps } from '@mieweb/ui/components/Button';
 import { DropdownItem, type DropdownItemProps } from '@mieweb/ui/components/Dropdown';
-
-function joinClassNames(...parts: Array<string | undefined>) {
-  return parts.filter(Boolean).join(' ');
-}
+import { cn } from '@mieweb/ui/utils';
 
 export interface IconButtonProps extends Omit<ButtonProps, 'size'> {
   'aria-label': string;
@@ -16,7 +13,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       ref={ref}
       size="icon"
       variant={variant}
-      className={joinClassNames('h-7 w-7', className)}
+      className={cn('h-7 w-7', className)}
       {...props}
     />
   ),
@@ -32,7 +29,7 @@ export const InlineActionButton = forwardRef<HTMLButtonElement, InlineActionButt
       ref={ref}
       variant={variant}
       size={size}
-      className={joinClassNames('h-auto px-0 py-0 text-xs', className)}
+      className={cn('h-auto px-0 py-0 text-xs', className)}
       {...props}
     />
   ),
@@ -48,7 +45,7 @@ export const TableActionButton = forwardRef<HTMLButtonElement, TableActionButton
       ref={ref}
       variant={variant}
       size={size}
-      className={joinClassNames('h-7 px-1.5 text-xs', className)}
+      className={cn('h-7 px-1.5 text-xs', className)}
       {...props}
     />
   ),
@@ -66,7 +63,7 @@ export const DisclosureButton = forwardRef<HTMLButtonElement, DisclosureButtonPr
       ref={ref}
       variant={variant}
       size={size}
-      className={joinClassNames('h-auto w-full justify-start px-3 py-2 text-sm font-medium', className)}
+      className={cn('h-auto w-full justify-start px-3 py-2 text-sm font-medium', className)}
       {...props}
     >
       {indicator}
@@ -86,14 +83,12 @@ export const MenuAction = forwardRef<HTMLButtonElement, MenuActionProps>(
   ({ checked = false, shortcut, children, className, ...props }, ref) => (
     <DropdownItem
       ref={ref}
-      className={joinClassNames('gap-2', className)}
+      checked={checked}
+      className={cn('gap-2', className)}
       {...props}
     >
-      <span className="w-4 text-center text-xs" aria-hidden="true">
-        {checked ? <span className="inline-block h-1.5 w-1.5 rounded-full bg-blue-500 align-middle" /> : null}
-      </span>
       <span className="flex-1 text-left">{children}</span>
-      {shortcut ? <span className="ml-2 text-xs text-gray-400">{shortcut}</span> : null}
+      {shortcut ? <span className="ms-2 text-xs text-muted-foreground">{shortcut}</span> : null}
     </DropdownItem>
   ),
 );
