@@ -29,8 +29,6 @@
     "build:js": "vite build",
     "build:types": "tsc -p tsconfig.build.json",
     "preview": "vite preview",
-    "storybook": "storybook dev -p 6006",
-    "build-storybook": "storybook build",
     "lint:eslint": "eslint src/",
     "lint:i18n": "node scripts/check-i18n-keys.mjs",
     "lint:i18n:update": "node scripts/check-i18n-keys.mjs --update",
