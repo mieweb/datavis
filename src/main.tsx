@@ -410,9 +410,9 @@ function GraphOnlyDemo({
 
   return (
     <div className="space-y-4">
-      <section className="rounded-lg border border-gray-200 bg-white p-4">
-        <h2 className="text-base font-semibold text-gray-800">{title}</h2>
-        <p className="mt-1 text-sm text-gray-600">{helpText}</p>
+      <section className="rounded-lg border border-border bg-card p-4">
+        <h2 className="text-base font-semibold text-foreground">{title}</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{helpText}</p>
       </section>
 
       <GraphView
@@ -513,22 +513,22 @@ function App() {
   );
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-muted">
       {/* Page header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-start justify-between">
+      <header className="bg-card border-b border-border px-6 py-4 flex items-start justify-between">
         <div>
-          <h1 className="text-xl font-bold text-gray-800">DataVis NITRO — Demo</h1>
-          <p className="text-sm text-gray-500 mt-1">
+          <h1 className="text-xl font-bold text-foreground">DataVis NITRO — Demo</h1>
+          <p className="text-sm text-muted-foreground mt-1">
             React grid demo with live table and graph exploration across plain, grouped, and pivoted outputs.
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <label className="inline-flex items-center gap-1.5 text-sm font-medium text-gray-700">
+          <label className="inline-flex items-center gap-1.5 text-sm font-medium text-foreground">
             <span>Mode</span>
             <select
               value={mode}
               onChange={(e) => setMode(e.target.value as GridMode)}
-              className="rounded-md border border-gray-300 px-2 py-1 text-sm"
+              className="rounded-md border border-border px-2 py-1 text-sm"
               aria-label="Grid display mode"
             >
               <option value="default">Default</option>
@@ -552,7 +552,7 @@ function App() {
 
       {/* Tab bar */}
       <div
-        className="bg-white border-b border-gray-200 px-6"
+        className="bg-card border-b border-border px-6"
       >
         <Tabs value={activeTab} onValueChange={(value) => switchTab(value as TabKey)} variant="underline">
           <TabsList aria-label="Demo examples" className="flex gap-0">
@@ -563,7 +563,7 @@ function App() {
               className="px-4 py-3 text-sm font-medium"
             >
               {tab.label}
-              <span className="ml-2 text-xs font-normal text-gray-400">{tab.badge}</span>
+              <span className="ml-2 text-xs font-normal text-muted-foreground">{tab.badge}</span>
             </TabsTrigger>
           ))}
           </TabsList>

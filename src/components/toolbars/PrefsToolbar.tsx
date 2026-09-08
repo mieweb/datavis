@@ -337,7 +337,7 @@ export function PrefsToolbar({ prefs, onOpenPerspective, layout = 'inline' }: Pr
                 aria-label={t('GRID_TOOLBAR.PREFS.RENAME_PROMPT') || 'Rename perspective'}
               />
               {renameError && (
-                <p className="text-xs text-red-700" role="alert" aria-live="polite">
+                <p className="text-xs text-destructive-700" role="alert" aria-live="polite">
                   {renameError}
                 </p>
               )}

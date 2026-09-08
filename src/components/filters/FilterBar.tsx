@@ -198,8 +198,8 @@ export function FilterBar({
 
   return (
     <form
-      className={`wcdv-filter-bar border-b border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-2 py-1.5 rounded transition-colors ${
-        dragOver ? 'ring-2 ring-blue-400 dark:ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''
+      className={`wcdv-filter-bar border-b border-border bg-muted px-2 py-1.5 rounded transition-colors ${
+        dragOver ? 'ring-2 ring-primary-400 dark:ring-primary-500 bg-primary-50 dark:bg-primary-900/20' : ''
       }`}
       role="search"
       aria-label={t('FILTER.FORM_LABEL') || 'Data filters'}
@@ -211,10 +211,10 @@ export function FilterBar({
     >
       {/* Header row */}
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs font-medium text-gray-600 dark:text-neutral-400">
+        <span className="text-xs font-medium text-muted-foreground">
           {t('FILTER.TITLE') || 'Filters'}
           {activeCount > 0 && (
-            <span className="ml-1 text-blue-600 dark:text-blue-400">({activeCount})</span>
+            <span className="ml-1 text-primary-600 dark:text-primary-400">({activeCount})</span>
           )}
         </span>
         {activeCount > 0 && (
@@ -239,14 +239,14 @@ export function FilterBar({
             className="wcdv-filter-cell flex flex-col gap-0.5"
           >
             <div className="flex items-center justify-between gap-1">
-              <label htmlFor={`filter-${col.field}`} className="text-[10px] font-medium text-gray-500 dark:text-neutral-400 uppercase tracking-wide truncate">
+              <label htmlFor={`filter-${col.field}`} className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide truncate">
                 {col.displayName}
               </label>
               {onRemoveColumn && (
                 <IconButton
                   type="button"
                   variant="ghost"
-                  className="wcdv-filter-remove h-4 w-4 shrink-0 rounded-full text-[10px] leading-none text-gray-400 dark:text-neutral-500 hover:bg-red-50 dark:hover:bg-red-900/30 hover:text-red-500 dark:hover:text-red-400"
+                  className="wcdv-filter-remove h-4 w-4 shrink-0 rounded-full text-[10px] leading-none text-muted-foreground hover:bg-destructive-50 dark:hover:bg-destructive-900/30 hover:text-destructive-500 dark:hover:text-destructive-400"
                   onClick={() => {
                     handleFieldChange(col.field, null);
                     onRemoveColumn(col.field);
@@ -280,7 +280,7 @@ export function FilterBar({
               searchPlaceholder={t('FILTER.SEARCH', { defaultValue: 'Search…' })}
               searchAriaLabel={t('FILTER.SEARCH_FIELDS', { defaultValue: 'Search fields' })}
               searchEmptyState={(
-                <div className="px-3 py-2 text-xs italic text-gray-400">
+                <div className="px-3 py-2 text-xs italic text-muted-foreground">
                   {t('FILTER.NO_FIELDS', { defaultValue: 'No fields found' })}
                 </div>
               )}
@@ -289,7 +289,7 @@ export function FilterBar({
                   type="button"
                   size="sm"
                   variant="outline"
-                  className="h-[30px] w-full justify-start gap-1 border-dashed text-xs text-gray-500 dark:text-neutral-400 hover:border-blue-400 dark:hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/30 hover:text-blue-600 dark:hover:text-blue-400"
+                  className="h-[30px] w-full justify-start gap-1 border-dashed text-xs text-muted-foreground hover:border-primary-400 dark:hover:border-primary-500 hover:bg-primary-50 dark:hover:bg-primary-900/30 hover:text-primary-600 dark:hover:text-primary-400"
                   aria-label={t('FILTER.ADD_FIELD') || 'Add filter field'}
                 >
                   <span className="text-sm leading-none">+</span>
@@ -310,7 +310,7 @@ export function FilterBar({
                   >
                     <span className="flex min-w-0 items-center justify-between gap-2">
                       <span className="truncate">{f.displayName}</span>
-                      <span className="shrink-0 text-[10px] uppercase tracking-wide text-gray-400">
+                      <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">
                         {f.field}
                       </span>
                     </span>

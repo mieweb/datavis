@@ -183,7 +183,7 @@ export function StringFilter({
         </div>
       )}
       {isNoInput && (
-        <span className="px-1 text-xs italic text-gray-400" role="status">
+        <span className="px-1 text-xs italic text-muted-foreground" role="status">
           {t(operators.find((operatorInfo) => operatorInfo.value === operator)?.label ?? '')}
         </span>
       )}
@@ -225,7 +225,7 @@ function MultiSelectDropdown({
       searchPlaceholder={t('FILTER.SEARCH') || 'Search…'}
       searchAriaLabel={t('FILTER.SEARCH_OPTIONS') || 'Search options'}
       searchEmptyState={(
-        <div className="px-3 py-2 text-xs italic text-gray-400">
+        <div className="px-3 py-2 text-xs italic text-muted-foreground">
           {t('FILTER.NO_RESULTS') || 'No results'}
         </div>
       )}
@@ -238,7 +238,7 @@ function MultiSelectDropdown({
           aria-label={`${label}: ${summary}`}
         >
           <span className="truncate">{summary}</span>
-          <span className="ml-1 text-gray-400" aria-hidden="true">
+          <span className="ml-1 text-muted-foreground" aria-hidden="true">
             <ChevronGlyphIcon className="h-3.5 w-3.5" direction="down" />
           </span>
         </Button>

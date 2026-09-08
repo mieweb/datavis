@@ -81,7 +81,7 @@ export function TitleBar({
 
   return (
     <div
-      className={`wcdv-title-bar flex items-center gap-2 px-3 ${isDefault ? 'py-0.5' : 'py-2'} bg-gray-50 dark:bg-neutral-800 border-b border-gray-200 dark:border-neutral-700 rounded-t-lg`}
+      className={`wcdv-title-bar flex items-center gap-2 px-3 ${isDefault ? 'py-0.5' : 'py-2'} bg-muted border-b border-border rounded-t-lg`}
       role="group"
       aria-label={title}
     >
@@ -101,7 +101,7 @@ export function TitleBar({
       {/* Row count beside the title (default mode) */}
       {isDefault && rowCountText && (
         <span
-          className="wcdv-title-rowcount text-xs text-gray-500 dark:text-neutral-400 whitespace-nowrap"
+          className="wcdv-title-rowcount text-xs text-muted-foreground whitespace-nowrap"
           aria-live="polite"
         >
           {rowCountText} {t('TABLE.ROWS') || 'rows'}
@@ -109,14 +109,14 @@ export function TitleBar({
       )}
 
       {/* Status info */}
-      <span className="wcdv-status-info flex items-center gap-2 text-xs text-gray-500 dark:text-neutral-400 ml-1">
+      <span className="wcdv-status-info flex items-center gap-2 text-xs text-muted-foreground ml-1">
         {!isDefault && rowCountText && (
           <span aria-live="polite">{rowCountText}</span>
         )}
 
         {hasActiveFilter && (
           <InlineActionButton
-            className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
+            className="text-primary-600 hover:text-primary-800 dark:text-primary-400 dark:hover:text-primary-300"
             onClick={onClearFilter}
             aria-label={t('GRID.TITLEBAR.CLEAR_FILTER')}
           >
@@ -140,7 +140,7 @@ export function TitleBar({
       {helpText && (
         <Tooltip content={helpText}>
           <span
-            className="text-gray-400 dark:text-neutral-500 cursor-help"
+            className="text-muted-foreground cursor-help"
             role="img"
             aria-label={t('GRID.TITLEBAR.HELP')}
           >

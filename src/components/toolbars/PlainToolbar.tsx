@@ -44,7 +44,7 @@ export function PlainToolbar({
       </Button>
 
       {/* Separator */}
-      <div className="w-px h-5 bg-gray-200 dark:bg-neutral-700 mx-1" role="separator" />
+      <div className="w-px h-5 bg-muted mx-1" role="separator" />
 
       {/* Columns */}
       <Tooltip content={t('GRID_TOOLBAR.PLAIN.COLUMNS') || 'Columns'}>

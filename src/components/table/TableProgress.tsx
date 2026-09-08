@@ -29,12 +29,12 @@ export function TableProgress({
 
   return (
     <div
-      className="wcdv-table-progress flex items-center gap-2 px-3 py-1 bg-blue-50 dark:bg-blue-900/30 border-b border-blue-100 dark:border-blue-800"
+      className="wcdv-table-progress flex items-center gap-2 px-3 py-1 bg-primary-50 dark:bg-primary-900/30 border-b border-primary-100 dark:border-primary-800"
       role="status"
       aria-label={`${t('TABLE.LOADING') || 'Loading'}: ${percent}%`}
     >
       <Progress value={percent} className="flex-1 h-1.5" />
-      <span className="text-xs text-blue-600 whitespace-nowrap">
+      <span className="text-xs text-primary-600 whitespace-nowrap">
         {loaded} / {total} {t('TABLE.ROWS') || 'rows'} ({percent}%)
       </span>
     </div>

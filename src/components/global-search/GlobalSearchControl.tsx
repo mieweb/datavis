@@ -57,7 +57,7 @@ export function GlobalSearchControl({
 
   return (
     <div className="wcdv-global-search flex min-w-0 items-center gap-1.5" role="search">
-      <SearchIcon className="text-gray-500 dark:text-neutral-400" />
+      <SearchIcon className="text-muted-foreground" />
       <Input
         hideLabel
         label={t('GRID.OMNIFILTER.ARIA_LABEL')}
@@ -83,7 +83,7 @@ export function GlobalSearchControl({
         </IconButton>
       )}
       <span
-        className="wcdv-global-search-count min-w-16 whitespace-nowrap text-xs text-gray-500 dark:text-neutral-400"
+        className="wcdv-global-search-count min-w-16 whitespace-nowrap text-xs text-muted-foreground"
         role="status"
         aria-live="polite"
         aria-atomic="true"

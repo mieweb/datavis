@@ -134,15 +134,15 @@ export function HeaderFilterDropdown({
 
   /** Header row inside the popup: column name + clear + gear to the full filter config */
   const gearRow = filterCtx.openFilterControls && (
-    <div className="wcdv-header-filter-toolbar flex items-center justify-between gap-2 border-b border-gray-200 dark:border-neutral-700 px-2 pb-1 mb-1">
-      <span className="truncate text-[10px] font-semibold uppercase tracking-wide text-gray-500 dark:text-neutral-400">
+    <div className="wcdv-header-filter-toolbar flex items-center justify-between gap-2 border-b border-border px-2 pb-1 mb-1">
+      <span className="truncate text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
         {header}
       </span>
       <span className="flex items-center gap-0.5">
         <IconButton
           type="button"
           variant="ghost"
-          className="h-5 w-5 shrink-0 p-0 text-gray-400 hover:text-red-500 dark:text-neutral-500 dark:hover:text-red-400"
+          className="h-5 w-5 shrink-0 p-0 text-muted-foreground hover:text-destructive"
           disabled={!fieldSpec}
           onClick={(e) => {
             e.stopPropagation();
@@ -186,7 +186,7 @@ export function HeaderFilterDropdown({
       searchPlaceholder={t('FILTER.SEARCH') || 'Search…'}
       searchAriaLabel={t('FILTER.SEARCH_OPTIONS') || 'Search options'}
       searchEmptyState={(
-        <div className="px-3 py-2 text-xs italic text-gray-400">
+        <div className="px-3 py-2 text-xs italic text-muted-foreground">
           {t('FILTER.NO_RESULTS') || 'No results'}
         </div>
       )}

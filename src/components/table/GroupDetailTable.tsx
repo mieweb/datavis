@@ -218,7 +218,7 @@ export function GroupDetailTable({
         const val = meta.groupValues[field];
         return (
           <span key={field} className="wcdv-group-label">
-            {i > 0 && <span className="mx-1.5 text-gray-300 dark:text-neutral-600">/</span>}
+            {i > 0 && <span className="mx-1.5 text-muted-foreground">/</span>}
             <span>{String(val ?? '') || '(empty)'}</span>
           </span>
         );
@@ -243,7 +243,7 @@ export function GroupDetailTable({
       const display = formatAggregateNumber(value, locale);
       return (
         <span className="wcdv-agg-value">
-          <span className="text-gray-400 dark:text-neutral-500 uppercase">{fn}</span>{' '}
+          <span className="text-muted-foreground uppercase">{fn}</span>{' '}
           <span className="font-semibold">{display}</span>
         </span>
       );
@@ -278,7 +278,7 @@ export function GroupDetailTable({
           <thead
             className={
               features.stickyHeaders !== false
-                ? `${isConstrained ? 'sticky top-0' : ''} z-10 bg-gray-50 dark:bg-neutral-800${isConstrained && containerScrolled ? ' wcdv-thead-shadow' : ''}`
+                ? `${isConstrained ? 'sticky top-0' : ''} z-10 bg-muted${isConstrained && containerScrolled ? ' wcdv-thead-shadow' : ''}`
                 : ''
             }
           >
@@ -286,14 +286,14 @@ export function GroupDetailTable({
             <tr>
               {/* Expand/collapse all groups */}
               <th
-                className="wcdv-group-toggle-all w-8 border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-1 py-2 text-center"
+                className="wcdv-group-toggle-all w-8 border-b border-r border-border bg-muted px-1 py-2 text-center"
                 rowSpan={hasAggSubCols ? 2 : 1}
                 scope="col"
               >
                 <IconButton
                   type="button"
                   variant="ghost"
-                  className="h-5 w-5 text-gray-500 dark:text-neutral-400 shadow-none hover:bg-transparent hover:text-gray-800 dark:hover:text-neutral-200"
+                  className="h-5 w-5 text-muted-foreground shadow-none hover:bg-transparent hover:text-foreground"
                   onClick={toggleAll}
                   aria-label={t('TABLE.TOGGLE_ALL_GROUPS') || (allExpanded ? 'Collapse all groups' : 'Expand all groups')}
                 >
@@ -313,7 +313,7 @@ export function GroupDetailTable({
                   key={col.field}
                   colSpan={col.span}
                   rowSpan={hasAggSubCols && col.aggFns.length === 0 ? 2 : 1}
-                  className={`border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-2 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 ${
+                  className={`border-b border-r border-border bg-muted px-2 py-1 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground ${
                     col.aggFns.length > 0 ? 'text-center' : ''
                   }`}
                   style={{
@@ -369,7 +369,7 @@ export function GroupDetailTable({
                   return col.aggFns.map((fn) => (
                     <th
                       key={`${col.field}-${fn}`}
-                      className="border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800 px-2 py-1 text-center text-[10px] font-bold uppercase tracking-widest text-gray-500 dark:text-neutral-400"
+                      className="border-b border-r border-border bg-muted px-2 py-1 text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground"
                       scope="col"
                     >
                       {aggFnLabels?.[fn] ? t(aggFnLabels[fn]) : fn}
@@ -410,8 +410,8 @@ export function GroupDetailTable({
 
             {/* Total row */}
             {showTotalRow && (
-              <tr className="bg-gray-100 dark:bg-neutral-800 font-semibold border-t-2 border-gray-300 dark:border-neutral-600">
-                <td className="px-1 py-2 text-center text-xs text-gray-500 dark:text-neutral-400">
+              <tr className="bg-muted font-semibold border-t-2 border-border">
+                <td className="px-1 py-2 text-center text-xs text-muted-foreground">
                   <ClipboardIcon className="mx-auto h-4 w-4" />
                 </td>
                 {columnLayout.map((col) => (
@@ -419,7 +419,7 @@ export function GroupDetailTable({
                       key={col.field}
                       colSpan={col.span}
                       data-drilldown-cell
-                      className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm"
+                      className="border-r border-border px-2 py-1 text-sm"
                       onDoubleClick={(event) => onAggregateCellDoubleClick?.({}, event)}
                     >
                       {(() => {
@@ -436,7 +436,7 @@ export function GroupDetailTable({
 
       {/* Footer */}
       {totalRows != null && (
-        <div className="wcdv-table-footer flex items-center justify-between border-t border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-3 py-1.5 text-xs text-gray-500 dark:text-neutral-400">
+        <div className="wcdv-table-footer flex items-center justify-between border-t border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground">
           <span>
             {groupOrder.length} {t('TABLE.GROUPS') || 'groups'},{' '}
             {totalRows} {t('TABLE.ROWS') || 'rows'}
@@ -449,7 +449,7 @@ export function GroupDetailTable({
                 <TableActionButton
                   type="button"
                   variant="ghost"
-                  className="h-auto px-2 py-0.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                  className="h-auto px-2 py-0.5 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30"
                   onClick={onShowMore}
                 >
                   {t('TABLE.SHOW_MORE') || 'Show More'}
@@ -457,7 +457,7 @@ export function GroupDetailTable({
                 <TableActionButton
                   type="button"
                   variant="ghost"
-                  className="h-auto px-2 py-0.5 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                  className="h-auto px-2 py-0.5 text-primary-600 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-900/30"
                   onClick={onShowAll}
                 >
                   {t('TABLE.SHOW_ALL') || 'Show All'}
@@ -528,7 +528,7 @@ function GroupSection({
     <>
       {/* Group header row — one cell per physical sub-column */}
       <tr
-        className="wcdv-group-header bg-gray-100 dark:bg-neutral-800 border-t border-gray-300 dark:border-neutral-600 cursor-pointer hover:bg-gray-200 dark:hover:bg-neutral-700 transition-colors"
+        className="wcdv-group-header bg-muted border-t border-border cursor-pointer hover:bg-muted transition-colors"
         role="row"
         aria-expanded={expanded}
         aria-level={meta.level + 1}
@@ -538,7 +538,7 @@ function GroupSection({
         }}
       >
         {/* Chevron toggle */}
-        <td className="px-1 py-2 text-center text-xs text-gray-500 dark:text-neutral-400">
+        <td className="px-1 py-2 text-center text-xs text-muted-foreground">
           <DisclosureGlyphIcon className="mx-auto h-4 w-4" expanded={expanded} />
         </td>
         {/* First column: group label + row count */}
@@ -551,8 +551,8 @@ function GroupSection({
               <td
                 key={`${first.field}-${fn}`}
                 data-drilldown-cell
-                className={`border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm ${
-                  fi === 0 ? 'font-semibold text-gray-700 dark:text-neutral-300' : 'text-center text-gray-600 dark:text-neutral-400 text-xs'
+                className={`border-r border-border px-2 py-1 text-sm ${
+                  fi === 0 ? 'font-semibold text-foreground' : 'text-center text-muted-foreground text-xs'
                 }`}
                 style={fi === 0 ? { minWidth: first.minWidth ?? 50 } : undefined}
                               onDoubleClick={(event) => {
@@ -563,7 +563,7 @@ function GroupSection({
                 {fi === 0 && (
                   <>
                     <span>{formatGroupLabel(groupKey, meta)}</span>
-                    <span className="ml-2 text-xs font-normal text-gray-400 dark:text-neutral-500">
+                    <span className="ml-2 text-xs font-normal text-muted-foreground">
                       ({meta.count} {meta.count === 1 ? 'row' : 'rows'})
                     </span>
                   </>
@@ -578,11 +578,11 @@ function GroupSection({
           return (
             <td
               key={first.field}
-              className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm font-semibold text-gray-700 dark:text-neutral-300"
+              className="border-r border-border px-2 py-1 text-sm font-semibold text-foreground"
               style={{ minWidth: first.minWidth ?? 50 }}
             >
               <span>{formatGroupLabel(groupKey, meta)}</span>
-              <span className="ml-2 text-xs font-normal text-gray-400 dark:text-neutral-500">
+              <span className="ml-2 text-xs font-normal text-muted-foreground">
                 ({meta.count} {meta.count === 1 ? 'row' : 'rows'})
               </span>
             </td>
@@ -598,7 +598,7 @@ function GroupSection({
                 <td
                   key={`${col.field}-${fn}`}
                   data-drilldown-cell
-                  className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-center text-sm text-gray-600 dark:text-neutral-400"
+                  className="border-r border-border px-2 py-1 text-center text-sm text-muted-foreground"
                   onDoubleClick={(event) => {
                     event.stopPropagation();
                     onAggregateCellDoubleClick?.(meta.groupValues, event);
@@ -612,7 +612,7 @@ function GroupSection({
           return (
             <td
               key={col.field}
-              className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm"
+              className="border-r border-border px-2 py-1 text-sm"
             />
           );
         })}
@@ -623,14 +623,14 @@ function GroupSection({
         rows.map((row, rowIdx) => {
           const zebraClass =
             features?.zebraStripe !== false && rowIdx % 2 === 1
-              ? 'bg-gray-50/50 dark:bg-neutral-800/50'
+              ? 'bg-muted/50'
               : '';
 
           return (
             <tr
               key={row.rowId ?? row.rowNum}
               data-row-num={row.rowNum}
-              className={`wcdv-tr border-b border-gray-100 dark:border-neutral-700 transition-colors hover:bg-blue-50/30 dark:hover:bg-blue-900/20 ${zebraClass}`}
+              className={`wcdv-tr border-b border-border transition-colors hover:bg-primary-50/30 dark:hover:bg-primary-900/20 ${zebraClass}`}
               role="row"
               aria-level={meta.level + 2}
               onClick={(e) => {
@@ -649,7 +649,7 @@ function GroupSection({
                 <td
                   key={col.field}
                   colSpan={col.span}
-                  className={`wcdv-td border-r border-gray-100 dark:border-neutral-700 px-3 py-1.5 text-sm ${col.className ?? ''}`}
+                  className={`wcdv-td border-r border-border px-3 py-1.5 text-sm ${col.className ?? ''}`}
                   style={{
                     width: col.width,
                     minWidth: col.minWidth ?? 50,

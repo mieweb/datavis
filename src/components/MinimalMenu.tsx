@@ -74,7 +74,7 @@ export function MinimalMenu({
     ? 'wcdv-minimal-menu absolute right-3 top-11 z-20'
     : 'wcdv-minimal-menu -mr-2';
   const triggerClassName = floating
-    ? 'border border-gray-300 bg-white/90 opacity-60 shadow-sm transition-opacity hover:opacity-100 dark:border-neutral-600 dark:bg-neutral-800/90'
+    ? 'border border-border bg-card/90'
     : 'h-5 w-5 p-0';
   const iconClassName = floating ? 'h-4 w-4' : 'h-3.5 w-3.5';
 

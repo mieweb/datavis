@@ -9,7 +9,7 @@ import { SIMPLE_DATA } from '../demo/data';
 
 function SimpleTable({ rows }: { rows: Record<string, unknown>[] }) {
   return (
-    <table className="min-w-full border-collapse bg-white" role="grid">
+    <table className="min-w-full border-collapse bg-card" role="grid">
       <thead>
         <tr>
           <th className="border px-2 py-1 text-left">Name</th>
@@ -272,13 +272,13 @@ export function GoogleChartScenario() {
     <div className="min-h-screen bg-slate-100 p-6 space-y-4">
       <h1 className="text-xl font-semibold">Department Totals</h1>
       <Button type="button" size="sm" variant="outline" onClick={() => setStacked((value) => !value)}>Toggle Stacked</Button>
-      <div role="img" aria-label="Department Totals chart" className="rounded border bg-white p-4">
+      <div role="img" aria-label="Department Totals chart" className="rounded border bg-card p-4">
         {bars.map((bar) => (
           <div
             key={bar.label}
             data-testid={`chart-bar-${bar.label}`}
             title={`${bar.label}: ${bar.value}`}
-            className="mb-2 text-white px-2 py-1"
+            className="mb-2 text-primary-foreground px-2 py-1"
             style={{ width: `${bar.value * 80}px`, backgroundColor: bar.color, display: stacked ? 'block' : 'inline-block' }}
           >
             {bar.label}
@@ -299,7 +299,7 @@ export function DrilldownScenario() {
         Canada / Engineering / Count 1
       </Button>
       {open && (
-        <div data-testid="drilldown-panel" className="rounded border bg-white p-4">
+        <div data-testid="drilldown-panel" className="rounded border bg-card p-4">
           <div>Rows: 1</div>
           <div>Row IDs: 1</div>
         </div>
@@ -312,8 +312,8 @@ export function RowCustomizationScenario() {
   return (
     <div className="min-h-screen bg-slate-100 p-6 space-y-4">
       <h1 className="text-xl font-semibold">Row Customization Scenario</h1>
-      <div data-testid="group-header-fruit" style={{ color: 'rgb(220, 38, 38)' }} className="flex items-center gap-2 rounded bg-white px-3 py-2"><UserIcon className="h-4 w-4" /> Fruit</div>
-      <div data-testid="group-header-vegetables" style={{ color: 'rgb(22, 163, 74)' }} className="flex items-center gap-2 rounded bg-white px-3 py-2"><ClipboardIcon className="h-4 w-4" /> Vegetables</div>
+      <div data-testid="group-header-fruit" style={{ color: 'rgb(220, 38, 38)' }} className="flex items-center gap-2 rounded bg-card px-3 py-2"><UserIcon className="h-4 w-4" /> Fruit</div>
+      <div data-testid="group-header-vegetables" style={{ color: 'rgb(22, 163, 74)' }} className="flex items-center gap-2 rounded bg-card px-3 py-2"><ClipboardIcon className="h-4 w-4" /> Vegetables</div>
     </div>
   );
 }

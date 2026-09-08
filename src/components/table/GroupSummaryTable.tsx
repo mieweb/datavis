@@ -107,7 +107,7 @@ export function GroupSummaryTable({
           <thead
             className={
               features.stickyHeaders !== false
-                ? `${isConstrained ? 'sticky top-0' : ''} z-10 bg-gray-50 dark:bg-neutral-800${isConstrained && containerScrolled ? ' wcdv-thead-shadow' : ''}`
+                ? `${isConstrained ? 'sticky top-0' : ''} z-10 bg-muted${isConstrained && containerScrolled ? ' wcdv-thead-shadow' : ''}`
                 : ''
             }
           >
@@ -117,7 +117,7 @@ export function GroupSummaryTable({
                 return (
                 <th
                   key={col.field}
-                  className="border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-2 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 cursor-pointer hover:bg-gray-100 dark:hover:bg-neutral-700"
+                  className="border-b border-r border-border bg-muted px-2 py-1 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground cursor-pointer hover:bg-muted"
                   style={{
                     width: col.width,
                     minWidth: col.minWidth ?? 50,
@@ -154,7 +154,7 @@ export function GroupSummaryTable({
               <tr>
                 <td
                   colSpan={summaryColumns.length}
-                  className="px-4 py-8 text-center text-sm text-gray-400 dark:text-neutral-500"
+                  className="px-4 py-8 text-center text-sm text-muted-foreground"
                 >
                   {t('TABLE.NO_DATA') || 'No data to display'}
                 </td>
@@ -164,13 +164,13 @@ export function GroupSummaryTable({
                 const meta = groups[groupKey];
                 const zebraClass =
                   features.zebraStripe !== false && idx % 2 === 1
-                    ? 'bg-gray-50/50 dark:bg-neutral-800/50'
+                    ? 'bg-muted/50'
                     : '';
 
                 return (
                   <tr
                     key={groupKey}
-                    className={`wcdv-tr border-b border-gray-100 dark:border-neutral-700 transition-colors hover:bg-gray-50 dark:hover:bg-neutral-800 ${zebraClass}`}
+                    className={`wcdv-tr border-b border-border transition-colors hover:bg-muted ${zebraClass}`}
                     role="row"
                     aria-rowindex={idx + 2}
                   >
@@ -180,7 +180,7 @@ export function GroupSummaryTable({
                         return (
                           <td
                             key={col.field}
-                            className="border-r border-gray-100 dark:border-neutral-700 px-2 py-1 text-sm font-medium"
+                            className="border-r border-border px-2 py-1 text-sm font-medium"
                             style={{
                               width: col.width,
                               minWidth: col.minWidth ?? 50,
@@ -197,7 +197,7 @@ export function GroupSummaryTable({
                         <td
                           key={col.field}
                           data-drilldown-cell
-                          className="border-r border-gray-100 dark:border-neutral-700 px-2 py-1 text-sm text-right"
+                          className="border-r border-border px-2 py-1 text-sm text-right"
                           style={{
                             width: col.width,
                             minWidth: col.minWidth ?? 50,
@@ -219,12 +219,12 @@ export function GroupSummaryTable({
 
             {/* Total row */}
             {showTotalRow && (
-              <tr className="bg-gray-100 dark:bg-neutral-800 font-semibold border-t-2 border-gray-300 dark:border-neutral-600">
+              <tr className="bg-muted font-semibold border-t-2 border-border">
                 {summaryColumns.map((col, idx) => (
                   <td
                     key={col.field}
                     data-drilldown-cell={!groupFields.includes(col.field) ? '' : undefined}
-                    className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm"
+                    className="border-r border-border px-2 py-1 text-sm"
                     onDoubleClick={!groupFields.includes(col.field)
                       ? (event) => onAggregateCellDoubleClick?.({}, event)
                       : undefined}
@@ -246,7 +246,7 @@ export function GroupSummaryTable({
 
       {/* Footer */}
       {totalRows != null && (
-        <div className="wcdv-table-footer flex items-center justify-between border-t border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-3 py-1.5 text-xs text-gray-500 dark:text-neutral-400">
+        <div className="wcdv-table-footer flex items-center justify-between border-t border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground">
           <span>
             {groupOrder.length} {t('TABLE.GROUPS') || 'groups'},{' '}
             {totalRows} {t('TABLE.ROWS') || 'rows total'}

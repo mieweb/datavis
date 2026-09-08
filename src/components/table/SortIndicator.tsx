@@ -26,10 +26,10 @@ export function SortIndicator({ direction, index, count = 0 }: SortIndicatorProp
   if (!direction) {
     return (
       <span
-        className="ml-1 inline-flex items-center text-gray-300 dark:text-neutral-600 text-xs"
+        className="ml-1 inline-flex items-center text-muted-foreground text-xs"
         aria-hidden="true"
       >
-        <SortGlyphIcon className="text-gray-300 dark:text-neutral-600" />
+        <SortGlyphIcon className="text-muted-foreground" />
       </span>
     );
   }
@@ -38,17 +38,17 @@ export function SortIndicator({ direction, index, count = 0 }: SortIndicatorProp
 
   return (
     <span
-      className="ml-1 inline-flex items-center gap-0.5 text-blue-500 dark:text-blue-400 text-xs"
+      className="ml-1 inline-flex items-center gap-0.5 text-primary-500 dark:text-primary-400 text-xs"
       aria-label={
         direction === 'asc'
           ? (t('TABLE.SORTED_ASC') || 'Sorted ascending')
           : (t('TABLE.SORTED_DESC') || 'Sorted descending')
       }
     >
-      <SortGlyphIcon className="text-blue-500 dark:text-blue-400" direction={direction} />
+      <SortGlyphIcon className="text-primary-500 dark:text-primary-400" direction={direction} />
       {showBadge && (
         <span
-          className="wcdv-sort-priority inline-flex h-3.5 min-w-[0.875rem] items-center justify-center rounded-full bg-blue-500 px-0.5 text-[0.625rem] font-semibold leading-none text-white dark:bg-blue-400 dark:text-neutral-900"
+          className="wcdv-sort-priority inline-flex h-3.5 min-w-[0.875rem] items-center justify-center rounded-full bg-primary px-0.5 text-[0.625rem] font-semibold leading-none text-primary-foreground"
           aria-label={t('TABLE.SORT_LEVEL', { param0: index! + 1 }) || `Sort level ${index! + 1}`}
         >
           {index! + 1}

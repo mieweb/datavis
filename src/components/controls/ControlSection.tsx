@@ -127,7 +127,7 @@ export function ControlSection({
   return (
     <fieldset
       className={`wcdv-control-section flex flex-col gap-1 rounded transition-colors border-0 p-0 m-0 min-w-0 ${
-        dragOver ? 'ring-2 ring-blue-400 dark:ring-blue-500 bg-blue-50 dark:bg-blue-900/20' : ''
+        dragOver ? 'ring-2 ring-primary-400 dark:ring-primary-500 bg-primary-50 dark:bg-primary-900/20' : ''
       }`}
       aria-label={title}
       data-drop-zone={dropZone}
@@ -137,12 +137,12 @@ export function ControlSection({
     >
       {/* Section header */}
       <legend className="flex items-center gap-1 w-full">
-        {icon ? <span className="text-sm text-gray-500 dark:text-neutral-400" aria-hidden="true">{icon}</span> : null}
-        <span className="text-xs font-semibold text-gray-700 dark:text-neutral-300 uppercase tracking-wide">
+        {icon ? <span className="text-sm text-muted-foreground" aria-hidden="true">{icon}</span> : null}
+        <span className="text-xs font-semibold text-foreground uppercase tracking-wide">
           {title}
         </span>
         {fields.length > 0 && (
-          <span className="text-[10px] text-gray-400 dark:text-neutral-500">({fields.length})</span>
+          <span className="text-[10px] text-muted-foreground">({fields.length})</span>
         )}
         <div className="flex-1" />
         {fields.length > 0 && (
@@ -150,7 +150,7 @@ export function ControlSection({
             <Button
               size="sm"
               variant="ghost"
-              className="!h-5 !px-1 text-xs text-gray-400 dark:text-neutral-500 hover:text-red-500 dark:hover:text-red-400"
+              className="!h-5 !px-1 text-xs text-muted-foreground hover:text-destructive-500 dark:hover:text-destructive-400"
               onClick={onClear}
               aria-label={`${t('CONTROL.CLEAR')} ${title}`}
             >
@@ -171,7 +171,7 @@ export function ControlSection({
           searchPlaceholder={t('FILTER.SEARCH', { defaultValue: 'Search…' })}
           searchAriaLabel={t('CONTROL.SEARCH_FIELDS', { defaultValue: `Search ${title} fields` })}
           searchEmptyState={(
-            <div className="px-3 py-2 text-xs italic text-gray-400">
+            <div className="px-3 py-2 text-xs italic text-muted-foreground">
               {t('CONTROL.NO_FIELDS', { defaultValue: 'No fields found' })}
             </div>
           )}
@@ -184,7 +184,7 @@ export function ControlSection({
               aria-label={`${t('CONTROL.ADD_FIELD') || 'Add field'} — ${title}`}
             >
               <span className="truncate">{t('CONTROL.ADD_FIELD') || '+ Add field…'}</span>
-              <ChevronGlyphIcon className="h-3.5 w-3.5 shrink-0 text-gray-400" direction="down" />
+              <ChevronGlyphIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" direction="down" />
             </Button>
           )}
         >
@@ -198,7 +198,7 @@ export function ControlSection({
               >
                 <span className="flex min-w-0 items-center justify-between gap-2">
                   <span className="truncate">{fieldOption.displayName}</span>
-                  <span className="shrink-0 text-[10px] uppercase tracking-wide text-gray-400">
+                  <span className="shrink-0 text-[10px] uppercase tracking-wide text-muted-foreground">
                     {fieldOption.field}
                   </span>
                 </span>

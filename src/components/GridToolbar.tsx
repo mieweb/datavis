@@ -53,7 +53,7 @@ export function GridToolbar({
 
   return (
     <div
-      className="wcdv-toolbar flex flex-wrap items-center gap-2 px-3 py-1.5 bg-white dark:bg-neutral-900 border-b border-gray-100 dark:border-neutral-700 text-sm"
+      className="wcdv-toolbar flex flex-wrap items-center gap-2 px-3 py-1.5 bg-card border-b border-border text-sm"
       role="toolbar"
       aria-label={t('GRID_TOOLBAR.LABEL') || 'Grid Toolbar'}
     >

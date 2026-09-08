@@ -98,14 +98,14 @@ function SortableRow({
   };
 
   return (
-    <tr ref={setNodeRef} style={style} className="border-b border-gray-100 dark:border-neutral-700 hover:bg-gray-50 dark:hover:bg-neutral-800">
+    <tr ref={setNodeRef} style={style} className="border-b border-border hover:bg-muted">
       {/* Drag handle */}
-      <td className="px-2 py-1.5 w-8 cursor-grab text-gray-400 dark:text-neutral-500" {...attributes} {...listeners}>
+      <td className="px-2 py-1.5 w-8 cursor-grab text-muted-foreground" {...attributes} {...listeners}>
         <span aria-label={t('COL_CONFIG.DRAG_HANDLE')}><DragHandleIcon className="h-4 w-4" /></span>
       </td>
 
       {/* Field name */}
-      <td className="px-2 py-1.5 text-sm font-mono text-gray-500 dark:text-neutral-400">{column.field}</td>
+      <td className="px-2 py-1.5 text-sm font-mono text-muted-foreground">{column.field}</td>
 
       {/* Display name */}
       <td className="px-2 py-1.5 text-sm">
@@ -161,7 +161,7 @@ function SortableRow({
       <td className="px-2 py-1.5 text-center whitespace-nowrap">
         <Tooltip content={t('COL_CONFIG.MOVE_TOP') || 'Move to top'}>
           <IconButton
-            className="h-6 w-6 text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300"
+            className="h-6 w-6 text-muted-foreground hover:text-foreground"
             onClick={() => onMoveToTop(column.field)}
             aria-label={t('COL_CONFIG.MOVE_TOP')}
           >
@@ -170,7 +170,7 @@ function SortableRow({
         </Tooltip>
         <Tooltip content={t('COL_CONFIG.MOVE_BOTTOM') || 'Move to bottom'}>
           <IconButton
-            className="h-6 w-6 text-gray-400 dark:text-neutral-500 hover:text-gray-700 dark:hover:text-neutral-300"
+            className="h-6 w-6 text-muted-foreground hover:text-foreground"
             onClick={() => onMoveToBottom(column.field)}
             aria-label={t('COL_CONFIG.MOVE_BOTTOM')}
           >
@@ -296,28 +296,28 @@ export function ColumnConfigDialog({
           <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
             <SortableContext items={fieldIds} strategy={verticalListSortingStrategy}>
               <table className="w-full text-sm" role="grid" aria-label={t('COL_CONFIG.TABLE_LABEL') || 'Column configuration table'}>
-                <thead className="bg-gray-50 dark:bg-neutral-800 sticky top-0 z-10">
+                <thead className="bg-muted sticky top-0 z-10">
                   <tr>
-                    <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 dark:text-neutral-400 w-8" />
-                    <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 dark:text-neutral-400">
+                    <th className="px-2 py-1.5 text-left text-xs font-medium text-muted-foreground w-8" />
+                    <th className="px-2 py-1.5 text-left text-xs font-medium text-muted-foreground">
                       {t('COL_CONFIG.FIELD') || 'Field'}
                     </th>
-                    <th className="px-2 py-1.5 text-left text-xs font-medium text-gray-500 dark:text-neutral-400">
+                    <th className="px-2 py-1.5 text-left text-xs font-medium text-muted-foreground">
                       {t('COL_CONFIG.DISPLAY_NAME') || 'Display Name'}
                     </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 dark:text-neutral-400">
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-muted-foreground">
                       {t('COL_CONFIG.HIDE') || 'Hide'}
                     </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 dark:text-neutral-400">
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-muted-foreground">
                       {t('COL_CONFIG.PIN') || 'Pin'}
                     </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 dark:text-neutral-400">
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-muted-foreground">
                       {t('COL_CONFIG.HTML') || 'HTML'}
                     </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 dark:text-neutral-400">
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-muted-foreground">
                       {t('COL_CONFIG.FORMAT') || 'Format'}
                     </th>
-                    <th className="px-2 py-1.5 text-center text-xs font-medium text-gray-500 dark:text-neutral-400">
+                    <th className="px-2 py-1.5 text-center text-xs font-medium text-muted-foreground">
                       {t('COL_CONFIG.MOVE') || 'Move'}
                     </th>
                   </tr>

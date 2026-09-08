@@ -210,7 +210,7 @@ export function ControlPanel({
 
   return (
     <aside
-      className="wcdv-control-panel border-b border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800"
+      className="wcdv-control-panel border-b border-border bg-muted"
       aria-label={t('CONTROL.PANEL_LABEL') || 'Data controls'}
     >
       {/* Filter Bar */}

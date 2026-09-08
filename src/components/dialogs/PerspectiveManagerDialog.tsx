@@ -177,7 +177,7 @@ export function PerspectiveManagerDialog({
 
         {/* Perspective list */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-neutral-300 mb-2">
+          <h3 className="text-sm font-semibold text-foreground mb-2">
             {t('PERSPECTIVE.LIST_HEADING') || 'Perspectives'}
           </h3>
           <div className="border rounded divide-y divide-gray-100">
@@ -185,7 +185,7 @@ export function PerspectiveManagerDialog({
               <div
                 key={p.id}
                 className={`flex items-center gap-2 px-3 py-2 text-sm ${
-                  p.id === currentPerspective?.id ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-50 dark:hover:bg-neutral-800'
+                  p.id === currentPerspective?.id ? 'bg-primary-50 dark:bg-primary-900/30' : 'hover:bg-muted'
                 }`}
               >
                 {renameId === p.id ? (
@@ -216,7 +216,7 @@ export function PerspectiveManagerDialog({
                     <span className="flex-1 font-medium">
                       {p.name}
                       {p.id === currentPerspective?.id && (
-                        <span className="ml-1 text-xs text-blue-600">
+                        <span className="ml-1 text-xs text-primary-600">
                           ({t('PERSPECTIVE.CURRENT') || 'current'})
                         </span>
                       )}
@@ -252,7 +252,7 @@ export function PerspectiveManagerDialog({
                       <Button
                         size="sm"
                         variant="ghost"
-                        className="text-red-500 hover:text-red-700"
+                        className="text-destructive-500 hover:text-destructive-700"
                         onClick={() => handleDelete(p.id)}
                         aria-label={`${t('PERSPECTIVE.DELETE') || 'Delete'} ${p.name}`}
                       >
@@ -268,7 +268,7 @@ export function PerspectiveManagerDialog({
 
         {/* Create new perspective */}
         <div>
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-neutral-300 mb-2">
+          <h3 className="text-sm font-semibold text-foreground mb-2">
             {t('PERSPECTIVE.NEW_HEADING') || 'Create New Perspective'}
           </h3>
           <div className="flex items-center gap-2">
@@ -292,7 +292,7 @@ export function PerspectiveManagerDialog({
         {/* Current perspective JSON config */}
         {currentPerspective && (
           <div>
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-neutral-300 mb-2">
+            <h3 className="text-sm font-semibold text-foreground mb-2">
               {t('PERSPECTIVE.CONFIG_HEADING') || 'Current Config (read-only)'}
             </h3>
             <Textarea

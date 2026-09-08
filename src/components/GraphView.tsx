@@ -279,13 +279,13 @@ export function GraphView({
   };
 
   return (
-    <section className={`rounded-lg border border-gray-200 bg-white ${className}`} aria-label={t('GRAPH.TITLEBAR.SHOW_HIDE') || 'Graph'}>
+    <section className={`rounded-lg border border-border bg-card ${className}`} aria-label={t('GRAPH.TITLEBAR.SHOW_HIDE') || 'Graph'}>
       <div
-        className="wcdv-title-bar flex items-center gap-2 px-3 py-2 bg-gray-50 border-b border-gray-200"
+        className="wcdv-title-bar flex items-center gap-2 px-3 py-2 bg-muted border-b border-border"
         role="group"
         aria-label={t('GRAPH.TITLEBAR.SHOW_HIDE') || 'Graph'}
       >
-        <strong className="text-sm font-semibold text-gray-800">{t('GRAPH.TITLEBAR.SHOW_HIDE') || 'Graph'}</strong>
+        <strong className="text-sm font-semibold text-foreground">{t('GRAPH.TITLEBAR.SHOW_HIDE') || 'Graph'}</strong>
         <span className="flex-1" />
 
         <Button
@@ -309,9 +309,9 @@ export function GraphView({
 
       {!collapsed && (
         <>
-          <div className="flex flex-wrap items-center gap-3 border-b border-gray-200 px-4 py-3">
+          <div className="flex flex-wrap items-center gap-3 border-b border-border px-4 py-3">
             <div className="min-w-[180px]">
-              <label className="mb-1 block text-xs font-medium text-gray-600">
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">
                 {t('GRAPH.CONTROLS.CHART_TYPE') || 'Chart Type'}
               </label>
               <Select
@@ -327,7 +327,7 @@ export function GraphView({
             </div>
 
             <div className="min-w-[180px]">
-              <label className="mb-1 block text-xs font-medium text-gray-600">
+              <label className="mb-1 block text-xs font-medium text-muted-foreground">
                 {t('GRAPH.CONTROLS.X_AXIS') || 'X Axis'}
               </label>
               <Select
@@ -343,7 +343,7 @@ export function GraphView({
             </div>
 
             <div className="flex min-w-[220px] flex-1 flex-wrap gap-2" role="group" aria-label={t('GRAPH.CONTROLS.Y_AXIS') || 'Y Axis'}>
-              <span className="w-full text-xs font-medium text-gray-600">{t('GRAPH.CONTROLS.Y_AXIS') || 'Y Axis'}</span>
+              <span className="w-full text-xs font-medium text-muted-foreground">{t('GRAPH.CONTROLS.Y_AXIS') || 'Y Axis'}</span>
               {graph.seriesOptions.map((option) => {
                 const active = graph.config.yFields.includes(option.key);
                 return (
@@ -368,7 +368,7 @@ export function GraphView({
             </div>
 
             {graph.config.chartType !== 'pie' && (
-              <div className="flex items-center text-sm text-gray-700">
+              <div className="flex items-center text-sm text-foreground">
                 <Checkbox
                   size="sm"
                   checked={graph.config.stacked}
@@ -382,7 +382,7 @@ export function GraphView({
 
           <div ref={chartContainerRef} className="h-[360px] px-2 py-3">
             {!graph.model || graph.model.points.length === 0 || graph.model.yFields.length === 0 ? (
-              <div className="flex h-full items-center justify-center text-sm text-gray-500">
+              <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
                 {t('DATA.NOTHING_TO_GRAPH') || 'Nothing to Graph'}
               </div>
             ) : (

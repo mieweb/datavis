@@ -36,7 +36,7 @@ export function useColumnResize(
       // Create resize indicator
       const indicator = document.createElement('div');
       indicator.className =
-        'fixed top-0 bottom-0 w-px border-l-2 border-dashed border-blue-400 z-50 pointer-events-none';
+        'fixed top-0 bottom-0 w-px border-l-2 border-dashed border-primary-400 z-50 pointer-events-none';
       indicator.style.left = `${event.clientX}px`;
       document.body.appendChild(indicator);
       indicatorRef.current = indicator;

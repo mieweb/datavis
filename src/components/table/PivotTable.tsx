@@ -140,7 +140,7 @@ export function PivotTable({
           <thead
             className={
               features.stickyHeaders !== false
-                ? `${isConstrained ? 'sticky top-0' : ''} z-10 bg-gray-50 dark:bg-neutral-800${isConstrained && containerScrolled ? ' wcdv-thead-shadow' : ''}`
+                ? `${isConstrained ? 'sticky top-0' : ''} z-10 bg-muted${isConstrained && containerScrolled ? ' wcdv-thead-shadow' : ''}`
                 : ''
             }
           >
@@ -151,7 +151,7 @@ export function PivotTable({
                 return (
                 <th
                   key={col.field}
-                  className="border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800 px-2 py-1 text-left text-xs font-semibold uppercase tracking-wider text-gray-600 dark:text-neutral-400 cursor-pointer hover:bg-gray-200 dark:hover:bg-neutral-700"
+                  className="border-b border-r border-border bg-muted px-2 py-1 text-left text-xs font-semibold uppercase tracking-wider text-muted-foreground cursor-pointer hover:bg-muted"
                   style={{ width: col.width, minWidth: col.minWidth }}
                   rowSpan={aggFunctions.length > 1 ? 2 : 1}
                   role="columnheader"
@@ -173,7 +173,7 @@ export function PivotTable({
               {colVals.map((colVal) => (
                 <th
                   key={String(colVal)}
-                  className="border-b border-r border-gray-200 dark:border-neutral-700 bg-blue-50 dark:bg-blue-900/30 px-2 py-1 text-center text-xs font-semibold text-blue-700 dark:text-blue-300"
+                  className="border-b border-r border-border bg-primary-50 dark:bg-primary-900/30 px-2 py-1 text-center text-xs font-semibold text-primary-700 dark:text-primary-300"
                   colSpan={aggFunctions.length}
                 >
                   {String(colVal)}
@@ -181,7 +181,7 @@ export function PivotTable({
               ))}
               {showTotalCol && (
                 <th
-                  className="border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-200 dark:bg-neutral-700 px-2 py-1 text-center text-xs font-semibold text-gray-700 dark:text-neutral-300"
+                  className="border-b border-r border-border bg-muted px-2 py-1 text-center text-xs font-semibold text-foreground"
                   colSpan={aggFunctions.length}
                 >
                   {t('TABLE.TOTAL') || 'Total'}
@@ -196,7 +196,7 @@ export function PivotTable({
                   aggFunctions.map((fn) => (
                     <th
                       key={`${colVal}_${fn}`}
-                      className="border-b border-r border-gray-200 dark:border-neutral-700 bg-blue-50/50 dark:bg-blue-900/20 px-2 py-1 text-center text-xs text-blue-600 dark:text-blue-400"
+                      className="border-b border-r border-border bg-primary-50/50 dark:bg-primary-900/20 px-2 py-1 text-center text-xs text-primary-600 dark:text-primary-400"
                     >
                       {fn}
                     </th>
@@ -206,7 +206,7 @@ export function PivotTable({
                   aggFunctions.map((fn) => (
                     <th
                       key={`total_${fn}`}
-                      className="border-b border-r border-gray-200 dark:border-neutral-700 bg-gray-100 dark:bg-neutral-800 px-2 py-1 text-center text-xs text-gray-600 dark:text-neutral-400"
+                      className="border-b border-r border-border bg-muted px-2 py-1 text-center text-xs text-muted-foreground"
                     >
                       {fn}
                     </th>
@@ -225,7 +225,7 @@ export function PivotTable({
                     pivotHeaders.length +
                     (showTotalCol ? aggFunctions.length : 0)
                   }
-                  className="px-4 py-8 text-center text-sm text-gray-400 dark:text-neutral-500"
+                  className="px-4 py-8 text-center text-sm text-muted-foreground"
                 >
                   {t('TABLE.NO_DATA') || 'No data to display'}
                 </td>
@@ -234,13 +234,13 @@ export function PivotTable({
               rowVals.map((rowVal, rowIdx) => {
                 const zebraClass =
                   features.zebraStripe !== false && rowIdx % 2 === 1
-                    ? 'bg-gray-50/50 dark:bg-neutral-800/50'
+                    ? 'bg-muted/50'
                     : '';
 
                 return (
                   <tr
                     key={rowIdx}
-                    className={`wcdv-tr border-b border-gray-100 dark:border-neutral-700 transition-colors hover:bg-gray-50 dark:hover:bg-neutral-800 ${zebraClass}`}
+                    className={`wcdv-tr border-b border-border transition-colors hover:bg-muted ${zebraClass}`}
                     role="row"
                     aria-rowindex={rowIdx + 2}
                   >
@@ -248,7 +248,7 @@ export function PivotTable({
                     {rowColumns.map((col) => (
                       <th
                         key={col.field}
-                        className="border-r border-gray-100 dark:border-neutral-700 px-3 py-1.5 text-sm font-medium text-left"
+                        className="border-r border-border px-3 py-1.5 text-sm font-medium text-left"
                         style={{
                           width: col.width,
                           minWidth: col.minWidth,
@@ -267,7 +267,7 @@ export function PivotTable({
                           key={`${colIdx}_${fn}`}
                           data-testid={`pivot-aggregate-cell-${rowIdx}-${colIdx}-${fn}`}
                           data-drilldown-cell
-                          className="border-r border-gray-100 dark:border-neutral-700 px-2 py-1.5 text-sm text-right"
+                          className="border-r border-border px-2 py-1.5 text-sm text-right"
                           role="gridcell"
                           onDoubleClick={(event) => {
                             const filters: AggregateCellFilters = {
@@ -291,7 +291,7 @@ export function PivotTable({
                           key={`total_${fn}`}
                           data-testid={`pivot-row-total-cell-${rowIdx}-${fn}`}
                           data-drilldown-cell
-                          className="border-r border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-2 py-1.5 text-sm text-right font-medium"
+                          className="border-r border-border bg-muted px-2 py-1.5 text-sm text-right font-medium"
                           role="gridcell"
                           onDoubleClick={(event) => onAggregateCellDoubleClick?.(rowVal, event)}
                         >
@@ -305,11 +305,11 @@ export function PivotTable({
 
             {/* Total row */}
             {totalRow && (
-              <tr className="bg-gray-100 dark:bg-neutral-800 font-semibold border-t-2 border-gray-300 dark:border-neutral-600">
+              <tr className="bg-muted font-semibold border-t-2 border-border">
                 {rowColumns.map((col, idx) => (
                   <td
                     key={col.field}
-                    className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm"
+                    className="border-r border-border px-2 py-1 text-sm"
                   >
                     {idx === 0 ? t('TABLE.TOTAL') || 'Total' : ''}
                   </td>
@@ -320,7 +320,7 @@ export function PivotTable({
                       key={`total_${colIdx}_${fn}`}
                       data-testid={`pivot-column-total-cell-${colIdx}-${fn}`}
                       data-drilldown-cell
-                      className="border-r border-gray-200 dark:border-neutral-700 px-2 py-1 text-sm text-right"
+                      className="border-r border-border px-2 py-1 text-sm text-right"
                       onDoubleClick={(event) => onAggregateCellDoubleClick?.(
                         Object.fromEntries(
                           pivotData.colFields.map((field) => [field, colVal]),
@@ -338,7 +338,7 @@ export function PivotTable({
                       key={`grand_${fn}`}
                       data-testid={`pivot-grand-total-cell-${fn}`}
                       data-drilldown-cell
-                      className="border-r border-gray-200 dark:border-neutral-700 bg-gray-200 dark:bg-neutral-700 px-2 py-1 text-sm text-right font-bold"
+                      className="border-r border-border bg-muted px-2 py-1 text-sm text-right font-bold"
                       onDoubleClick={(event) => onAggregateCellDoubleClick?.({}, event)}
                     >
                       {renderAggregateValue(grandTotal?.[fn])}
@@ -351,7 +351,7 @@ export function PivotTable({
       </div>
 
       {/* Footer */}
-      <div className="wcdv-table-footer flex items-center border-t border-gray-200 dark:border-neutral-700 bg-gray-50 dark:bg-neutral-800 px-3 py-1.5 text-xs text-gray-500 dark:text-neutral-400">
+      <div className="wcdv-table-footer flex items-center border-t border-border bg-muted px-3 py-1.5 text-xs text-muted-foreground">
         <span>
           {rowVals.length} {t('TABLE.ROWS') || 'rows'} × {colVals.length}{' '}
           {t('TABLE.COLUMNS') || 'columns'}

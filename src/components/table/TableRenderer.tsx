@@ -327,7 +327,7 @@ export function TableRenderer({
   // No data yet
   if (!viewData) {
     return (
-      <div className="flex items-center justify-center h-full text-sm text-gray-400 dark:text-neutral-500 py-12">
+      <div className="flex items-center justify-center h-full text-sm text-muted-foreground py-12">
         {t('TABLE.WAITING') || 'Waiting for data…'}
       </div>
     );
