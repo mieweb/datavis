@@ -8,6 +8,7 @@
  */
 
 import { Select } from '@mieweb/ui/components/Select';
+import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 // ───────────────────────────────────────────────────────────
@@ -59,6 +60,12 @@ export function LanguageSelector({
   className,
 }: LanguageSelectorProps) {
   const { t, i18n } = useTranslation();
+
+  useEffect(() => {
+    if (value && i18n.language !== value) {
+      void i18n.changeLanguage(value);
+    }
+  }, [i18n, value]);
 
   const handleChange = (code: string) => {
     i18n.changeLanguage(code);
