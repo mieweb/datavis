@@ -12,6 +12,8 @@ import {
   ClipboardList,
   FileText,
   GripVertical,
+  Pin,
+  PinOff,
   RefreshCw,
   Search,
   Send,
@@ -59,6 +61,11 @@ export function UserIcon({ className }: MiewebIconProps) {
 
 export function BellIcon({ className }: MiewebIconProps) {
   return <Bell className={iconClassName(className)} aria-hidden="true" />;
+}
+
+export function PinIcon({ className, pinned = false }: MiewebIconProps & { pinned?: boolean }) {
+  const Icon = pinned ? PinOff : Pin;
+  return <Icon className={iconClassName(className)} aria-hidden="true" />;
 }
 
 export function RefreshGlyphIcon({ className }: MiewebIconProps) {

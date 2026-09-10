@@ -201,7 +201,7 @@ The feature is intentionally visual-only and plain-mode-only. It is hidden and c
 | `PlainToolbar` | Auto show-more, show all, columns, templates, row mode, auto resize |
 | `GroupToolbar` | Group mode toggle, total row, expand all, pin groups |
 | `PivotToolbar` | Show totals, pin groups, hide zero values, templates |
-| `PrefsToolbar` | Perspective reset, back/forward, perspective dropdown, save/rename/delete |
+| `PrefsToolbar` | Perspective reset, back/forward, dropdown, pinned shortcuts, save/rename/delete |
 
 ---
 

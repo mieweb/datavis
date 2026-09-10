@@ -1,7 +1,8 @@
 /**
  * PrefsToolbar — Perspective management controls in the title bar.
  *
- * Controls: Reset, Back, Forward, Perspective dropdown, Save As, Save,
+ * Controls: Reset, Back, Forward, Perspective dropdown and pinned pills,
+ * Save As, Save,
  * Rename, Delete.
  */
 
@@ -14,15 +15,28 @@ import { Tooltip } from '@mieweb/ui/components/Tooltip';
 
 import { useTranslation } from 'react-i18next';
 import { usePrefs, type PrefsInstance } from '../../adapters/use-prefs';
-import { ChevronGlyphIcon, ClipboardIcon, CloseGlyphIcon, DocumentIcon, RefreshGlyphIcon } from '../ui';
+import {
+  ChevronGlyphIcon,
+  ClipboardIcon,
+  CloseGlyphIcon,
+  DocumentIcon,
+  PinIcon,
+  RefreshGlyphIcon,
+} from '../ui';
+import {
+  PinnedPerspectivePills,
+  usePinnedPerspectiveNames,
+} from './PinnedPerspectivePills';
 
 export interface PrefsToolbarProps {
   prefs: PrefsInstance;
   onOpenPerspective?: () => void;
+  /** Whether pinned shortcuts render inside this toolbar. */
+  showPinnedPerspectives?: boolean;
   /**
    * Layout of the toolbar.
-   * - `inline` (default): perspective dropdown and buttons on a single row.
-   * - `stacked`: perspective dropdown on its own row, buttons on the row beneath.
+    * - `inline` (default): perspective controls and buttons on a single row.
+    * - `stacked`: perspective controls on their own row, buttons beneath.
    */
   layout?: 'inline' | 'stacked';
 }
@@ -69,7 +83,12 @@ function translateOrFallback(t: (key: string) => string, key: string, fallback: 
   return translated;
 }
 
-export function PrefsToolbar({ prefs, onOpenPerspective, layout = 'inline' }: PrefsToolbarProps) {
+export function PrefsToolbar({
+  prefs,
+  onOpenPerspective,
+  showPinnedPerspectives = true,
+  layout = 'inline',
+}: PrefsToolbarProps) {
   const { t } = useTranslation();
   const {
     perspectives,
@@ -91,6 +110,10 @@ export function PrefsToolbar({ prefs, onOpenPerspective, layout = 'inline' }: Pr
   const currentPerspective = useMemo(
     () => perspectives.find((p) => p.id === currentPerspectiveId),
     [perspectives, currentPerspectiveId],
+  );
+  const { names: pinnedPerspectiveNames, toggle: togglePerspectivePin } = usePinnedPerspectiveNames(
+    prefs,
+    perspectives,
   );
   const [isRenameOpen, setIsRenameOpen] = useState(false);
   const [renameDraft, setRenameDraft] = useState('');
@@ -159,10 +182,15 @@ export function PrefsToolbar({ prefs, onOpenPerspective, layout = 'inline' }: Pr
         return;
       }
 
-      if (promptResult.value?.trim()) addPerspective(promptResult.value);
+      if (promptResult.value.trim()) addPerspective(promptResult.value);
     } else {
       selectPerspective(value);
     }
+  };
+
+  const toggleCurrentPerspectivePin = () => {
+    if (!currentPerspective) return;
+    togglePerspectivePin(currentPerspective.name);
   };
 
   const startRename = () => {
@@ -245,28 +273,65 @@ export function PrefsToolbar({ prefs, onOpenPerspective, layout = 'inline' }: Pr
     </>
   );
 
-  // Perspective dropdown
+  const isCurrentPerspectivePinned = Boolean(
+    currentPerspective && pinnedPerspectiveNames.includes(currentPerspective.name),
+  );
+
   const perspectiveSelect = perspectives.length > 0 ? (
-    <Select
-      size="sm"
-      hideLabel
-      label={t('GRID_TOOLBAR.PREFS.PERSPECTIVE') || 'Perspective'}
+    <div
       className="min-w-[12rem]"
-      options={[
-        {
-          value: '__NEW__',
-          label: t('GRID_TOOLBAR.PREFS.NEW_PERSPECTIVE') || '+ New Perspective',
-        },
-        ...perspectives.map((p) => ({
-          value: p.id,
-          label: isUnsaved && p.id === currentPerspectiveId
-            ? `[*] ${p.name}`
-            : p.name,
-        })),
-      ]}
-      value={currentPerspectiveId ?? ''}
-      onValueChange={handlePerspectiveChange}
-    />
+      onMouseDown={(event) => event.stopPropagation()}
+      onTouchStart={(event) => event.stopPropagation()}
+    >
+      <Select
+        size="sm"
+        hideLabel
+        label={t('GRID_TOOLBAR.PREFS.PERSPECTIVE') || 'Perspective'}
+        options={[
+          {
+            value: '__NEW__',
+            label: t('GRID_TOOLBAR.PREFS.NEW_PERSPECTIVE') || '+ New Perspective',
+          },
+          ...perspectives.map((perspective) => ({
+            value: perspective.id,
+            label: isUnsaved && perspective.id === currentPerspectiveId
+              ? `[*] ${perspective.name}`
+              : perspective.name,
+          })),
+        ]}
+        value={currentPerspectiveId ?? ''}
+        onValueChange={handlePerspectiveChange}
+      />
+    </div>
+  ) : null;
+
+  const pinLabel = currentPerspective
+    ? `${translateOrFallback(
+      t,
+      isCurrentPerspectivePinned ? 'GRID_TOOLBAR.PREFS.UNPIN' : 'GRID_TOOLBAR.PREFS.PIN',
+      isCurrentPerspectivePinned ? 'Unpin' : 'Pin',
+    )} ${currentPerspective.name}`
+    : '';
+
+  const perspectiveControls = perspectiveSelect ? (
+    <div className="wcdv-perspective-controls flex shrink-0 items-center gap-1">
+      {showPinnedPerspectives && <PinnedPerspectivePills prefs={prefs} />}
+      {perspectiveSelect}
+      {currentPerspective && (
+        <Tooltip content={pinLabel}>
+          <Button
+            size="sm"
+            variant="ghost"
+            className="shrink-0"
+            aria-label={pinLabel}
+            aria-pressed={isCurrentPerspectivePinned}
+            onClick={toggleCurrentPerspectivePin}
+          >
+            <PinIcon pinned={isCurrentPerspectivePinned} />
+          </Button>
+        </Tooltip>
+      )}
+    </div>
   ) : null;
 
   const trailingButtons = (
@@ -383,8 +448,11 @@ export function PrefsToolbar({ prefs, onOpenPerspective, layout = 'inline' }: Pr
 
   if (layout === 'stacked') {
     return (
-      <div className="wcdv-prefs-toolbar flex flex-col gap-1" aria-label={ariaLabel}>
-        {perspectiveSelect}
+      <div
+        className="wcdv-prefs-toolbar flex min-w-0 max-w-full flex-col gap-1 overflow-x-auto"
+        aria-label={ariaLabel}
+      >
+        {perspectiveControls}
         <div className="flex items-center gap-1" role="toolbar" aria-label={ariaLabel}>
           {leadingButtons}
           {trailingButtons}
@@ -395,12 +463,12 @@ export function PrefsToolbar({ prefs, onOpenPerspective, layout = 'inline' }: Pr
 
   return (
     <div
-      className="wcdv-prefs-toolbar flex items-center gap-1"
+      className="wcdv-prefs-toolbar flex min-w-0 w-full max-w-full items-center gap-1 overflow-x-auto md:w-auto"
       role="toolbar"
       aria-label={ariaLabel}
     >
       {leadingButtons}
-      {perspectiveSelect}
+      {perspectiveControls}
       {trailingButtons}
     </div>
   );

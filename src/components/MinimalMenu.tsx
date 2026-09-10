@@ -19,6 +19,8 @@ import type { PrefsInstance } from '../adapters/use-prefs';
 
 export interface MinimalMenuProps {
   prefs?: PrefsInstance;
+  /** Whether pinned perspective shortcuts render inside the menu. */
+  showPinnedPerspectives?: boolean;
   onToggleControls: () => void;
   onRefresh: () => void;
   onOpenPerspective?: () => void;
@@ -42,6 +44,7 @@ export interface MinimalMenuProps {
 
 export function MinimalMenu({
   prefs,
+  showPinnedPerspectives = true,
   onToggleControls,
   onRefresh,
   onOpenPerspective,
@@ -112,7 +115,12 @@ export function MinimalMenu({
 
           {/* Rows 2 & 3 — perspective dropdown + perspective buttons */}
           {prefs && (
-            <PrefsToolbar prefs={prefs} onOpenPerspective={closeThen(onOpenPerspective)} layout="stacked" />
+            <PrefsToolbar
+              prefs={prefs}
+              onOpenPerspective={closeThen(onOpenPerspective)}
+              showPinnedPerspectives={showPinnedPerspectives}
+              layout="stacked"
+            />
           )}
         </DropdownContent>
       </Dropdown>

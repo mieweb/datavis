@@ -30,6 +30,7 @@ interface RawPerspective {
 }
 
 export interface PrefsInstance extends EventEmitter {
+  name?: string;
   isPrimed?: boolean;
   reset(): void;
   back(): void;

@@ -16,6 +16,7 @@ export {
   DoubleChevronGlyphIcon,
   DragHandleIcon,
   HelpIcon,
+  PinIcon,
   RefreshGlyphIcon,
   SearchIcon,
   SendGlyphIcon,

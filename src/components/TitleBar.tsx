@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 import type { ReactNode } from 'react';
 import { HelpIcon, InlineActionButton } from './ui';
 import { PrefsToolbar } from './toolbars/PrefsToolbar';
+import { PinnedPerspectivePills } from './toolbars/PinnedPerspectivePills';
 import { TitleBarActions } from './TitleBarActions';
 import { MinimalMenu } from './MinimalMenu';
 import type { PrefsInstance } from '../adapters/use-prefs';
@@ -35,8 +36,7 @@ export interface TitleBarProps {
    */
   variant?: 'full' | 'default';
   /** Custom actions rendered in the title bar, right-aligned before the
-      built-in controls. Kept on one line alongside the inline toolbar or
-      hamburger menu — the title bar never wraps. */
+      built-in controls. Kept on one line on medium and wider screens. */
   titleActions?: ReactNode;
   onToggle: () => void;
   onToggleControls: () => void;
@@ -81,7 +81,7 @@ export function TitleBar({
 
   return (
     <div
-      className={`wcdv-title-bar flex items-center gap-2 px-3 ${isDefault ? 'py-0.5' : 'py-2'} bg-muted border-b border-border rounded-t-lg`}
+      className={`wcdv-title-bar flex flex-wrap items-center gap-2 px-3 md:flex-nowrap ${isDefault ? 'py-0.5' : 'py-2'} bg-muted border-b border-border rounded-t-lg`}
       role="group"
       aria-label={title}
     >
@@ -149,6 +149,10 @@ export function TitleBar({
         </Tooltip>
       )}
 
+      <span className="wcdv-title-perspectives flex min-w-0 items-center overflow-x-auto">
+        {prefs && <PinnedPerspectivePills prefs={prefs} />}
+      </span>
+
       {/* Spacer */}
       <span className="flex-1" />
 
@@ -163,7 +167,11 @@ export function TitleBar({
         controlsVisible ? (
           <div className="flex items-center gap-2">
             {prefs && (
-              <PrefsToolbar prefs={prefs} onOpenPerspective={onOpenPerspective} />
+              <PrefsToolbar
+                prefs={prefs}
+                onOpenPerspective={onOpenPerspective}
+                showPinnedPerspectives={false}
+              />
             )}
             <TitleBarActions
               collapsed={collapsed}
@@ -179,6 +187,7 @@ export function TitleBar({
           <MinimalMenu
             floating={false}
             prefs={prefs}
+            showPinnedPerspectives={false}
             showCollapse
             collapsed={collapsed}
             onToggle={onToggle}
@@ -192,7 +201,11 @@ export function TitleBar({
       ) : (
         <>
           {prefs && (
-            <PrefsToolbar prefs={prefs} onOpenPerspective={onOpenPerspective} />
+            <PrefsToolbar
+              prefs={prefs}
+              onOpenPerspective={onOpenPerspective}
+              showPinnedPerspectives={false}
+            />
           )}
 
           <TitleBarActions
