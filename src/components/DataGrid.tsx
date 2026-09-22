@@ -29,6 +29,7 @@ import { toLegacyAggregateSpec } from '../adapters/wcdatavis-interop';
 import { ASSISTANT_SPEC_CHANGE_EVENT, ASSISTANT_GLOBAL_SEARCH_EVENT, registerAssistantEvents } from '../assistant/grid-tools';
 import { useTranslation } from 'react-i18next';
 import { LocaleProvider } from '../i18n';
+import { PinnedPerspectivePersistenceProvider } from './toolbars/PinnedPerspectivePills';
 import { COLUMN_DRAG_MIME } from './controls/column-drag';
 import { TitleBar } from './TitleBar';
 import { MinimalMenu } from './MinimalMenu';
@@ -248,6 +249,12 @@ export interface DataGridProps {
   autoFetch?: boolean;
   /** Optional Prefs instance for perspective management */
   prefs?: PrefsInstance;
+  /**
+   * Whether pinned-perspective names may persist to localStorage. Set to `false`
+   * on untrusted/public devices so pins stay in memory for the session only
+   * (mirrors a `temporary` Prefs backend). Defaults to `true`.
+   */
+  persistPinnedPerspectives?: boolean;
   /** Grid table definition */
   tableDef?: GridTableDef;
   /** Grid title */
@@ -370,6 +377,7 @@ export function DataGrid({
   view,
   autoFetch = true,
   prefs,
+  persistPinnedPerspectives = true,
   tableDef,
   title = '',
   helpText,
@@ -1533,6 +1541,7 @@ export function DataGrid({
   const gridTableId = `wcdv-grid-table-${title?.replace(/\s+/g, '-') || 'main'}`;
 
   return (
+    <PinnedPerspectivePersistenceProvider value={persistPinnedPerspectives}>
     <LocaleProvider value={locale}>
     <div
       className={`wcdv-grid flex flex-col border border-border rounded-lg bg-card shadow-sm dark:shadow-none ${className}`}
@@ -1711,5 +1720,6 @@ export function DataGrid({
       )}
     </div>
     </LocaleProvider>
+    </PinnedPerspectivePersistenceProvider>
   );
 }

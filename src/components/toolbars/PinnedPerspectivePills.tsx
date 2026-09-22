@@ -1,4 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { badgeVariants } from '@mieweb/ui/components/Badge';
 import { useTranslation } from 'react-i18next';
 
@@ -10,6 +17,14 @@ import {
 
 const STORAGE_PREFIX = 'mieweb-datavis:pinned-perspectives';
 const CHANGE_EVENT = 'mieweb-datavis:pinned-perspectives-change';
+
+// Whether pinned-perspective names may be persisted to localStorage. When false
+// (an untrusted/public device), pins stay in memory for the session only and are
+// never read from or written to storage — mirroring the Prefs `temporary`
+// backend so the device-trust gate covers pins too. Provided by `DataGrid`.
+const PinPersistenceContext = createContext(true);
+export const PinnedPerspectivePersistenceProvider =
+  PinPersistenceContext.Provider;
 
 function getStorageKey(prefs: PrefsInstance): string {
   return `${STORAGE_PREFIX}:${prefs.name?.trim() || 'default'}`;
@@ -29,13 +44,21 @@ function readNames(storageKey: string): string[] {
   }
 }
 
-function writeNames(storageKey: string, names: string[]): void {
+function writeNames(
+  storageKey: string,
+  names: string[],
+  persist: boolean,
+): void {
   if (typeof window === 'undefined') return;
-  try {
-    window.localStorage.setItem(storageKey, JSON.stringify(names));
-  } catch {
-    // Pinning remains available for the current session when storage is blocked.
+  if (persist) {
+    try {
+      window.localStorage.setItem(storageKey, JSON.stringify(names));
+    } catch {
+      // Pinning remains available for the current session when storage is blocked.
+    }
   }
+  // Dispatched even when not persisting so multiple pill instances (title bar +
+  // prefs toolbar) stay in sync within the session.
   window.dispatchEvent(new CustomEvent(CHANGE_EVENT, {
     detail: { storageKey, names },
   }));
@@ -44,13 +67,16 @@ function writeNames(storageKey: string, names: string[]): void {
 export function usePinnedPerspectiveNames(
   prefs: PrefsInstance,
   perspectives: PerspectiveInfo[],
+  persist = true,
 ) {
   const storageKey = useMemo(() => getStorageKey(prefs), [prefs]);
-  const [names, setNames] = useState<string[]>(() => readNames(storageKey));
+  const [names, setNames] = useState<string[]>(() =>
+    persist ? readNames(storageKey) : [],
+  );
 
   useEffect(() => {
-    setNames(readNames(storageKey));
-  }, [storageKey]);
+    setNames(persist ? readNames(storageKey) : []);
+  }, [storageKey, persist]);
 
   useEffect(() => {
     const handleChange = (event: Event) => {
@@ -62,12 +88,13 @@ export function usePinnedPerspectiveNames(
     };
 
     window.addEventListener(CHANGE_EVENT, handleChange);
-    window.addEventListener('storage', handleStorage);
+    // Cross-tab sync is only meaningful when pins are actually persisted.
+    if (persist) window.addEventListener('storage', handleStorage);
     return () => {
       window.removeEventListener(CHANGE_EVENT, handleChange);
-      window.removeEventListener('storage', handleStorage);
+      if (persist) window.removeEventListener('storage', handleStorage);
     };
-  }, [storageKey]);
+  }, [storageKey, persist]);
 
   useEffect(() => {
     if (perspectives.length === 0) return;
@@ -75,29 +102,30 @@ export function usePinnedPerspectiveNames(
     const validNames = names.filter((name) => availableNames.has(name));
     if (validNames.length === names.length) return;
     setNames(validNames);
-    writeNames(storageKey, validNames);
-  }, [names, perspectives, storageKey]);
+    writeNames(storageKey, validNames, persist);
+  }, [names, perspectives, storageKey, persist]);
 
   const toggle = useCallback((name: string) => {
     const nextNames = names.includes(name)
       ? names.filter((currentName) => currentName !== name)
       : [...names, name];
     setNames(nextNames);
-    writeNames(storageKey, nextNames);
-  }, [names, storageKey]);
+    writeNames(storageKey, nextNames, persist);
+  }, [names, storageKey, persist]);
 
   return { names, toggle };
 }
 
 export function PinnedPerspectivePills({ prefs }: { prefs: PrefsInstance }) {
   const { t } = useTranslation();
+  const persist = useContext(PinPersistenceContext);
   const {
     perspectives,
     currentPerspectiveId,
     isUnsaved,
     selectPerspective,
   } = usePrefs(prefs);
-  const { names } = usePinnedPerspectiveNames(prefs, perspectives);
+  const { names } = usePinnedPerspectiveNames(prefs, perspectives, persist);
   const pinnedPerspectives = perspectives.filter((perspective) => names.includes(perspective.name));
 
   if (pinnedPerspectives.length === 0) return null;
