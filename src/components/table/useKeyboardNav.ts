@@ -13,14 +13,26 @@ import type { TableRow, SelectionState } from './types';
 const PAGE_SIZE = 10;
 
 /**
- * Scroll the active row into view within the table container.
+ * Elements that consume keystrokes themselves. The nav binds bare letters (j/k), Space, Enter,
+ * Home and End, so any of these inside a cell would otherwise be unusable from the keyboard.
  */
-function scrollActiveRowIntoView(rowNum: number) {
+const INTERACTIVE_CONTENT =
+  'a[href], button, input, select, textarea, [contenteditable]:not([contenteditable="false"])';
+
+/**
+ * Scroll the active row into view within the table container.
+ *
+ * Scoped to the grid that owns the event when a container is supplied. Row numbers restart at 0 in
+ * every grid, so a document-wide lookup finds the first match on the page rather than this grid's.
+ */
+function scrollActiveRowIntoView(
+  rowNum: number,
+  container?: HTMLElement | null,
+) {
   // Defer to allow React to render the new selection state first
   requestAnimationFrame(() => {
-    const el = document.querySelector<HTMLElement>(
-      `[data-row-num="${rowNum}"]`,
-    );
+    const root: ParentNode = container ?? document;
+    const el = root.querySelector<HTMLElement>(`[data-row-num="${rowNum}"]`);
     el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   });
 }
@@ -30,10 +42,17 @@ export function useKeyboardNav(
   selection: SelectionState,
   onSelectionChange?: (selection: SelectionState) => void,
   onRowClick?: (row: TableRow, event: React.KeyboardEvent) => void,
+  containerRef?: React.RefObject<HTMLElement | null>,
 ) {
   const handleKeyDown = useCallback(
     (event: React.KeyboardEvent) => {
       if (rows.length === 0) return;
+
+      // Let interactive cell content handle its own keys. Without this, Enter on an in-cell link
+      // activates the row instead of following the link, and typing "j" in an in-cell input moves
+      // the selection instead of typing a letter.
+      const target = event.target as HTMLElement | null;
+      if (target?.closest?.(INTERACTIVE_CONTENT)) return;
 
       const { activeRow } = selection;
       let nextRow: number | null = null;
@@ -126,10 +145,10 @@ export function useKeyboardNav(
             : new Set([nextRow]),
         };
         onSelectionChange?.(newSelection);
-        scrollActiveRowIntoView(nextRow);
+        scrollActiveRowIntoView(nextRow, containerRef?.current);
       }
     },
-    [rows, selection, onSelectionChange, onRowClick],
+    [rows, selection, onSelectionChange, onRowClick, containerRef],
   );
 
   return { handleKeyDown };
