@@ -87,6 +87,18 @@ export {
   type TableRendererProps,
 } from './table/TableRenderer';
 
+// Chat display mode — plain rows rendered as SuperChat messages
+export {
+  DataVisNitroChat,
+  buildChatConversation,
+  resolveChatFieldMap,
+  DEFAULT_CHAT_FIELD_CANDIDATES,
+  type ChatConversationModel,
+  type ChatFieldMap,
+  type ResolvedChatFieldMap,
+  type DataVisNitroChatProps,
+} from './chat';
+
 // Export utilities
 export { rowsToCsv, downloadCsv, copyToClipboard, buildCsvFilename } from './export-utils';
 export { buildGraphModel, getSupportedChartTypes } from './graph';

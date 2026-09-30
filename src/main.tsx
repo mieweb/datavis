@@ -16,6 +16,7 @@ import { DataGrid } from './components/DataGrid';
 import type { GridMode } from './components/DataGrid';
 import { GraphView } from './components/GraphView';
 import { TableRenderer } from './components/table/TableRenderer';
+import { DataVisNitroChat } from './components/chat';
 import type { TableColumn } from './components/table/types';
 import type { ColumnFilterConfig } from './components/filters/types';
 import type { GraphConfig } from './components/graph';
@@ -50,13 +51,14 @@ import {
   SIMPLE_DATA, SIMPLE_COLUMNS, SIMPLE_FILTERS,
   generateWideData, WIDE_COLUMNS, WIDE_FILTERS,
   generateLedgerData, LEDGER_COLUMNS, LEDGER_FILTERS,
+  CHAT_DATA, CHAT_COLUMNS,
 } from './demo/data';
 
 // ───────────────────────────────────────────────────────────
 // Tab definitions
 // ───────────────────────────────────────────────────────────
 
-type TabKey = 'simple' | 'wide' | 'large' | 'constrained' | 'graph-only';
+type TabKey = 'simple' | 'wide' | 'large' | 'constrained' | 'graph-only' | 'chat';
 
 interface TabDef {
   key: TabKey;
@@ -70,6 +72,7 @@ const TABS: TabDef[] = [
   { key: 'large', label: 'Large (5K rows)', badge: '5 000 rows × 33 cols' },
   { key: 'constrained', label: 'Constrained', badge: '500px container' },
   { key: 'graph-only', label: 'Graph Only', badge: 'Grouped average(salary)' },
+  { key: 'chat', label: 'Chat', badge: 'Rows as messages' },
 ];
 
 const DEFAULT_GRAPH_CONFIGS: Record<TabKey, Partial<GraphConfig>> = {
@@ -78,6 +81,7 @@ const DEFAULT_GRAPH_CONFIGS: Record<TabKey, Partial<GraphConfig>> = {
   large: { chartType: 'bar' },
   constrained: { chartType: 'bar' },
   'graph-only': { chartType: 'bar', xField: 'department' },
+  chat: { chartType: 'bar' },
 };
 
 const PREFS_LOCAL_STORAGE_KEY = 'WC_DataVis_NITRO_Prefs';
@@ -426,12 +430,74 @@ function GraphOnlyDemo({
 }
 
 // ───────────────────────────────────────────────────────────
+// ChatDemo — plain rows rendered as SuperChat messages
+// ───────────────────────────────────────────────────────────
+
+function ChatDemo({
+  title,
+  helpText,
+  data,
+  columns,
+}: {
+  title: string;
+  helpText: string;
+  data: Record<string, unknown>[];
+  columns: TableColumn[];
+}) {
+  const view = useMemo(() => createMockView(data, columns), [columns, data]);
+  const viewState = useView(view);
+  const [showTable, setShowTable] = useState(false);
+
+  return (
+    <div className="space-y-4">
+      <section className="rounded-lg border border-border bg-card p-4">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">{title}</h2>
+            <p className="mt-1 text-sm text-muted-foreground">{helpText}</p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowTable((open) => !open)}
+            aria-pressed={showTable}
+            className="shrink-0 inline-flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-indigo-600 border border-indigo-300 rounded-md hover:bg-indigo-50 transition-colors"
+          >
+            {showTable ? 'Show as chat' : 'Show source rows'}
+          </button>
+        </div>
+      </section>
+
+      {showTable ? (
+        <div className="rounded-lg border border-border bg-card p-2">
+          <TableRenderer
+            viewData={viewState.data}
+            columns={columns}
+            totalRows={data.length}
+            features={{ stickyHeaders: true, zebraStripe: true }}
+          />
+        </div>
+      ) : (
+        <div className="rounded-lg border border-border bg-card p-2">
+          <DataVisNitroChat
+            viewData={viewState.data}
+            columns={columns}
+            title={title}
+            currentSender="Dr. Alice Nguyen"
+            className="h-[32rem]"
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ───────────────────────────────────────────────────────────
 // App — tabbed demo
 // ───────────────────────────────────────────────────────────
 
 function getTabFromHash(): TabKey {
   const hash = window.location.hash.replace('#', '').toLowerCase();
-  if (hash === 'wide' || hash === 'large' || hash === 'constrained' || hash === 'graph-only') return hash;
+  if (hash === 'wide' || hash === 'large' || hash === 'constrained' || hash === 'graph-only' || hash === 'chat') return hash;
   return 'simple';
 }
 
@@ -645,6 +711,15 @@ function App() {
             columns={SIMPLE_COLUMNS}
             graphConfig={graphConfigs['graph-only']}
             onGraphConfigChange={(config) => handleGraphConfigChange('graph-only', config)}
+          />
+        )}
+
+        {activeTab === 'chat' && (
+          <ChatDemo
+            title="Care Team Thread"
+            helpText="Plain table rows rendered as SuperChat messages instead of grid rows. The 'sender' field becomes each bubble's author, 'message' is rendered as Markdown, 'sentAt' orders the thread, and 'kind' distinguishes clinicians from the triage agent. Toggle 'Show source rows' to see the underlying table."
+            data={CHAT_DATA}
+            columns={CHAT_COLUMNS}
           />
         )}
       </main>

@@ -14,6 +14,7 @@ unchanged so the `ui` catalog crosslinks and grouping stay intact.
 | `DataVisNITRO.stories.tsx` | `grids-datavis-nitro` | Components/Grids/DataVis NITRO |
 | `DataVisNITRO.demo.stories.tsx` | `grids-datavis-nitro-demos` | Components/Grids/DataVis NITRO Demos |
 | `DataVisNitroGraph.stories.tsx` | `grids-datavis-nitro-graph` | Components/Grids/DataVis NITRO Graph |
+| `DataVisChat.stories.tsx` | `grids-datavis-chat` | Components/Grids/DataVis Chat |
 
 Sample datasets (`/sample-data.json`, `/sample-graph-data.json`) are served from
 the top-level Storybook's `public/` directory.

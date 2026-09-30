@@ -400,3 +400,38 @@ export const LEDGER_FILTERS: ColumnFilterConfig[] = [
   { field: 'itemCategory', displayName: 'Item Category', filterType: 'string', widget: 'dropdown', options: ITEM_CATEGORIES, visible: true },
   { field: 'warehouse', displayName: 'Warehouse', filterType: 'string', widget: 'dropdown', options: WAREHOUSES, visible: true },
 ];
+
+// ───────────────────────────────────────────────────────────
+// 4. Chat dataset — plain rows rendered as SuperChat messages
+//    Demonstrates the "chat" display mode: `sender` becomes the
+//    bubble author, `message` is Markdown content, `sentAt` orders
+//    the thread, and `kind` classifies human vs. agent speakers.
+// ───────────────────────────────────────────────────────────
+
+export const CHAT_DATA = [
+  { msgId: 'm1', sender: 'Dr. Alice Nguyen', kind: 'human', role: 'Attending', channel: 'portal', sentAt: '2026-05-04T09:01:00', message: 'Morning team — reviewing **Mr. Patel\u2019s** overnight labs now. Anything flagged?' },
+  { msgId: 'm2', sender: 'Triage Bot', kind: 'agent', role: 'Triage', channel: 'auto', sentAt: '2026-05-04T09:01:20', message: 'Overnight summary:\n\n- Potassium `5.6 mmol/L` (high)\n- BP trending down: 118/74 \u2192 104/66\n\nRecommend a repeat BMP.' },
+  { msgId: 'm3', sender: 'Nurse Bob Reyes', kind: 'human', role: 'Charge RN', channel: 'portal', sentAt: '2026-05-04T09:03:10', message: 'Repeat BMP is already drawn, results pending. Patient is asymptomatic, resting comfortably.' },
+  { msgId: 'm4', sender: 'Dr. Alice Nguyen', kind: 'human', role: 'Attending', channel: 'portal', sentAt: '2026-05-04T09:05:42', message: 'Good. Hold the morning ACE inhibitor until the repeat `K+` is back. Let\u2019s recheck telemetry too.' },
+  { msgId: 'm5', sender: 'Triage Bot', kind: 'agent', role: 'Triage', channel: 'auto', sentAt: '2026-05-04T09:06:05', message: 'Order drafted: **Hold lisinopril \u00d71 dose**. Telemetry review scheduled for 09:30. Confirm to send.' },
+  { msgId: 'm6', sender: 'Nurse Bob Reyes', kind: 'human', role: 'Charge RN', channel: 'sms', sentAt: '2026-05-04T09:07:31', message: 'Confirmed and acknowledged. I\u2019ll page you the moment the repeat panel resulting.' },
+  { msgId: 'm7', sender: 'Dr. Alice Nguyen', kind: 'human', role: 'Attending', channel: 'portal', sentAt: '2026-05-04T09:08:00', message: 'Thanks both. Great catch on the potassium trend. \ud83d\udc4d' },
+];
+
+export const CHAT_COLUMNS: TableColumn[] = [
+  { field: 'msgId', header: 'ID', width: 70, sortable: true, resizable: true },
+  { field: 'sender', header: 'Sender', width: 160, sortable: true, resizable: true },
+  { field: 'kind', header: 'Kind', width: 90, sortable: true, resizable: true },
+  { field: 'role', header: 'Role', width: 110, sortable: true, resizable: true },
+  { field: 'channel', header: 'Channel', width: 100, sortable: true, resizable: true },
+  { field: 'sentAt', header: 'Sent', width: 160, sortable: true, resizable: true, typeInfo: { type: 'date' } },
+  { field: 'message', header: 'Message', width: 360, sortable: false, resizable: true },
+];
+
+export const CHAT_FILTERS: ColumnFilterConfig[] = [
+  { field: 'sender', displayName: 'Sender', filterType: 'string', widget: 'textbox', visible: true },
+  { field: 'kind', displayName: 'Kind', filterType: 'string', widget: 'dropdown', options: ['human', 'agent', 'system'], visible: true },
+  { field: 'channel', displayName: 'Channel', filterType: 'string', widget: 'dropdown', options: ['portal', 'sms', 'voicemail', 'auto'], visible: true },
+  { field: 'sentAt', displayName: 'Sent', filterType: 'date', visible: true },
+  { field: 'message', displayName: 'Message', filterType: 'string', widget: 'textbox', visible: true },
+];

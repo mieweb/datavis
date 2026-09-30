@@ -422,5 +422,8 @@
   "TEMPLATE_EDITOR.TITLE": "Template Editor",
   "TABLE.COLLAPSE_DETAIL": "Collapse row details",
   "TABLE.EXPAND_DETAIL": "Expand row details",
-  "TABLE.TOGGLE_ALL_DETAILS": "Toggle all row details"
+  "TABLE.TOGGLE_ALL_DETAILS": "Toggle all row details",
+  "CHAT.EMPTY": "No messages to display.",
+  "CHAT.PLAIN_ONLY": "Chat mode shows plain rows as messages. Clear grouping and pivoting to view the conversation.",
+  "CHAT.TITLE": "Conversation"
 }
