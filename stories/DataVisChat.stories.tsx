@@ -211,6 +211,13 @@ Special field meanings are resolved from the column names or overridden with \`f
 ### Don't use it when
 
 - The data is grouped or pivoted — chat mode only renders plain rows and shows a placeholder otherwise. Clear grouping/pivoting first, or use \`TableRenderer\`.
+- Users need to compose, reply to, or edit messages — this adapter is **read-only** (it always renders SuperChat with \`readOnly\` and exposes no send/edit callbacks). Use [SuperChat](?path=/docs/superchat-superchat-panel--docs) directly with your own \`onMessageSent\` / \`onMessageEdited\` handlers.
+- Users need to sort, filter, compare columns, or export the rows — keep the [DataVis NITRO grid](?path=/docs/grids-datavis-nitro--docs). Chat mode shows only the sender, message, and time; every other column is dropped from view.
+
+### Related components
+
+- [DataVis NITRO](?path=/docs/grids-datavis-nitro--docs) — the default grid over the same view. Offer both and let users toggle: the grid for analysis, chat mode for reading the thread in order.
+- [SuperChat](?path=/docs/superchat-superchat-panel--docs) — the conversation surface this adapter renders into. Choose it when the host owns a live conversation model rather than a DataVis view.
 
 ### Example
 
@@ -225,6 +232,20 @@ import { DataVisNitroChat } from '@mieweb/datavis';
 />
 \`\`\``,
       },
+    },
+    catalog: {
+      relationships: [
+        {
+          type: 'alternative to',
+          target: 'grids-datavis-nitro',
+          why: 'Same plain view, read as a time-ordered conversation instead of sortable, filterable rows; keep the grid for analysis and export.',
+        },
+        {
+          type: 'uses',
+          target: 'superchat-superchat-panel',
+          why: 'Renders rows through SuperChat in readOnly mode; use SuperChat directly when users must compose or edit messages.',
+        },
+      ],
     },
   },
 };

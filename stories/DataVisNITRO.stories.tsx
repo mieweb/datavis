@@ -85,6 +85,7 @@ Browsing, sorting, filtering, grouping and exporting record sets without writing
 
 - The data is a handful of static rows shown for reading (a summary block, a definition list) — use \`Table\`.
 - You need a chart rather than rows — use \`DataVisNitroGraph\` on the same source, or \`Sparkline\` for an inline strip.
+- The rows are a conversation (care-team messages, a support log) that users read in order — render the same plain view with [DataVisNitroChat](?path=/docs/grids-datavis-chat--docs), optionally as a toggle beside the grid.
 - You're on a size-critical surface that must never load the grid engine — NITRO is a heavy opt-in chunk behind the \`@mieweb/ui/datavis\` entry (\`@mieweb/datavis\` and \`recharts\` are bundled in; \`datavis-ace\` is a dependency), so import it only where a grid is actually rendered.
 
 ### Example
@@ -129,6 +130,11 @@ The source owns the data lifecycle; the grid is presentational. Keep application
           type: 'alternative to',
           target: 'encounter-orders-webchartreportviewer',
           why: 'NITRO is the interactive grid for sorting, grouping and pivoting a dataset; WebChartReportViewer picks a backend-run report and shows its rows in a static Table.',
+        },
+        {
+          type: 'alternative to',
+          target: 'grids-datavis-chat',
+          why: 'DataVisNitroChat reads the same plain view as a read-only, time-ordered conversation; NITRO when users sort, filter or export.',
         },
         {
           type: 'composes with',
