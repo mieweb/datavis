@@ -15,9 +15,13 @@ export default defineConfig({
   },
   build: {
     lib: {
-      entry: path.resolve(__dirname, 'src/index.ts'),
+      // `chat` is its own entry: it pulls in SuperChat and its Markdown peers.
+      entry: {
+        'datavis-react': path.resolve(__dirname, 'src/index.ts'),
+        chat: path.resolve(__dirname, 'src/chat.ts'),
+      },
       formats: ['es'],
-      fileName: 'datavis-react',
+      fileName: (_format, entryName) => `${entryName}.js`,
     },
     rollupOptions: {
       external: [

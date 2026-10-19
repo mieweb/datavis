@@ -16,6 +16,10 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/datavis-react.js"
     },
+    "./chat": {
+      "types": "./dist/chat.d.ts",
+      "import": "./dist/chat.js"
+    },
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"
   },

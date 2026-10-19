@@ -10,6 +10,7 @@
   },
   "include": [
     "src/index.ts",
+    "src/chat.ts",
     "src/types/**/*.d.ts"
   ]
 }

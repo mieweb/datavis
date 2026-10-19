@@ -2,15 +2,14 @@ import { useContext, useEffect, useMemo } from 'react';
 import type { Decorator, Meta, StoryObj } from '@storybook/react-vite';
 import {
   DataGrid,
-  DataVisNitroChat,
   DataVisNitroContext,
   DataVisNitroSource,
   useView,
-  type ChatFieldMap,
   type TableColumn,
   type ViewData,
   type ViewInstance,
 } from '@mieweb/datavis';
+import { DataVisNitroChat, type ChatFieldMap } from '@mieweb/datavis/chat';
 
 // A plain (ungrouped, unpivoted) DataVis view: the chat display mode turns each
 // row into a message instead of a table row. Building the ViewData literal by
@@ -227,8 +226,10 @@ Special field meanings are resolved from the column names or overridden with \`f
 
 ### Example
 
+Chat mode is an opt-in entry, \`@mieweb/datavis/chat\`, so grid-only apps never load SuperChat. It renders Markdown through SuperChat's default renderer, so install the \`react-markdown\`, \`remark-gfm\` and \`rehype-sanitize\` peers alongside \`@mieweb/ui\`.
+
 \`\`\`tsx
-import { DataVisNitroChat } from '@mieweb/datavis';
+import { DataVisNitroChat } from '@mieweb/datavis/chat';
 
 <DataVisNitroChat
   viewData={viewState.data}
@@ -240,7 +241,7 @@ import { DataVisNitroChat } from '@mieweb/datavis';
       },
     },
     catalog: {
-      entry: '@mieweb/datavis',
+      entry: '@mieweb/datavis/chat',
       // SuperChat's default Markdown renderer; optional peers of @mieweb/ui.
       peers: ['react-markdown', 'remark-gfm', 'rehype-sanitize'],
       relationships: [
