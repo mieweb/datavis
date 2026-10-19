@@ -28,9 +28,11 @@ const withExampleNote: Decorator = (Story, context) => {
   return (
     <div className="space-y-3">
       {note && (
-        <section className="rounded-lg border border-border bg-card p-4">
-          <h3 className="text-sm font-semibold text-foreground">{note.title}</h3>
-          <p className="mt-1 text-sm text-muted-foreground">{note.body}</p>
+        <section className="border-border bg-card rounded-lg border p-4">
+          <h3 className="text-foreground text-sm font-semibold">
+            {note.title}
+          </h3>
+          <p className="text-muted-foreground mt-1 text-sm">{note.body}</p>
         </section>
       )}
       <Story />
@@ -51,13 +53,75 @@ const CARE_TEAM_COLUMNS: TableColumn[] = [
 ];
 
 const CARE_TEAM_ROWS: Record<string, unknown>[] = [
-  { msgId: 'm1', sender: 'Dr. Alice Nguyen', kind: 'human', role: 'Attending', channel: 'portal', sentAt: '2026-05-04T09:01:00', message: 'Morning team — reviewing **Mr. Patel’s** overnight labs now. Anything flagged?' },
-  { msgId: 'm2', sender: 'Triage Bot', kind: 'agent', role: 'Triage', channel: 'auto', sentAt: '2026-05-04T09:01:20', message: 'Overnight summary:\n\n- Potassium `5.6 mmol/L` (high)\n- BP trending down: 118/74 → 104/66\n\nRecommend a repeat BMP.' },
-  { msgId: 'm3', sender: 'Nurse Bob Reyes', kind: 'human', role: 'Charge RN', channel: 'portal', sentAt: '2026-05-04T09:03:10', message: 'Repeat BMP is already drawn, results pending. Patient is asymptomatic, resting comfortably.' },
-  { msgId: 'm4', sender: 'Dr. Alice Nguyen', kind: 'human', role: 'Attending', channel: 'portal', sentAt: '2026-05-04T09:05:42', message: 'Good. Hold the morning ACE inhibitor until the repeat `K+` is back. Let’s recheck telemetry too.' },
-  { msgId: 'm5', sender: 'Triage Bot', kind: 'agent', role: 'Triage', channel: 'auto', sentAt: '2026-05-04T09:06:05', message: 'Order drafted: **Hold lisinopril ×1 dose**. Telemetry review scheduled for 09:30. Confirm to send.' },
-  { msgId: 'm6', sender: 'Nurse Bob Reyes', kind: 'human', role: 'Charge RN', channel: 'sms', sentAt: '2026-05-04T09:07:31', message: 'Confirmed and acknowledged. I’ll page you the moment the repeat panel resulting.' },
-  { msgId: 'm7', sender: 'Dr. Alice Nguyen', kind: 'human', role: 'Attending', channel: 'portal', sentAt: '2026-05-04T09:08:00', message: 'Thanks both. Great catch on the potassium trend. 👍' },
+  {
+    msgId: 'm1',
+    sender: 'Dr. Alice Nguyen',
+    kind: 'human',
+    role: 'Attending',
+    channel: 'portal',
+    sentAt: '2026-05-04T09:01:00',
+    message:
+      'Morning team — reviewing **Mr. Patel’s** overnight labs now. Anything flagged?',
+  },
+  {
+    msgId: 'm2',
+    sender: 'Triage Bot',
+    kind: 'agent',
+    role: 'Triage',
+    channel: 'auto',
+    sentAt: '2026-05-04T09:01:20',
+    message:
+      'Overnight summary:\n\n- Potassium `5.6 mmol/L` (high)\n- BP trending down: 118/74 → 104/66\n\nRecommend a repeat BMP.',
+  },
+  {
+    msgId: 'm3',
+    sender: 'Nurse Bob Reyes',
+    kind: 'human',
+    role: 'Charge RN',
+    channel: 'portal',
+    sentAt: '2026-05-04T09:03:10',
+    message:
+      'Repeat BMP is already drawn, results pending. Patient is asymptomatic, resting comfortably.',
+  },
+  {
+    msgId: 'm4',
+    sender: 'Dr. Alice Nguyen',
+    kind: 'human',
+    role: 'Attending',
+    channel: 'portal',
+    sentAt: '2026-05-04T09:05:42',
+    message:
+      'Good. Hold the morning ACE inhibitor until the repeat `K+` is back. Let’s recheck telemetry too.',
+  },
+  {
+    msgId: 'm5',
+    sender: 'Triage Bot',
+    kind: 'agent',
+    role: 'Triage',
+    channel: 'auto',
+    sentAt: '2026-05-04T09:06:05',
+    message:
+      'Order drafted: **Hold lisinopril ×1 dose**. Telemetry review scheduled for 09:30. Confirm to send.',
+  },
+  {
+    msgId: 'm6',
+    sender: 'Nurse Bob Reyes',
+    kind: 'human',
+    role: 'Charge RN',
+    channel: 'sms',
+    sentAt: '2026-05-04T09:07:31',
+    message:
+      'Confirmed and acknowledged. I’ll page you the moment the repeat panel resulting.',
+  },
+  {
+    msgId: 'm7',
+    sender: 'Dr. Alice Nguyen',
+    kind: 'human',
+    role: 'Attending',
+    channel: 'portal',
+    sentAt: '2026-05-04T09:08:00',
+    message: 'Thanks both. Great catch on the potassium trend. 👍',
+  },
 ];
 
 // ── Support log: fields have non-standard names, so the roles are wired up
@@ -81,16 +145,45 @@ const SUPPORT_FIELD_MAP: ChatFieldMap = {
 };
 
 const SUPPORT_ROWS: Record<string, unknown>[] = [
-  { ticketId: 'T-9001', who: 'Jordan Blake', persona: 'human', via: 'portal', when: '2026-06-12T14:20:00', body: 'The export button on the ledger grid does nothing when I click it. Running the latest build.' },
-  { ticketId: 'T-9002', who: 'Helpdesk Assistant', persona: 'agent', via: 'auto', when: '2026-06-12T14:20:30', body: 'Thanks Jordan. I see `export-utils` throwing on empty selections. Try selecting a row first — a fix is queued for the next release.' },
-  { ticketId: 'T-9003', who: 'Jordan Blake', persona: 'human', via: 'portal', when: '2026-06-12T14:23:12', body: 'That workaround does it. Exporting works after I select at least one row. Thank you!' },
-  { ticketId: 'T-9004', who: 'Helpdesk Assistant', persona: 'agent', via: 'auto', when: '2026-06-12T14:23:40', body: 'Glad it helped. I’ve linked this thread to issue **#520** so you’ll get an update when the empty-selection guard ships.' },
+  {
+    ticketId: 'T-9001',
+    who: 'Jordan Blake',
+    persona: 'human',
+    via: 'portal',
+    when: '2026-06-12T14:20:00',
+    body: 'The export button on the ledger grid does nothing when I click it. Running the latest build.',
+  },
+  {
+    ticketId: 'T-9002',
+    who: 'Helpdesk Assistant',
+    persona: 'agent',
+    via: 'auto',
+    when: '2026-06-12T14:20:30',
+    body: 'Thanks Jordan. I see `export-utils` throwing on empty selections. Try selecting a row first — a fix is queued for the next release.',
+  },
+  {
+    ticketId: 'T-9003',
+    who: 'Jordan Blake',
+    persona: 'human',
+    via: 'portal',
+    when: '2026-06-12T14:23:12',
+    body: 'That workaround does it. Exporting works after I select at least one row. Thank you!',
+  },
+  {
+    ticketId: 'T-9004',
+    who: 'Helpdesk Assistant',
+    persona: 'agent',
+    via: 'auto',
+    when: '2026-06-12T14:23:40',
+    body: 'Glad it helped. I’ve linked this thread to issue **#520** so you’ll get an update when the empty-selection guard ships.',
+  },
 ];
 
 const meta: Meta<typeof DataVisNitroChat> = {
   id: 'grids-datavis-chat',
   title: 'Components/Grids/DataVis Chat',
   component: DataVisNitroChat,
+  tags: ['autodocs', 'scope:general-purpose', 'maturity:experimental'],
   decorators: [withExampleNote],
   parameters: {
     layout: 'padded',

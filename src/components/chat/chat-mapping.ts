@@ -106,11 +106,6 @@ function resolveTime(value: unknown, fallbackIndex: number): Date | string {
   return new Date(Date.UTC(2000, 0, 1) + fallbackIndex * 60_000);
 }
 
-function participantIdFor(senderName: string): string {
-  const slug = normalizeKey(senderName);
-  return slug ? `sender-${slug}` : 'sender-unknown';
-}
-
 export interface ChatConversationModel {
   participants: Participant[];
   thread: SuperChatMessage[];
@@ -129,20 +124,22 @@ export function buildChatConversation(
     : [];
 
   const participants: Participant[] = [];
-  const participantsById = new Map<string, Participant>();
+  // Keyed by the exact sender name; ids are opaque so distinct names never collide.
+  const participantIdBySender = new Map<string, string>();
   const thread: SuperChatMessage[] = [];
 
   rows.forEach((row, index) => {
     const senderName = fieldMap.sender ? toStringValue(row[fieldMap.sender]) : '';
     const displayName = senderName.trim() || 'Unknown';
-    const participantId = participantIdFor(displayName);
+    let participantId = participantIdBySender.get(displayName);
 
-    if (!participantsById.has(participantId)) {
+    if (participantId === undefined) {
+      participantId = `sender-${participantIdBySender.size}`;
       const participant: Participant = {
         id: participantId,
         name: displayName,
         kind: fieldMap.kind ? resolveKind(row[fieldMap.kind]) : 'human',
-        color: PARTICIPANT_COLORS[participantsById.size % PARTICIPANT_COLORS.length],
+        color: PARTICIPANT_COLORS[participantIdBySender.size % PARTICIPANT_COLORS.length],
       };
       if (fieldMap.role) {
         const role = toStringValue(row[fieldMap.role]).trim();
@@ -152,7 +149,7 @@ export function buildChatConversation(
         const avatar = toStringValue(row[fieldMap.avatar]).trim();
         if (avatar) participant.avatar = avatar;
       }
-      participantsById.set(participantId, participant);
+      participantIdBySender.set(displayName, participantId);
       participants.push(participant);
     }
 
