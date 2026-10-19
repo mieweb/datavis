@@ -18,7 +18,11 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { SuperChat } from '@mieweb/ui/components/SuperChat';
 
-import { buildChatConversation, resolveChatFieldMap } from './chat-mapping';
+import {
+  buildChatConversation,
+  findParticipantIdBySender,
+  resolveChatFieldMap,
+} from './chat-mapping';
 import type { DataVisNitroChatProps } from './types';
 
 export function DataVisNitroChat({
@@ -47,13 +51,10 @@ export function DataVisNitroChat({
     };
   }, [viewData, resolvedFieldMap, title, t]);
 
-  const currentParticipantId = useMemo(() => {
-    if (!currentSender) return undefined;
-    const normalizedTarget = currentSender.trim().toLowerCase();
-    return conversation.participants.find(
-      (participant) => participant.name.trim().toLowerCase() === normalizedTarget,
-    )?.id;
-  }, [conversation.participants, currentSender]);
+  const currentParticipantId = useMemo(
+    () => findParticipantIdBySender(conversation.participants, currentSender),
+    [conversation.participants, currentSender],
+  );
 
   if (viewData && !viewData.isPlain) {
     return (
@@ -80,12 +81,16 @@ export function DataVisNitroChat({
   }
 
   return (
-    <div data-slot="datavis-chat" className={className}>
+    <div
+      data-slot="datavis-chat"
+      className={['flex min-h-0 flex-col', className].filter(Boolean).join(' ')}
+    >
       <SuperChat
         conversation={conversation}
         currentParticipantId={currentParticipantId}
         order={order}
         readOnly
+        className="min-h-0"
       />
     </div>
   );
@@ -94,3 +99,6 @@ export function DataVisNitroChat({
 // Explicit displayName so tooling (e.g. Storybook's JSX source) shows
 // `<DataVisNitroChat>` instead of the minified function name from the built bundle.
 DataVisNitroChat.displayName = 'DataVisNitroChat';
+
+// A transcript has no "show more" control, so <DataGrid> passes every row.
+DataVisNitroChat.rendersAllRows = true;

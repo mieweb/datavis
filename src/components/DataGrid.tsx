@@ -63,6 +63,9 @@ import {
 
 const DEFAULT_ROW_BATCH_SIZE = 100;
 
+// Stable default for omitted array props; a fresh `[]` per render re-fires effects keyed on them.
+const EMPTY_ARRAY: never[] = [];
+
 function limitPlainViewData(viewData: ViewData | null, visibleRowCount: number): ViewData | null {
   if (!viewData?.isPlain || !Array.isArray(viewData.data)) {
     return viewData;
@@ -386,7 +389,7 @@ export function DataGrid({
   mode = 'default',
   minimalMode = false,
   height,
-  operations = [],
+  operations = EMPTY_ARRAY,
   onToggle,
   className = '',
   children,
@@ -396,18 +399,18 @@ export function DataGrid({
   locale,
   debug: _debug = false,
   preserveChildViewData = false,
-  filterColumns = [],
-  allColumns = [],
-  controlFields = [],
-  aggregateFields = [],
-  aggregateFunctions = [],
+  filterColumns = EMPTY_ARRAY,
+  allColumns = EMPTY_ARRAY,
+  controlFields = EMPTY_ARRAY,
+  aggregateFields = EMPTY_ARRAY,
+  aggregateFunctions = EMPTY_ARRAY,
   columnConfigs: columnConfigsProp,
   onColumnConfigSave,
   templates: _templates = {},
   onTemplateSave: _onTemplateSave,
   displayFormat,
   onDisplayFormatSave,
-  groupFunctionDefs = [],
+  groupFunctionDefs = EMPTY_ARRAY,
   onGroupFunctionSelect,
 }: DataGridProps) {
   // ── i18n via react-i18next ─
@@ -1095,9 +1098,12 @@ export function DataGrid({
       }
 
       const childProps = child.props as Partial<TableRendererProps>;
+      const childViewData = (child.type as { rendersAllRows?: boolean }).rendersAllRows
+        ? visuallyFilteredViewData
+        : limitedViewData;
 
       return cloneElement(child as React.ReactElement<TableRendererProps>, {
-        viewData: preserveChildViewData && childProps.viewData !== undefined ? childProps.viewData : limitedViewData,
+        viewData: preserveChildViewData && childProps.viewData !== undefined ? childProps.viewData : childViewData,
         dateFormats,
         onDateFormatChange: handleDateFormatChange,
         globalSearchQuery,
@@ -1148,6 +1154,7 @@ export function DataGrid({
     [
       children,
       limitedViewData,
+      visuallyFilteredViewData,
       rowBatchSize,
       autoShowMore,
       preserveChildViewData,

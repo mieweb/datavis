@@ -54,7 +54,8 @@ export interface DataVisNitroChatProps {
   title?: string;
   /**
    * The participant treated as the local user (right-aligned bubbles). Matched
-   * against the resolved sender value. Defaults to no local user.
+   * exactly (after trimming) against the resolved sender value, the same
+   * identity rule used to group participants. Defaults to no local user.
    */
   currentSender?: string;
   /** Thread order: `asc` (oldest→newest, default) or `desc` (feed style). */

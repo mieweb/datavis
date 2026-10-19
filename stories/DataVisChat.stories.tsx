@@ -1,9 +1,15 @@
+import { useContext, useEffect, useMemo } from 'react';
 import type { Decorator, Meta, StoryObj } from '@storybook/react-vite';
 import {
+  DataGrid,
   DataVisNitroChat,
+  DataVisNitroContext,
+  DataVisNitroSource,
+  useView,
   type ChatFieldMap,
   type TableColumn,
   type ViewData,
+  type ViewInstance,
 } from '@mieweb/datavis';
 
 // A plain (ungrouped, unpivoted) DataVis view: the chat display mode turns each
@@ -234,6 +240,9 @@ import { DataVisNitroChat } from '@mieweb/datavis';
       },
     },
     catalog: {
+      entry: '@mieweb/datavis',
+      // SuperChat's default Markdown renderer; optional peers of @mieweb/ui.
+      peers: ['react-markdown', 'remark-gfm', 'rehype-sanitize'],
       relationships: [
         {
           type: 'alternative to',
@@ -338,4 +347,94 @@ export const NonPlaceholderData: Story = {
     },
     columns: CARE_TEAM_COLUMNS,
   },
+};
+
+// ── Long thread: more rows than DataGrid's default 100-row batch. ───────────────
+const LONG_THREAD_SENDERS = [
+  'Dr. Alice Nguyen',
+  'Nurse Bob Reyes',
+  'Triage Bot',
+];
+const LONG_THREAD_ROWS: Record<string, unknown>[] = Array.from(
+  { length: 150 },
+  (_, index) => ({
+    msgId: `long-${index + 1}`,
+    sender: LONG_THREAD_SENDERS[index % LONG_THREAD_SENDERS.length],
+    kind: index % LONG_THREAD_SENDERS.length === 2 ? 'agent' : 'human',
+    sentAt: new Date(Date.UTC(2026, 4, 4, 9, 0) + index * 60_000).toISOString(),
+    message: `Message **${index + 1}** of 150`,
+  })
+);
+const LONG_THREAD_COLUMNS: TableColumn[] = [
+  { field: 'msgId', header: 'Msg ID' },
+  { field: 'sender', header: 'Sender' },
+  { field: 'kind', header: 'Kind' },
+  { field: 'sentAt', header: 'Sent', typeInfo: { type: 'date' } },
+  { field: 'message', header: 'Message' },
+];
+const LONG_THREAD_TYPE_INFO = LONG_THREAD_COLUMNS.map(({ field }) => ({
+  field,
+  type: 'string',
+}));
+
+function ChatInDataGrid() {
+  const view = useContext(DataVisNitroContext);
+  return view ? <ChatInDataGridInner view={view} /> : null;
+}
+
+function ChatInDataGridInner({ view }: { view: ViewInstance }) {
+  const viewState = useView(view, false);
+  return (
+    <DataGrid
+      view={view}
+      autoFetch={false}
+      allColumns={LONG_THREAD_COLUMNS}
+      title="Long Thread"
+      showControls={false}
+    >
+      <DataVisNitroChat
+        viewData={viewState.data}
+        columns={LONG_THREAD_COLUMNS}
+        currentSender="Dr. Alice Nguyen"
+        className="h-[32rem]"
+      />
+    </DataGrid>
+  );
+}
+
+function LongThreadDataset() {
+  const varName = useMemo(() => {
+    const name = `__datavis_chat_story_${Math.random().toString(36).slice(2)}`;
+    (window as unknown as Record<string, unknown>)[name] = {
+      typeInfo: LONG_THREAD_TYPE_INFO,
+      data: LONG_THREAD_ROWS,
+    };
+    return name;
+  }, []);
+  useEffect(
+    () => () => {
+      delete (window as unknown as Record<string, unknown>)[varName];
+    },
+    [varName]
+  );
+  return (
+    <DataVisNitroSource type="local" varName={varName}>
+      <ChatInDataGrid />
+    </DataVisNitroSource>
+  );
+}
+
+/**
+ * Inside `<DataGrid>`, chat mode bypasses the grid's 100-row batch so all 150
+ * messages render, scrolling within the fixed-height panel.
+ */
+export const LongThreadInDataGrid: Story = {
+  name: 'Long Thread in DataGrid',
+  parameters: {
+    exampleNote: {
+      title: 'More than 100 messages inside DataGrid',
+      body: 'DataGrid normally hands table children only the first 100 rows and a "show more" control. A transcript has no such control, so DataGrid passes DataVisNitroChat every row: all 150 messages render, scrolling inside the h-[32rem] panel. The newest message (150) sits at the bottom.',
+    },
+  },
+  render: () => <LongThreadDataset />,
 };

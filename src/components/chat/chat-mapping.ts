@@ -111,6 +111,16 @@ export interface ChatConversationModel {
   thread: SuperChatMessage[];
 }
 
+/** Participant id for `sender`, using the same exact (trimmed) identity as {@link buildChatConversation}. */
+export function findParticipantIdBySender(
+  participants: Participant[],
+  sender: string | undefined,
+): string | undefined {
+  const target = sender?.trim();
+  if (!target) return undefined;
+  return participants.find((participant) => participant.name === target)?.id;
+}
+
 /**
  * Build the SuperChat `{ participants, thread }` model from plain view rows.
  * Returns empty collections when the data is missing or not plain.

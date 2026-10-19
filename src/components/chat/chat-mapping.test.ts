@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { NormalizedViewData } from '../../adapters/wcdatavis-interop';
-import { buildChatConversation } from './chat-mapping';
+import { buildChatConversation, findParticipantIdBySender } from './chat-mapping';
 
 function plainView(rows: Record<string, unknown>[]): NormalizedViewData {
   return { isPlain: true, isGroup: false, isPivot: false, data: rows };
@@ -40,5 +40,27 @@ describe('buildChatConversation', () => {
       participants[1].id,
       participants[0].id,
     ]);
+  });
+});
+
+describe('findParticipantIdBySender', () => {
+  const { participants } = buildChatConversation(
+    plainView([
+      { sender: 'Alice', message: 'one' },
+      { sender: 'alice', message: 'two' },
+    ]),
+    fieldMap,
+  );
+
+  it('matches case-distinct senders exactly', () => {
+    expect(participants).toHaveLength(2);
+    expect(findParticipantIdBySender(participants, 'alice')).toBe(participants[1].id);
+    expect(findParticipantIdBySender(participants, 'Alice')).toBe(participants[0].id);
+  });
+
+  it('trims the requested sender and ignores blanks', () => {
+    expect(findParticipantIdBySender(participants, '  alice ')).toBe(participants[1].id);
+    expect(findParticipantIdBySender(participants, '  ')).toBeUndefined();
+    expect(findParticipantIdBySender(participants, 'ALICE')).toBeUndefined();
   });
 });
