@@ -24,6 +24,19 @@ export interface ChatFieldMap {
   time?: string;
   /** Field whose value is a stable message id (defaults to the row id). */
   id?: string;
+  /**
+   * Field whose value is the id of this message's parent (its `messageId`).
+   * When present, the conversation renders as a collapsible tree: messages that
+   * share a `parentMessageId` are nested under it, ordered by `time`. Rows with
+   * no parent (or an unknown parent) are top-level roots.
+   */
+  parentId?: string;
+  /**
+   * Field whose value names the room/topic a message belongs to. When present,
+   * rows are grouped into one conversation per distinct room, listed in a
+   * SuperChat conversation list above the (optionally threaded) messages.
+   */
+  room?: string;
   /** Field whose value is the speaker's sub-label / role (e.g. "Triage"). */
   role?: string;
   /** Field whose value is the speaker's avatar image URL. */
@@ -50,8 +63,22 @@ export interface DataVisNitroChatProps {
    * available columns using {@link DEFAULT_CHAT_FIELD_CANDIDATES}.
    */
   fieldMap?: ChatFieldMap;
-  /** Conversation title shown in the SuperChat header. */
+  /**
+   * Conversation title shown in the SuperChat header. Ignored when rows are
+   * grouped into rooms — each room's header shows its room name instead.
+   */
   title?: string;
+  /**
+   * Group rows into rooms/topics when a `room` field is available, showing a
+   * conversation list (one entry per room) beside the active room's messages.
+   * Defaults to `true`; set `false` to render every row as one conversation.
+   */
+  showRooms?: boolean;
+  /**
+   * Room selected on first render, matched exactly (after trimming) against the
+   * room value. Defaults to the most recently active room.
+   */
+  defaultActiveRoom?: string;
   /**
    * The participant treated as the local user (right-aligned bubbles). Matched
    * exactly (after trimming) against the resolved sender value, the same
@@ -60,6 +87,17 @@ export interface DataVisNitroChatProps {
   currentSender?: string;
   /** Thread order: `asc` (oldest→newest, default) or `desc` (feed style). */
   order?: 'asc' | 'desc';
+  /**
+   * Threaded (tree) rendering, used when a `parentId` field is available:
+   * - `'auto'` (default) — render the collapsible tree only when at least one
+   *   message actually references a parent; otherwise fall back to the flat
+   *   SuperChat thread.
+   * - `true` — always render the threaded tree when a `parentId` field exists.
+   * - `false` — never thread; always render the flat SuperChat thread.
+   */
+  threaded?: 'auto' | boolean;
+  /** Collapse every thread with replies on first render. Defaults to `false`. */
+  defaultCollapsed?: boolean;
   /** Additional class name forwarded to the SuperChat container. */
   className?: string;
 }

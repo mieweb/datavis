@@ -1,7 +1,13 @@
 import { describe, expect, it } from 'vitest';
 
 import type { NormalizedViewData } from '../../adapters/wcdatavis-interop';
-import { buildChatConversation, findParticipantIdBySender } from './chat-mapping';
+import {
+  buildChatConversation,
+  buildChatRooms,
+  findParticipantIdBySender,
+  findRoomIdByName,
+  resolveChatFieldMap,
+} from './chat-mapping';
 
 function plainView(rows: Record<string, unknown>[]): NormalizedViewData {
   return { isPlain: true, isGroup: false, isPivot: false, data: rows };
@@ -62,5 +68,73 @@ describe('findParticipantIdBySender', () => {
     expect(findParticipantIdBySender(participants, '  alice ')).toBe(participants[1].id);
     expect(findParticipantIdBySender(participants, '  ')).toBeUndefined();
     expect(findParticipantIdBySender(participants, 'ALICE')).toBeUndefined();
+  });
+});
+
+describe('resolveChatFieldMap', () => {
+  it('auto-detects a room/topic column without stealing the delivery channel', () => {
+    const resolved = resolveChatFieldMap([
+      { field: 'Topic', header: 'Topic' },
+      { field: 'channel', header: 'Channel' },
+      { field: 'sender', header: 'Sender' },
+    ]);
+
+    expect(resolved.room).toBe('Topic');
+    expect(resolved.channel).toBe('channel');
+  });
+});
+
+describe('buildChatRooms', () => {
+  const roomFieldMap = { ...fieldMap, room: 'room', time: 'time', id: 'id', parentId: 'parentId' };
+  const rows = [
+    { id: 'a1', room: 'Bed 12', sender: 'Alice', message: 'labs?', time: '2026-05-04T09:00:00Z' },
+    { id: 'b1', room: 'Bed 14', sender: 'Bob', message: 'discharge', time: '2026-05-04T09:10:00Z' },
+    { id: 'a2', room: 'Bed 12', sender: 'Bob', message: 'pending', time: '2026-05-04T09:01:00Z', parentId: 'a1' },
+    { id: 'g1', room: '  ', sender: 'Alice', message: 'hello all', time: '2026-05-04T08:00:00Z' },
+  ];
+
+  it('groups rows into one conversation per room, newest room first', () => {
+    const { rooms } = buildChatRooms(plainView(rows), roomFieldMap, 'General');
+
+    expect(rooms.map((room) => room.title)).toEqual(['Bed 14', 'Bed 12', 'General']);
+    expect(rooms[1].thread.map((m) => m.id)).toEqual(['a1', 'a2']);
+    expect(rooms[1].thread[1].parentId).toBe('a1');
+    expect(new Set(rooms.map((room) => room.id)).size).toBe(3);
+  });
+
+  it('shares participant ids across rooms and lists only each room’s speakers', () => {
+    const { participants, rooms } = buildChatRooms(plainView(rows), roomFieldMap, 'General');
+    const alice = participants.find((p) => p.name === 'Alice')!;
+
+    expect(participants.map((p) => p.name)).toEqual(['Alice', 'Bob']);
+    expect(rooms[0].participants.map((p) => p.name)).toEqual(['Bob']);
+    expect(rooms[1].participants.map((p) => p.name)).toEqual(['Alice', 'Bob']);
+    expect(rooms[2].thread[0].participantId).toBe(alice.id);
+    expect(rooms[1].thread[0].participantId).toBe(alice.id);
+  });
+
+  it('returns no rooms for non-plain data', () => {
+    const grouped = { isPlain: false, isGroup: true, isPivot: false, data: [] } as unknown as NormalizedViewData;
+    expect(buildChatRooms(grouped, roomFieldMap, 'General').rooms).toEqual([]);
+  });
+});
+
+describe('findRoomIdByName', () => {
+  const { rooms } = buildChatRooms(
+    plainView([
+      { room: 'Bed 12', sender: 'Alice', message: 'one' },
+      { room: 'bed 12', sender: 'Alice', message: 'two' },
+    ]),
+    { ...fieldMap, room: 'room' },
+    'General',
+  );
+
+  it('matches room names exactly after trimming', () => {
+    expect(rooms).toHaveLength(2);
+    const byTitle = Object.fromEntries(rooms.map((room) => [room.title, room.id]));
+    expect(findRoomIdByName(rooms, ' bed 12 ')).toBe(byTitle['bed 12']);
+    expect(findRoomIdByName(rooms, 'Bed 12')).toBe(byTitle['Bed 12']);
+    expect(findRoomIdByName(rooms, 'BED 12')).toBeUndefined();
+    expect(findRoomIdByName(rooms, '')).toBeUndefined();
   });
 });

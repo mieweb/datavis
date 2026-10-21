@@ -12,15 +12,25 @@
  *   - `message` → the Markdown message body
  *   - `time`    → the message timestamp (thread ordering)
  *   - `role` / `avatar` / `channel` / `kind` → participant + message metadata
+ *
+ * When a `parentId` field (e.g. `parentMessageId`) is present, replies are
+ * linked via each message's `parentId` and SuperChat renders them as a native
+ * collapsible reply tree (see its `threaded` / `defaultCollapsed` props).
+ *
+ * When a `room` field (e.g. `room` / `topic`) is present, rows are grouped into
+ * one conversation per room and rendered through SuperChatInbox: a conversation
+ * list of rooms above (beside) each room's — optionally threaded — messages.
  */
 
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { SuperChat } from '@mieweb/ui/components/SuperChat';
+import { SuperChat, SuperChatInbox } from '@mieweb/ui/components/SuperChat';
 
 import {
   buildChatConversation,
+  buildChatRooms,
   findParticipantIdBySender,
+  findRoomIdByName,
   resolveChatFieldMap,
 } from './chat-mapping';
 import type { DataVisNitroChatProps } from './types';
@@ -30,8 +40,12 @@ export function DataVisNitroChat({
   columns,
   fieldMap,
   title,
+  showRooms = true,
+  defaultActiveRoom,
   currentSender,
   order = 'asc',
+  threaded = 'auto',
+  defaultCollapsed = false,
   className,
 }: DataVisNitroChatProps) {
   const { t } = useTranslation();
@@ -40,20 +54,30 @@ export function DataVisNitroChat({
     () => resolveChatFieldMap(columns, fieldMap),
     [columns, fieldMap],
   );
+  const groupByRoom = showRooms && Boolean(resolvedFieldMap.room);
 
-  const conversation = useMemo(() => {
+  const model = useMemo(() => {
+    if (groupByRoom) {
+      const { participants, rooms } = buildChatRooms(
+        viewData,
+        resolvedFieldMap,
+        t('CHAT.UNTITLED_ROOM', { defaultValue: 'General' }),
+      );
+      return { kind: 'rooms' as const, participants, rooms, messageCount: rooms.reduce((n, room) => n + room.thread.length, 0) };
+    }
     const { participants, thread } = buildChatConversation(viewData, resolvedFieldMap);
-    return {
+    const conversation = {
       id: 'datavis-chat',
       title: title ?? t('CHAT.TITLE', { defaultValue: 'Conversation' }),
       participants,
       thread,
     };
-  }, [viewData, resolvedFieldMap, title, t]);
+    return { kind: 'single' as const, participants, conversation, messageCount: thread.length };
+  }, [groupByRoom, viewData, resolvedFieldMap, title, t]);
 
   const currentParticipantId = useMemo(
-    () => findParticipantIdBySender(conversation.participants, currentSender),
-    [conversation.participants, currentSender],
+    () => findParticipantIdBySender(model.participants, currentSender),
+    [model.participants, currentSender],
   );
 
   if (viewData && !viewData.isPlain) {
@@ -69,7 +93,7 @@ export function DataVisNitroChat({
     );
   }
 
-  if (conversation.thread.length === 0) {
+  if (model.messageCount === 0) {
     return (
       <div
         data-slot="datavis-chat-empty"
@@ -80,18 +104,39 @@ export function DataVisNitroChat({
     );
   }
 
+  // 'auto' defers to SuperChat's own detection (threads when any message has a
+  // parentId); an explicit boolean forces it on or off.
+  const threadedProp = threaded === 'auto' ? undefined : threaded;
+
   return (
     <div
       data-slot="datavis-chat"
       className={['flex min-h-0 flex-col', className].filter(Boolean).join(' ')}
     >
-      <SuperChat
-        conversation={conversation}
-        currentParticipantId={currentParticipantId}
-        order={order}
-        readOnly
-        className="min-h-0"
-      />
+      {model.kind === 'rooms' ? (
+        <SuperChatInbox
+          // Re-key on the requested room so changing `defaultActiveRoom` reselects.
+          key={defaultActiveRoom}
+          conversations={model.rooms}
+          defaultActiveConversationId={findRoomIdByName(model.rooms, defaultActiveRoom)}
+          currentParticipantId={currentParticipantId}
+          order={order}
+          threaded={threadedProp}
+          defaultCollapsed={defaultCollapsed}
+          readOnly
+          className="min-h-0 flex-1"
+        />
+      ) : (
+        <SuperChat
+          conversation={model.conversation}
+          currentParticipantId={currentParticipantId}
+          order={order}
+          threaded={threadedProp}
+          defaultCollapsed={defaultCollapsed}
+          readOnly
+          className="min-h-0"
+        />
+      )}
     </div>
   );
 }

@@ -184,6 +184,120 @@ const SUPPORT_ROWS: Record<string, unknown>[] = [
   },
 ];
 
+// ── Threaded thread: `messageId` + `parentMessageId` turn the flat rows into a
+//    collapsible reply tree. Siblings stay ordered by `sentAt`. ───────────────
+const THREADED_COLUMNS: TableColumn[] = [
+  { field: 'messageId', header: 'Msg ID', width: 80 },
+  { field: 'parentMessageId', header: 'Parent', width: 80 },
+  { field: 'sender', header: 'Sender', width: 150 },
+  { field: 'kind', header: 'Kind', width: 90 },
+  { field: 'role', header: 'Role', width: 110 },
+  { field: 'sentAt', header: 'Sent', width: 160, typeInfo: { type: 'date' } },
+  { field: 'message', header: 'Message', width: 360 },
+];
+
+const THREADED_ROWS: Record<string, unknown>[] = [
+  {
+    messageId: 'r1',
+    parentMessageId: '',
+    sender: 'Dr. Alice Nguyen',
+    kind: 'human',
+    role: 'Attending',
+    sentAt: '2026-05-04T09:01:00',
+    message:
+      'Kicking off rounds for **bed 12**. Overnight labs and telemetry, please.',
+  },
+  {
+    messageId: 'r2',
+    parentMessageId: 'r1',
+    sender: 'Triage Bot',
+    kind: 'agent',
+    role: 'Triage',
+    sentAt: '2026-05-04T09:01:30',
+    message: 'Labs: Potassium `5.6 mmol/L` (high), otherwise within range.',
+  },
+  {
+    messageId: 'r3',
+    parentMessageId: 'r2',
+    sender: 'Dr. Alice Nguyen',
+    kind: 'human',
+    role: 'Attending',
+    sentAt: '2026-05-04T09:02:10',
+    message: 'Hold the ACE inhibitor and repeat a BMP.',
+  },
+  {
+    messageId: 'r4',
+    parentMessageId: 'r3',
+    sender: 'Nurse Bob Reyes',
+    kind: 'human',
+    role: 'Charge RN',
+    sentAt: '2026-05-04T09:03:00',
+    message: 'BMP redrawn — results pending.',
+  },
+  {
+    messageId: 'r5',
+    parentMessageId: 'r1',
+    sender: 'Nurse Bob Reyes',
+    kind: 'human',
+    role: 'Charge RN',
+    sentAt: '2026-05-04T09:02:40',
+    message: 'Telemetry stable overnight, no ectopy.',
+  },
+  {
+    messageId: 'r6',
+    parentMessageId: '',
+    sender: 'Dr. Alice Nguyen',
+    kind: 'human',
+    role: 'Attending',
+    sentAt: '2026-05-04T09:05:00',
+    message: 'Separately — **bed 14** discharge paperwork status?',
+  },
+  {
+    messageId: 'r7',
+    parentMessageId: 'r6',
+    sender: 'Helpdesk Assistant',
+    kind: 'agent',
+    role: 'Coordinator',
+    sentAt: '2026-05-04T09:05:20',
+    message: 'Discharge summary drafted; awaiting your sign-off.',
+  },
+];
+
+// ── Rooms: a `room` column groups rows into one conversation per room/topic.
+//    Each room lists in the conversation list; its messages may be threaded. ──
+const ROOMS_COLUMNS: TableColumn[] = [
+  { field: 'room', header: 'Room', width: 120 },
+  ...THREADED_COLUMNS,
+];
+
+const ROOMS_ROWS: Record<string, unknown>[] = [
+  ...THREADED_ROWS.slice(0, 5).map((row) => ({ room: 'Bed 12', ...row })),
+  ...THREADED_ROWS.slice(5).map((row) => ({
+    room: 'Bed 14 discharge',
+    ...row,
+  })),
+  {
+    room: 'Pharmacy',
+    messageId: 'p1',
+    parentMessageId: '',
+    sender: 'PharmD Carla Ortiz',
+    kind: 'human',
+    role: 'Pharmacist',
+    sentAt: '2026-05-04T08:40:00',
+    message: 'Formulary swap approved: **amlodipine** for bed 9.',
+  },
+  {
+    room: 'Pharmacy',
+    messageId: 'p2',
+    parentMessageId: 'p1',
+    sender: 'Dr. Alice Nguyen',
+    kind: 'human',
+    role: 'Attending',
+    sentAt: '2026-05-04T08:42:00',
+    message: 'Thanks — updating the order now.',
+  },
+];
+
 const meta: Meta<typeof DataVisNitroChat> = {
   id: 'grids-datavis-chat',
   title: 'Components/Grids/DataVis Chat',
@@ -208,6 +322,8 @@ Special field meanings are resolved from the column names or overridden with \`f
 - \`time\` → the timestamp used to order the thread
 - \`kind\` → classifies the speaker as \`human\`, \`agent\`, or \`system\`
 - \`role\` / \`avatar\` / \`channel\` / \`id\` → participant sub-label, avatar, delivery channel, and message id
+- \`parentId\` → the replied-to message id; replies render as a collapsible reply tree
+- \`room\` → the room/topic a message belongs to; rows group into one conversation per room, listed in a conversation list (SuperChatInbox) above each room's messages
 
 ### Use it when
 
@@ -223,6 +339,7 @@ Special field meanings are resolved from the column names or overridden with \`f
 
 - [DataVis NITRO](?path=/docs/grids-datavis-nitro--docs) — the default grid over the same view. Offer both and let users toggle: the grid for analysis, chat mode for reading the thread in order.
 - [SuperChat](?path=/docs/superchat-superchat-panel--docs) — the conversation surface this adapter renders into. Choose it when the host owns a live conversation model rather than a DataVis view.
+- [SuperChat Inbox](?path=/docs/superchat-inbox--docs) — the conversation list + panel this adapter renders into when rows carry a \`room\` field. Choose it directly when the host owns live rooms and users must compose messages.
 
 ### Example
 
@@ -254,6 +371,11 @@ import { DataVisNitroChat } from '@mieweb/datavis/chat';
           type: 'uses',
           target: 'superchat-superchat-panel',
           why: 'Renders rows through SuperChat in readOnly mode; use SuperChat directly when users must compose or edit messages.',
+        },
+        {
+          type: 'uses',
+          target: 'superchat-inbox',
+          why: 'Groups rows by a room/topic field into a readOnly SuperChatInbox conversation list; use SuperChatInbox directly for live, composable rooms.',
         },
       ],
     },
@@ -438,4 +560,69 @@ export const LongThreadInDataGrid: Story = {
     },
   },
   render: () => <LongThreadDataset />,
+};
+
+/**
+ * With a `parentMessageId` field, replies nest under their parent as a
+ * collapsible tree. Siblings stay ordered by `sentAt`; click a chevron to
+ * collapse or expand a thread.
+ */
+export const ThreadedConversation: Story = {
+  parameters: {
+    exampleNote: {
+      title: 'Threaded replies (messageId + parentMessageId)',
+      body: 'When the data has messageId and parentMessageId, DataVisNitroChat sets each message’s parentId and SuperChat renders a native, indented, collapsible reply tree. Messages that share a parent stay ordered by sentAt, exactly as in the flat view. Click a chevron next to an author to collapse or expand that reply subtree — same native bubbles, avatars, and copy actions as the flat surface.',
+    },
+  },
+  args: {
+    viewData: plainView(THREADED_ROWS),
+    columns: THREADED_COLUMNS,
+    title: 'Care Team Thread (threaded)',
+    currentSender: 'Dr. Alice Nguyen',
+    className: 'h-[32rem]',
+  },
+};
+
+/**
+ * `defaultCollapsed` starts every thread with replies collapsed, showing just
+ * the roots with a "N replies" pill to expand.
+ */
+export const ThreadedCollapsed: Story = {
+  name: 'Threaded (collapsed by default)',
+  parameters: {
+    exampleNote: {
+      title: 'Collapsed on load (defaultCollapsed)',
+      body: 'Same threaded data, but defaultCollapsed tells SuperChat to collapse every thread with replies on first render — handy for long conversations. Each root shows a “N replies” pill; expand to drill in.',
+    },
+  },
+  args: {
+    viewData: plainView(THREADED_ROWS),
+    columns: THREADED_COLUMNS,
+    title: 'Care Team Thread (collapsed)',
+    currentSender: 'Dr. Alice Nguyen',
+    defaultCollapsed: true,
+    className: 'h-[32rem]',
+  },
+};
+
+/**
+ * With a `room` column, rows group into one conversation per room/topic. The
+ * conversation list shows each room (newest activity first); selecting one
+ * shows its messages, threaded when they carry a `parentMessageId`.
+ */
+export const RoomsWithThreads: Story = {
+  name: 'Rooms (conversation list + threads)',
+  parameters: {
+    exampleNote: {
+      title: 'Rooms / topics above threaded conversations',
+      body: 'A room column turns each distinct room value into an entry in the SuperChat conversation list. Selecting a room shows only its messages, and replies inside a room still nest as a collapsible tree. Senders keep the same accent color in every room. defaultActiveRoom="Bed 12" picks the initial room; otherwise the most recently active room opens.',
+    },
+  },
+  args: {
+    viewData: plainView(ROOMS_ROWS),
+    columns: ROOMS_COLUMNS,
+    currentSender: 'Dr. Alice Nguyen',
+    defaultActiveRoom: 'Bed 12',
+    className: 'h-[32rem]',
+  },
 };

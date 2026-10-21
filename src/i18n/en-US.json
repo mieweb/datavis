@@ -425,5 +425,6 @@
   "TABLE.TOGGLE_ALL_DETAILS": "Toggle all row details",
   "CHAT.EMPTY": "No messages to display.",
   "CHAT.PLAIN_ONLY": "Chat mode shows plain rows as messages. Clear grouping and pivoting to view the conversation.",
-  "CHAT.TITLE": "Conversation"
+  "CHAT.TITLE": "Conversation",
+  "CHAT.UNTITLED_ROOM": "General"
 }

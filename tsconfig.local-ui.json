@@ -1,0 +1,16 @@
+{
+  "//": "Typecheck against the sibling ui source (monorepo). Standalone builds use tsconfig.json against the published @mieweb/ui. noUnusedLocals is relaxed because ui source is stricter-checked by its own repo, not here.",
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "paths": {
+      "@/*": ["./src/*"],
+      "@mieweb/ui": ["../../src/index.ts"],
+      "@mieweb/ui/components/*": ["../../src/components/*"],
+      "@mieweb/ui/utils": ["../../src/utils/index.ts"],
+      "@mieweb/ui/datavis": ["../../src/datavis.ts"]
+    }
+  }
+}

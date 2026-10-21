@@ -2,6 +2,7 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import path from 'path';
+import { localUiAliases } from './vite.local-ui.mjs';
 
 export default defineConfig({
   plugins: [tailwindcss(), react()],
@@ -9,9 +10,10 @@ export default defineConfig({
     exclude: ['tests/e2e/**', 'node_modules/**'],
   },
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-    },
+    alias: [
+      { find: '@', replacement: path.resolve(__dirname, './src') },
+      ...localUiAliases(),
+    ],
   },
   build: {
     lib: {
