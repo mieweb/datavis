@@ -123,6 +123,8 @@ export interface ChatConversationModel {
 export interface ChatRoomsModel {
   participants: Participant[];
   rooms: SuperChatConversation[];
+  /** Room id → its trimmed room value (`''` for the untitled room), for drill-down filters. */
+  roomNameById: Record<string, string>;
 }
 
 /** Participant id for `sender`, using the same exact (trimmed) identity as {@link buildChatConversation}. */
@@ -239,6 +241,7 @@ export function buildChatRooms(
 ): ChatRoomsModel {
   const { participants, participantFor } = createParticipantRegistry(fieldMap);
   const rooms: SuperChatConversation[] = [];
+  const roomNameById: Record<string, string> = {};
   // Keyed by the exact room name ('' = untitled); ids are opaque like sender ids.
   const roomByName = new Map<string, SuperChatConversation>();
 
@@ -253,6 +256,7 @@ export function buildChatRooms(
         thread: [],
       };
       roomByName.set(roomName, room);
+      roomNameById[room.id] = roomName;
       rooms.push(room);
     }
 
@@ -263,8 +267,33 @@ export function buildChatRooms(
     room.thread.push(buildMessage(row, index, fieldMap, participant.id));
   });
 
+  // Pin each room's activity to its full thread so filtering a room's messages
+  // (e.g. by date bucket) never reorders the conversation list.
+  for (const room of rooms) {
+    const latest = latestMessageTime(room);
+    if (Number.isFinite(latest)) room.lastActivity = new Date(latest);
+  }
   rooms.sort((a, b) => latestMessageTime(b) - latestMessageTime(a));
-  return { participants, rooms };
+  return { participants, rooms, roomNameById };
+}
+
+/** Id of the conversation built by {@link buildAllRoomsConversation}. */
+export const ALL_ROOMS_ID = 'all-rooms';
+
+/**
+ * One conversation holding every room's messages — the complete, ungrouped
+ * list — with the same participants (ids and colors) as the rooms. Its latest
+ * activity equals the newest room's, and it is meant to be listed first.
+ */
+export function buildAllRoomsConversation(
+  { participants, rooms }: ChatRoomsModel,
+  title: string,
+): SuperChatConversation {
+  const thread = rooms.flatMap((room) => room.thread);
+  const conversation: SuperChatConversation = { id: ALL_ROOMS_ID, title, participants, thread };
+  const latest = rooms[0]?.lastActivity;
+  if (latest) conversation.lastActivity = latest;
+  return conversation;
 }
 
 /** Room id for `roomName`, using the same exact (trimmed) identity as {@link buildChatRooms}. */

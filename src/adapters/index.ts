@@ -63,6 +63,18 @@ export {
 } from './group-adapter';
 
 export {
+  RELATIVE_DATE_BUCKETS,
+  resolveRelativeDateRanges,
+  relativeDateBucketOf,
+  relativeDateBucketToFilter,
+  dateRangeToFilter,
+  type RelativeDateBucket,
+  type RelativeDateOptions,
+  type WeekStartDay,
+  type DateRange,
+} from './relative-date-groups';
+
+export {
   ordMapToColumnConfigs,
   ordMapToExtendedConfigs,
   columnConfigsToOrdMap,

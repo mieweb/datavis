@@ -36,7 +36,7 @@
     "build:js": "vite build",
     "build:types": "tsc -p tsconfig.build.json",
     "build:styles": "cp src/styles.css dist/styles.css",
-    "build:local-ui": "npm run build:clean && npm run build:js && tsc -p tsconfig.build.local-ui.json && npm run build:styles",
+    "build:local-ui": "npm run build:clean && npm run build:js && npm run typecheck:local-ui && tsc -p tsconfig.build.json --noCheck && npm run build:styles",
     "preview": "vite preview",
     "lint:eslint": "eslint src/",
     "lint:i18n": "node scripts/check-i18n-keys.mjs",

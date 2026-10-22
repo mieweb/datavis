@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import type { NormalizedViewData } from '../../adapters/wcdatavis-interop';
 import {
+  ALL_ROOMS_ID,
+  buildAllRoomsConversation,
   buildChatConversation,
   buildChatRooms,
   findParticipantIdBySender,
@@ -97,6 +99,7 @@ describe('buildChatRooms', () => {
     const { rooms } = buildChatRooms(plainView(rows), roomFieldMap, 'General');
 
     expect(rooms.map((room) => room.title)).toEqual(['Bed 14', 'Bed 12', 'General']);
+    expect(rooms[0].lastActivity).toEqual(new Date('2026-05-04T09:10:00Z'));
     expect(rooms[1].thread.map((m) => m.id)).toEqual(['a1', 'a2']);
     expect(rooms[1].thread[1].parentId).toBe('a1');
     expect(new Set(rooms.map((room) => room.id)).size).toBe(3);
@@ -116,6 +119,28 @@ describe('buildChatRooms', () => {
   it('returns no rooms for non-plain data', () => {
     const grouped = { isPlain: false, isGroup: true, isPivot: false, data: [] } as unknown as NormalizedViewData;
     expect(buildChatRooms(grouped, roomFieldMap, 'General').rooms).toEqual([]);
+  });
+});
+
+describe('buildAllRoomsConversation', () => {
+  const roomsModel = buildChatRooms(
+    plainView([
+      { id: 'a1', room: 'Bed 12', sender: 'Alice', message: 'one', time: '2026-05-04T09:00:00Z' },
+      { id: 'b1', room: 'Bed 14', sender: 'Bob', message: 'two', time: '2026-05-04T09:10:00Z' },
+      { id: 'a2', room: 'Bed 12', sender: 'Bob', message: 'three', time: '2026-05-04T09:05:00Z' },
+    ]),
+    { ...fieldMap, room: 'room', time: 'time', id: 'id' },
+    'General',
+  );
+
+  it('holds every room message with the shared participants', () => {
+    const all = buildAllRoomsConversation(roomsModel, 'All conversations');
+
+    expect(all.id).toBe(ALL_ROOMS_ID);
+    expect(all.title).toBe('All conversations');
+    expect(all.participants).toBe(roomsModel.participants);
+    expect(all.thread.map((m) => m.id).sort()).toEqual(['a1', 'a2', 'b1']);
+    expect(all.lastActivity).toEqual(new Date('2026-05-04T09:10:00Z'));
   });
 });
 

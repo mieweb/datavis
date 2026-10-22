@@ -1,5 +1,6 @@
 import { useContext, useEffect, useMemo } from 'react';
 import type { Decorator, Meta, StoryObj } from '@storybook/react-vite';
+import { fn } from 'storybook/test';
 import {
   DataGrid,
   DataVisNitroContext,
@@ -298,6 +299,128 @@ const ROOMS_ROWS: Record<string, unknown>[] = [
   },
 ];
 
+// ── Date buckets: messages spread over months, relative to a fixed "now"
+//    (Thursday 7 May 2026, 15:00) so the buckets are stable in the story. ────
+const BUCKETS_NOW = new Date(2026, 4, 7, 15, 0);
+
+const BUCKET_COLUMNS: TableColumn[] = [
+  { field: 'room', header: 'Room', width: 110 },
+  ...THREADED_COLUMNS,
+];
+
+const BUCKET_ROWS: Record<string, unknown>[] = [
+  {
+    room: 'Bed 12',
+    messageId: 'b1',
+    parentMessageId: '',
+    sender: 'Dr. Alice Nguyen',
+    kind: 'human',
+    role: 'Attending',
+    sentAt: '2025-11-18T10:00:00',
+    message: 'Admission note for **bed 12**: CKD stage 3, baseline K+ `4.8`.',
+  },
+  {
+    room: 'Bed 12',
+    messageId: 'b2',
+    parentMessageId: 'b1',
+    sender: 'Nurse Bob Reyes',
+    kind: 'human',
+    role: 'Charge RN',
+    sentAt: '2026-03-02T09:30:00',
+    message: 'Quarterly nephrology follow-up scheduled.',
+  },
+  {
+    room: 'Bed 12',
+    messageId: 'b3',
+    parentMessageId: '',
+    sender: 'Triage Bot',
+    kind: 'agent',
+    role: 'Triage',
+    sentAt: '2026-05-01T14:00:00',
+    message: 'Monthly labs: K+ `5.1 mmol/L` (borderline).',
+  },
+  {
+    room: 'Bed 12',
+    messageId: 'b4',
+    parentMessageId: '',
+    sender: 'Dr. Alice Nguyen',
+    kind: 'human',
+    role: 'Attending',
+    sentAt: '2026-05-04T09:01:00',
+    message: 'Kicking off rounds — overnight labs, please.',
+  },
+  {
+    room: 'Bed 12',
+    messageId: 'b5',
+    parentMessageId: 'b4',
+    sender: 'Triage Bot',
+    kind: 'agent',
+    role: 'Triage',
+    sentAt: '2026-05-04T09:01:30',
+    message: 'K+ `5.6 mmol/L` (high). Recommend a repeat BMP.',
+  },
+  {
+    room: 'Bed 12',
+    messageId: 'b6',
+    parentMessageId: 'b5',
+    sender: 'Nurse Bob Reyes',
+    kind: 'human',
+    role: 'Charge RN',
+    sentAt: '2026-05-05T08:00:00',
+    message: 'Repeat BMP drawn; holding the ACE inhibitor.',
+  },
+  {
+    room: 'Bed 12',
+    messageId: 'b7',
+    parentMessageId: '',
+    sender: 'Dr. Alice Nguyen',
+    kind: 'human',
+    role: 'Attending',
+    sentAt: '2026-05-07T08:15:00',
+    message: 'Repeat K+ `4.9` — resume the ACE inhibitor.',
+  },
+  {
+    room: 'Bed 12',
+    messageId: 'b8',
+    parentMessageId: 'b7',
+    sender: 'Nurse Bob Reyes',
+    kind: 'human',
+    role: 'Charge RN',
+    sentAt: '2026-05-07T08:20:00',
+    message: 'Resumed and documented.',
+  },
+  {
+    room: 'Pharmacy',
+    messageId: 'p1',
+    parentMessageId: '',
+    sender: 'PharmD Carla Ortiz',
+    kind: 'human',
+    role: 'Pharmacist',
+    sentAt: '2026-02-10T13:00:00',
+    message: 'Q1 formulary update is live.',
+  },
+  {
+    room: 'Pharmacy',
+    messageId: 'p2',
+    parentMessageId: '',
+    sender: 'PharmD Carla Ortiz',
+    kind: 'human',
+    role: 'Pharmacist',
+    sentAt: '2026-05-06T11:00:00',
+    message: 'Formulary swap approved: **amlodipine** for bed 9.',
+  },
+  {
+    room: 'Pharmacy',
+    messageId: 'p3',
+    parentMessageId: 'p2',
+    sender: 'Dr. Alice Nguyen',
+    kind: 'human',
+    role: 'Attending',
+    sentAt: '2026-05-06T11:05:00',
+    message: 'Thanks — updating the order now.',
+  },
+];
+
 const meta: Meta<typeof DataVisNitroChat> = {
   id: 'grids-datavis-chat',
   title: 'Components/Grids/DataVis Chat',
@@ -324,6 +447,8 @@ Special field meanings are resolved from the column names or overridden with \`f
 - \`role\` / \`avatar\` / \`channel\` / \`id\` → participant sub-label, avatar, delivery channel, and message id
 - \`parentId\` → the replied-to message id; replies render as a collapsible reply tree
 - \`room\` → the room/topic a message belongs to; rows group into one conversation per room, listed in a conversation list (SuperChatInbox) above each room's messages
+
+With a \`time\` field, each room's messages are also sub-grouped by when they were sent — **Today / Earlier this week / Earlier this month / Earlier this year / Older** — nested under the room in the conversation list. The room is an accordion header that shows all of its messages; each bucket shows only that timeframe. With several rooms, **All conversations** heads the list and shows every message. Opening a bucket is a drill-down: \`onDrillDown\` receives the bucket's filter, resolved at that moment (e.g. *Earlier this week* on a Thursday is Monday 00:00 → Thursday 00:00), plus the room — apply it to a view if you want the grid filtered too. \`weekStartsOn\` sets the first day of the week (Monday by default).
 
 ### Use it when
 
@@ -623,6 +748,30 @@ export const RoomsWithThreads: Story = {
     columns: ROOMS_COLUMNS,
     currentSender: 'Dr. Alice Nguyen',
     defaultActiveRoom: 'Bed 12',
+    className: 'h-[32rem]',
+  },
+};
+
+/**
+ * With a `time` field, each room's date buckets nest under it in the
+ * conversation list. The room header shows all of its messages and toggles the
+ * accordion; a bucket shows only that timeframe.
+ */
+export const DateBucketsInRoom: Story = {
+  name: 'Rooms with date buckets',
+  parameters: {
+    exampleNote: {
+      title: 'Date-range sub-grouping within a room',
+      body: 'Each room in the conversation list is an accordion header: click it to see all of the room’s messages and reveal its date buckets — Today, Earlier this week, Earlier this month, Earlier this year, Older — relative to now (fixed here to Thursday 7 May 2026, 15:00 via the now prop). Click a bucket to see only that timeframe; the panel title shows the room and the bucket. All conversations, at the top, returns to every room’s messages (and has its own buckets). Buckets are disjoint, so their counts add up to the room total. Opening a bucket also calls onDrillDown with its runtime-resolved filter — see the Actions panel.',
+    },
+  },
+  args: {
+    viewData: plainView(BUCKET_ROWS),
+    columns: BUCKET_COLUMNS,
+    currentSender: 'Dr. Alice Nguyen',
+    defaultActiveRoom: 'Bed 12',
+    now: BUCKETS_NOW,
+    onDrillDown: fn(),
     className: 'h-[32rem]',
   },
 };

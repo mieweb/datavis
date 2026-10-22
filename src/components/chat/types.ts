@@ -9,6 +9,8 @@
 
 import type { TableColumn } from '../table/types';
 import type { ViewData } from '../../adapters/use-data';
+import type { WeekStartDay } from '../../adapters/relative-date-groups';
+import type { FilterSpec } from '../filters/types';
 
 /**
  * Which data field supplies each chat role. Every entry is a field name (a key
@@ -71,14 +73,39 @@ export interface DataVisNitroChatProps {
   /**
    * Group rows into rooms/topics when a `room` field is available, showing a
    * conversation list (one entry per room) beside the active room's messages.
-   * Defaults to `true`; set `false` to render every row as one conversation.
+   * With several rooms, an "All conversations" entry heads the list and shows
+   * every message. Defaults to `true`; set `false` to render every row as one
+   * conversation.
    */
   showRooms?: boolean;
   /**
    * Room selected on first render, matched exactly (after trimming) against the
-   * room value. Defaults to the most recently active room.
+   * room value. Defaults to "All conversations" (or the only room).
    */
   defaultActiveRoom?: string;
+  /**
+   * Sub-group each room's messages by when they were sent (Today / Earlier
+   * this week / Earlier this month / Earlier this year / Older) when a `time`
+   * field is available. The non-empty buckets are nested under the room in the
+   * conversation list: the room is an accordion header showing all of its
+   * messages, and each bucket shows only that timeframe. Without a `room`
+   * field, the whole conversation becomes the single header. Defaults to `true`.
+   */
+  showDateBuckets?: boolean;
+  /** First day of the week for the date buckets (0 = Sunday … 6 = Saturday). Defaults to `1` (Monday). */
+  weekStartsOn?: WeekStartDay;
+  /**
+   * Reference instant the date buckets are relative to. Defaults to the
+   * current time, re-read whenever the buckets are rebuilt or drilled into.
+   */
+  now?: Date;
+  /**
+   * Called when the user opens a date bucket, with the drill-down filter that
+   * reproduces it: the time field restricted to the bucket's range (resolved
+   * at that moment) plus, in rooms mode, the room field. The chat itself only
+   * navigates locally; pass this to apply the filter to a view as well.
+   */
+  onDrillDown?: (filter: FilterSpec) => void;
   /**
    * The participant treated as the local user (right-aligned bubbles). Matched
    * exactly (after trimming) against the resolved sender value, the same

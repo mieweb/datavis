@@ -426,5 +426,11 @@
   "CHAT.EMPTY": "No messages to display.",
   "CHAT.PLAIN_ONLY": "Chat mode shows plain rows as messages. Clear grouping and pivoting to view the conversation.",
   "CHAT.TITLE": "Conversation",
-  "CHAT.UNTITLED_ROOM": "General"
+  "CHAT.UNTITLED_ROOM": "General",
+  "CHAT.DATE_BUCKET.TODAY": "Today",
+  "CHAT.DATE_BUCKET.THIS_WEEK": "Earlier this week",
+  "CHAT.DATE_BUCKET.THIS_MONTH": "Earlier this month",
+  "CHAT.DATE_BUCKET.THIS_YEAR": "Earlier this year",
+  "CHAT.DATE_BUCKET.OLDER": "Older",
+  "CHAT.ALL_CONVERSATIONS": "All conversations"
 }

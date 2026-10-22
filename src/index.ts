@@ -24,6 +24,11 @@ export {
   buildLocalSourceTypeInfo,
   buildAggregateFunctions,
   getBuiltinGroupFunctions,
+  RELATIVE_DATE_BUCKETS,
+  resolveRelativeDateRanges,
+  relativeDateBucketOf,
+  relativeDateBucketToFilter,
+  dateRangeToFilter,
   determineColumns,
   toLegacyAggregateSpec,
   type EventEmitter,
@@ -42,6 +47,10 @@ export {
   type FieldTypeInfo,
   type AggregateSpecMap,
   type AggregateSpecItem,
+  type RelativeDateBucket,
+  type RelativeDateOptions,
+  type WeekStartDay,
+  type DateRange,
 } from './adapters';
 
 // Components
