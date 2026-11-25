@@ -9,6 +9,8 @@
  * locale is used, which gives US users the familiar MM/DD/YY format.
  */
 
+import { parseDateValue } from '../../adapters/parse-date';
+
 /** Matches ISO-ish date strings like "2019-03-15" or "2019-03-15T10:30". */
 const DATE_RE = /^\d{4}-\d{2}-\d{2}/;
 
@@ -64,8 +66,15 @@ export function formatDatePreset(
     return formatRelativeDate(d);
   }
   if (preset === 'iso') {
-    const iso = d.toISOString();
-    return isDatetime ? iso.replace('T', ' ').slice(0, 16) : iso.slice(0, 10);
+    if (!isDatetime) {
+      // A calendar date is held as local midnight (see parseDateValue);
+      // toISOString() would shift it to the previous day east of UTC.
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+    return d.toISOString().replace('T', ' ').slice(0, 16);
   }
   const opts: Intl.DateTimeFormatOptions = {
     ...DATE_OPTIONS[preset],
@@ -135,8 +144,8 @@ export function formatCellValue(
   const t = typeInfo?.type;
 
   if ((t === 'date' || t === 'datetime') && DATE_RE.test(s)) {
-    const d = new Date(s);
-    if (!isNaN(d.getTime())) {
+    const d = parseDateValue(s);
+    if (d) {
       return formatDatePreset(d, dateFormat ?? 'short', t === 'datetime', locale);
     }
   }
