@@ -278,7 +278,10 @@ export function PrefsToolbar({
   );
 
   const perspectiveSelect = perspectives.length > 0 ? (
+    // Only keeps pointer presses on the Select from reaching the parent menu;
+    // the Select itself is the interactive element.
     <div
+      role="presentation"
       className="min-w-[12rem]"
       onMouseDown={(event) => event.stopPropagation()}
       onTouchStart={(event) => event.stopPropagation()}
