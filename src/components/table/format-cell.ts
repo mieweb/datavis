@@ -69,7 +69,12 @@ export function formatDatePreset(
     if (!isDatetime) {
       // A calendar date is held as local midnight (see parseDateValue);
       // toISOString() would shift it to the previous day east of UTC.
-      const y = d.getFullYear();
+      const year = d.getFullYear();
+      // ISO 8601: four-digit years, signed six-digit years outside 0–9999.
+      const y =
+        year >= 0 && year <= 9999
+          ? String(year).padStart(4, '0')
+          : `${year < 0 ? '-' : '+'}${String(Math.abs(year)).padStart(6, '0')}`;
       const m = String(d.getMonth() + 1).padStart(2, '0');
       const day = String(d.getDate()).padStart(2, '0');
       return `${y}-${m}-${day}`;

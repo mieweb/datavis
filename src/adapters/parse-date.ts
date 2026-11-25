@@ -23,9 +23,15 @@ export function parseDateValue(value: unknown): Date | undefined {
   if (typeof value === 'string') {
     const match = DATE_ONLY_RE.exec(value.trim());
     if (match) {
-      const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]));
+      const year = Number(match[1]);
+      const month = Number(match[2]) - 1;
+      const day = Number(match[3]);
+      // setFullYear, not new Date(y, m, d): the constructor maps years 0–99
+      // to 1900–1999.
+      const date = new Date(2000, 0, 1);
+      date.setFullYear(year, month, day);
       // Reject roll-overs such as 2026-02-31 → Mar 3.
-      return date.getMonth() === Number(match[2]) - 1 && date.getDate() === Number(match[3])
+      return date.getFullYear() === year && date.getMonth() === month && date.getDate() === day
         ? date
         : undefined;
     }

@@ -2,7 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 import { parseDateValue } from './parse-date';
 import { relativeDateBucketOf, resolveRelativeDateRanges } from './relative-date-groups';
-import { formatCellValue } from '../components/table/format-cell';
+import { formatCellValue, formatDatePreset } from '../components/table/format-cell';
 
 // Node applies TZ changes at runtime; pin zones on both sides of UTC so the
 // suite catches the shift even on a CI runner that runs in UTC.
@@ -35,6 +35,22 @@ describe.each(['America/Chicago', 'Pacific/Honolulu', 'UTC', 'Europe/Berlin', 'A
       expect(formatCellValue('2026-11-01', date, 'en-US', 'long')).toBe('November 1, 2026');
       expect(formatCellValue('2026-11-01', date, 'en-US', 'iso')).toBe('2026-11-01');
       expect(formatCellValue('2026-01-01', date, 'en-US')).toBe('01/01/26');
+    });
+
+    it('keeps years 0–99 and pads ISO years', () => {
+      const early = parseDateValue('0099-01-01');
+      expect([early!.getFullYear(), early!.getMonth(), early!.getDate()]).toEqual([99, 0, 1]);
+      const leap = parseDateValue('0000-02-29');
+      expect([leap!.getFullYear(), leap!.getMonth(), leap!.getDate()]).toEqual([0, 1, 29]);
+      const date = { type: 'date' };
+      expect(formatCellValue('0999-01-01', date, 'en-US', 'iso')).toBe('0999-01-01');
+      expect(formatCellValue('0099-12-31', date, 'en-US', 'iso')).toBe('0099-12-31');
+      expect(formatCellValue('0000-02-29', date, 'en-US', 'iso')).toBe('0000-02-29');
+      const far = new Date(2000, 0, 1);
+      far.setFullYear(12345, 5, 7);
+      expect(formatDatePreset(far, 'iso')).toBe('+012345-06-07');
+      far.setFullYear(-44, 2, 15);
+      expect(formatDatePreset(far, 'iso')).toBe('-000044-03-15');
     });
 
     it('buckets a date-only value by its local calendar day', () => {
