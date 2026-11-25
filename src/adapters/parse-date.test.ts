@@ -39,9 +39,15 @@ describe.each(['America/Chicago', 'Pacific/Honolulu', 'UTC', 'Europe/Berlin', 'A
       expect(formatCellValue('2026-11-01', { type: 'datetime' }, 'en-US', 'iso')).toBe(
         '2026-11-01 00:00',
       );
-      expect(formatCellValue('2026-11-01T14:05', { type: 'datetime' }, 'en-US', 'iso')).toBe(
-        '2026-11-01 14:05',
+    });
+
+    it('keeps the UTC ISO form for timestamps in a datetime column', () => {
+      expect(formatCellValue('2026-11-01T00:00:00Z', { type: 'datetime' }, 'en-US', 'iso')).toBe(
+        '2026-11-01 00:00',
       );
+      expect(
+        formatCellValue('2026-11-01T09:30:00-05:00', { type: 'datetime' }, 'en-US', 'iso'),
+      ).toBe('2026-11-01 14:30');
     });
 
     it('keeps years 0–99 and pads ISO years', () => {

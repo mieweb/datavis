@@ -12,6 +12,11 @@
 /** A bare `YYYY-MM-DD` calendar date with no time component. */
 const DATE_ONLY_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
 
+/** Whether `value` is a bare `YYYY-MM-DD` calendar date (no time part). */
+export function isDateOnlyString(value: unknown): value is string {
+  return typeof value === 'string' && DATE_ONLY_RE.test(value.trim());
+}
+
 /**
  * Parse a date-like value (Date, epoch ms, or date string) into a valid Date,
  * reading `YYYY-MM-DD` as local midnight. Returns `undefined` for a missing
