@@ -66,20 +66,18 @@ export function formatDatePreset(
     return formatRelativeDate(d);
   }
   if (preset === 'iso') {
-    if (!isDatetime) {
-      // A calendar date is held as local midnight (see parseDateValue);
-      // toISOString() would shift it to the previous day east of UTC.
-      const year = d.getFullYear();
-      // ISO 8601: four-digit years, signed six-digit years outside 0–9999.
-      const y =
-        year >= 0 && year <= 9999
-          ? String(year).padStart(4, '0')
-          : `${year < 0 ? '-' : '+'}${String(Math.abs(year)).padStart(6, '0')}`;
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    }
-    return d.toISOString().replace('T', ' ').slice(0, 16);
+    // Local parts, like every other preset: a calendar date is held as local
+    // midnight (see parseDateValue), and toISOString() would shift it, and any
+    // datetime, to UTC.
+    const year = d.getFullYear();
+    // ISO 8601: four-digit years, signed six-digit years outside 0–9999.
+    const y =
+      year >= 0 && year <= 9999
+        ? String(year).padStart(4, '0')
+        : `${year < 0 ? '-' : '+'}${String(Math.abs(year)).padStart(6, '0')}`;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const date = `${y}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    return isDatetime ? `${date} ${pad(d.getHours())}:${pad(d.getMinutes())}` : date;
   }
   const opts: Intl.DateTimeFormatOptions = {
     ...DATE_OPTIONS[preset],
