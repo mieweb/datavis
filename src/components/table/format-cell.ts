@@ -9,6 +9,8 @@
  * locale is used, which gives US users the familiar MM/DD/YY format.
  */
 
+import { isDateOnlyString, parseDateValue } from '../../adapters/parse-date';
+
 /** Matches ISO-ish date strings like "2019-03-15" or "2019-03-15T10:30". */
 const DATE_RE = /^\d{4}-\d{2}-\d{2}/;
 
@@ -64,8 +66,20 @@ export function formatDatePreset(
     return formatRelativeDate(d);
   }
   if (preset === 'iso') {
-    const iso = d.toISOString();
-    return isDatetime ? iso.replace('T', ' ').slice(0, 16) : iso.slice(0, 10);
+    if (isDatetime) {
+      // Timestamps keep their UTC ISO form (also what CSV export writes).
+      return d.toISOString().replace('T', ' ').slice(0, 16);
+    }
+    // A calendar date is held as local midnight (see parseDateValue), so
+    // format it from local parts; toISOString() would shift it to UTC.
+    const year = d.getFullYear();
+    // ISO 8601: four-digit years, signed six-digit years outside 0–9999.
+    const y =
+      year >= 0 && year <= 9999
+        ? String(year).padStart(4, '0')
+        : `${year < 0 ? '-' : '+'}${String(Math.abs(year)).padStart(6, '0')}`;
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${y}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   }
   const opts: Intl.DateTimeFormatOptions = {
     ...DATE_OPTIONS[preset],
@@ -135,8 +149,13 @@ export function formatCellValue(
   const t = typeInfo?.type;
 
   if ((t === 'date' || t === 'datetime') && DATE_RE.test(s)) {
-    const d = new Date(s);
-    if (!isNaN(d.getTime())) {
+    const d = parseDateValue(s);
+    if (d) {
+      // A bare calendar date in a datetime column has no instant to show in
+      // UTC: its ISO form is that date at midnight.
+      if (t === 'datetime' && dateFormat === 'iso' && isDateOnlyString(s)) {
+        return `${formatDatePreset(d, 'iso', false, locale)} 00:00`;
+      }
       return formatDatePreset(d, dateFormat ?? 'short', t === 'datetime', locale);
     }
   }

@@ -15,6 +15,7 @@
  */
 
 import type { FieldFilterSpec } from '../components/filters/types';
+import { parseDateValue } from './parse-date';
 
 /** Relative date buckets, newest first. */
 export const RELATIVE_DATE_BUCKETS = [
@@ -78,11 +79,13 @@ export function resolveRelativeDateRanges(
   };
 }
 
-/** Parse a date-like value (Date, epoch ms, or date string) into a valid Date. */
+/**
+ * Parse a date-like value (Date, epoch ms, or date string) into a valid Date.
+ * A `YYYY-MM-DD` calendar date is local midnight, so it lands in the right
+ * bucket near midnight rather than in the previous day's.
+ */
 export function toValidDate(value: unknown): Date | undefined {
-  if (value == null || value === '') return undefined;
-  const date = value instanceof Date ? value : new Date(value as string | number);
-  return Number.isNaN(date.getTime()) ? undefined : date;
+  return parseDateValue(value);
 }
 
 function inRange(time: number, range: DateRange): boolean {
